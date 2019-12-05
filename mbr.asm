@@ -114,6 +114,8 @@ clear:
     mov word [es:si], dx
     loop __clear__
 
+  ret
+
   ; 设置光标的位置.
 set_cursor:           ; func (uint8 x, uint8 y)
   mov bh, 0           ; BH = page number
