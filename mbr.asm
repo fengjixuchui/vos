@@ -9,29 +9,33 @@ org _MBR_PA
 bits 16
 
 BootSector:
-  ; http://stanislavs.org/helppc/boot_sector.html
   jmp short boot
-  nop                    ; 3bytes     jump to executable code
-  db '0x7cc', 0, 0, 0    ; 8bytes     OEM name and version
-  dw 512                 ; word       bytes per sector
-  db 1                   ; byte       sectors per cluster (allocation unit size)
-  dw 1                   ; word       number of reserved sectors (starting at 0)
-  db 2                   ; byte       number of FAT's on disk
-  dw 224                 ; word       number of root directory entries (directory size)
-  dw 2880                ; word       number of total sectors (0 if partition > 32Mb)
-  db 0xf0                ; byte       media descriptor byte
-  dw 9                   ; word       sectors per FAT
-  dw 18                  ; word       sectors per track  (DOS 3.0+)
-  dw 2                   ; word       number of heads  (DOS 3.0+)
-  dw 0                   ; word       number of hidden sectors  (DOS 3.0+)
-  dw 0                   ; no in the doc ??????
-  dd 0                   ; dword      (DOS 4+) number of sectors if offset 13 was 0
-  db _DRIVE_NUM          ; byte       (DOS 4+) physical drive number
-  db 0                   ; byte       (DOS 4+) reserved
-  db 0x29                ; byte       (DOS 4+) signature byte (29h)
-  dd 0                   ; dword      (DOS 4+) volume serial number
-  db '0x7cc vos', 0, 0   ; 11bytes    (DOS 4+) volume label
-  db 'FAT12', 0, 0, 0    ; 8bytes     (DOS 4+) reserved
+  nop                    ; 3 BYTEs    jump to executable code
+  db '0x7cc', 0, 0, 0    ; 8 BYTEs    OEM name and version
+
+  ; https://en.wikipedia.org/wiki/BIOS_parameter_block#DOS_2.0_BPB
+  dw 512                 ; WORD       Bytes per logical sector
+  db 1                   ; BYTE       Logical sectors per cluster
+  dw 1                   ; WORD       Reserved logical sectors
+  db 2                   ; BYTE       Number of FATs
+  dw 224                 ; WORD       Root directory entries
+  dw 2880                ; WORD       Total logical sectors
+  db 0xf0                ; BYTE       Media descriptor
+  dw 9                   ; WORD       Logical sectors per FAT
+
+  ; https://en.wikipedia.org/wiki/BIOS_parameter_block#DOS_3.31_BPB
+  dw 18                  ; WORD       Physical sectors per track (identical to DOS 3.0 BPB)
+  dw 2                   ; WORD       Number of heads (identical to DOS 3.0 BPB)
+  dd 0                   ; DWORD      Hidden sectors (incompatible with DOS 3.0 BPB)
+  dd 0                   ; DWORD      Large total logical sectors
+
+  ; https://en.wikipedia.org/wiki/BIOS_parameter_block#DOS_4.0_EBPB
+  db _DRIVE_NUM          ; BYTE       Physical drive number (identical to DOS 3.4 EBPB)
+  db 0                   ; BYTE       Flags etc. (identical to DOS 3.4 EBPB)
+  db 0x29                ; BYTE       Extended boot signature (0x29 aka "4.1") (similar to DOS 3.4 EBPB and NTFS EBPB)
+  dd 0                   ; DWORD      Volume serial number (identical to DOS 3.4 EBPB)
+  db '0x7cc vos', 0, 0   ; 11 BYTEs   Volume label
+  db 'FAT12', 0, 0, 0    ; 8 BYTEs    File-system type
 
 boot:
   call init
