@@ -1,8 +1,8 @@
 
+%include "defs.asm"
+
 _MBR_PA         equ 0x7c00      ; MBR被加载到的地址.
 _DRIVE_NUM      equ 0b00000000  ; Drive number.
-
-%include "defs.asm"
 
 org _MBR_PA
 bits 16
