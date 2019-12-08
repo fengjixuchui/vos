@@ -1,15 +1,14 @@
 
 _MBR_PA         equ 0x7c00      ; MBR被加载到的地址.
-_VIDEO_PA       equ 0xb800      ; 实模式中显存的段地址.
 _DRIVE_NUM      equ 0b00000000  ; Drive number.
-_KERNEL_SEGMENT equ 0x1000      ; 内核程序段基址.
-_KERNEL_OFFSET  equ 0x0000      ; 内核程序段偏移.
+
+%include "defs.asm"
 
 org _MBR_PA
 bits 16
 
 BootSector:
-  jmp short boot
+  jmp short ENTRY16
   nop                    ; 3 BYTEs    jump to executable code
   db '0x7cc', 0, 0, 0    ; 8 BYTEs    OEM name and version
 
@@ -37,7 +36,7 @@ BootSector:
   db '0x7cc vos', 0, 0   ; 11 BYTEs   Volume label
   db 'FAT12', 0, 0, 0    ; 8 BYTEs    File-system type
 
-boot:                    ; void boot(void)
+ENTRY16:                 ; void boot(void)
   call init
   call work
   call end
@@ -66,9 +65,10 @@ work:                    ; void work(void)
   call set_cursor
   add esp, 4
 
-  call open_A20_line
-
   call read_floppy
+
+;  BOCHS_MAGIC_BREAK             ;
+  jmp _KERNEL_SEGMENT:_KERNEL_OFFSET
 
   ret
 
@@ -80,7 +80,6 @@ reset_floppy:            ; void reset_floppy(void)
   ret
 
 read_floppy:             ; void read_floppy(uint8 driveNum, uint8 head, uint8 cylinder, uint8 sector)
-  call break             ;
   ; http://www.ctyme.com/intr/rb-0607.htm
   mov ax, _KERNEL_SEGMENT
   mov es, ax
@@ -93,18 +92,6 @@ read_floppy:             ; void read_floppy(uint8 driveNum, uint8 head, uint8 cy
   mov bx, _KERNEL_OFFSET ; ES:BX -> data buffer
   int 0x13               ;
   jc read_floppy
-
-  ret
-
-open_A20_line:
-  ; https://wiki.osdev.org/A20_Line#Fast_A20_Gate
-  push ax
-  in   al, 92h
-  or   al, 00000010b
-  out  92h,  al
-  pop  ax
-
-  cli
 
   ret
 
@@ -171,10 +158,6 @@ puts:                    ; void puts(uint16 ptr, uint16 len)
 
 end:                     ; void end(void)
   jmp $
-
-break:                   ; void break(void)
-  xchg bx, bx            ; bochs magic break
-  ret
 
 text: db "hello!", 0     ; 定义一个字符串.
 len equ ($ - text - 1)   ; 字符串的长度.
