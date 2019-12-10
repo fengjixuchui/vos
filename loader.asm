@@ -5,39 +5,54 @@ _KERNEL_BASE_ equ (_KERNEL_SEGMENT << 4 + _KERNEL_OFFSET)
 org _KERNEL_BASE_
 jmp loader_ENTRY16
 
-SECTION GDT_32
+section GDT_32
 ; https://wiki.osdev.org/Global_Descriptor_Table
-LABEL_GDT32:  dq 0
-LABEL_DESC_CODE32: dq 0x00CF9A000000FFFF
-LABEL_DESC_DATA32: dq 0x00CF92000000FFFF
-dq GDT32_BASE(0x00100000) | GDT32_LIMIT(0x001fffff) | GDT32_FLAGS(1, 1) | GDT32_ACCESS(0, 1, 0, 1, 1, 0)
-dq GDT32_BASE(0x00200000) | GDT32_LIMIT(0x002fffff) | GDT32_FLAGS(1, 1) | GDT32_ACCESS(0, 1, 0, 0, 1, 0)
-dq GDT32_BASE(0x00300000) | GDT32_LIMIT(0x003fffff) | GDT32_FLAGS(1, 0) | GDT32_ACCESS(0, 1, 0, 1, 1, 0)
-dq GDT32_BASE(0x00400000) | GDT32_LIMIT(0x004fffff) | GDT32_FLAGS(1, 0) | GDT32_ACCESS(0, 1, 0, 0, 1, 0)
+GDT_32_BEGIN:
+dq 0
+GDT_32_SELECTOR_1 dq GDT_BASE(0x00000000) | GDT_LIMIT(0x0fffffff) | GDT_FLAGS(1, 1) | GDT_ACCESS(0, 1, 0, 1, 1, 0)
+GDT_32_SELECTOR_2 dq GDT_BASE(0x10000000) | GDT_LIMIT(0x1fffffff) | GDT_FLAGS(1, 1) | GDT_ACCESS(0, 1, 0, 0, 1, 0)
+GDT_32_SELECTOR_3 dq GDT_BASE(0x20000000) | GDT_LIMIT(0x2fffffff) | GDT_FLAGS(1, 0) | GDT_ACCESS(0, 1, 0, 1, 1, 3)
+GDT_32_SELECTOR_4 dq GDT_BASE(0x30000000) | GDT_LIMIT(0x3fffffff) | GDT_FLAGS(1, 0) | GDT_ACCESS(0, 1, 0, 0, 1, 3)
+GDT_32_END:
 
-GdtLen equ $ - LABEL_GDT32
+GdtLen equ $ - GDT_32_BEGIN
 
-GDT_PTR_32:
+GDT_32_PTR:
 limit32 dw GdtLen - 1
-base32  dd LABEL_GDT32
+base32  dd GDT_32_BEGIN
 
-SelectorCode32 equ LABEL_DESC_CODE32 - LABEL_GDT32
-SelectorData32 equ LABEL_DESC_DATA32 - LABEL_GDT32
+SelectorCode32 equ GDT_32_SELECTOR_1 - GDT_32_BEGIN
+SelectorData32 equ GDT_32_SELECTOR_2 - GDT_32_BEGIN
 
-SECTION GDT_64
+section GDT_64
 
-LABEL_GDT64:  dq 0x0000000000000000
-LABEL_DESC_CODE64: dq 0x0020980000000000
-LABEL_DESC_DATA64: dq 0x0000920000000000
+GDT_64_BEGIN:
+dq 0
+;LABEL_DESC_CODE64: dq 0x0020980000000000
+;LABEL_DESC_DATA64: dq 0x0000920000000000
+GDT_64_SELECTOR_1 dq GDT_BASE(0x00000000) | GDT_LIMIT(0x0fffffff) | GDT_FLAGS(1, 1) | GDT_ACCESS(0, 1, 0, 1, 1, 0)
+GDT_64_SELECTOR_2 dq GDT_BASE(0x10000000) | GDT_LIMIT(0x1fffffff) | GDT_FLAGS(1, 1) | GDT_ACCESS(0, 1, 0, 0, 1, 0)
+GDT_64_SELECTOR_3 dq GDT_BASE(0x20000000) | GDT_LIMIT(0x2fffffff) | GDT_FLAGS(1, 0) | GDT_ACCESS(0, 1, 0, 1, 1, 3)
+GDT_64_SELECTOR_4 dq GDT_BASE(0x30000000) | GDT_LIMIT(0x3fffffff) | GDT_FLAGS(1, 0) | GDT_ACCESS(0, 1, 0, 0, 1, 3)
+GDT_64_END:
 
-GdtLen64 equ $ - LABEL_GDT64
+GdtLen64 equ $ - GDT_64_BEGIN
 
 GDT_PTR_64:
 limit64 dw GdtLen64 - 1
-base64  dq LABEL_GDT64
+base64  dq GDT_64_BEGIN
 
-SelectorCode64 equ LABEL_DESC_CODE64 - LABEL_GDT64
-SelectorData64 equ LABEL_DESC_DATA64 - LABEL_GDT64
+SelectorCode64 equ GDT_64_SELECTOR_1 - GDT_64_BEGIN
+SelectorData64 equ GDT_64_SELECTOR_2 - GDT_64_BEGIN
+
+section IDT_32
+IDT_32_BEGIN:
+times 0x50 dd 0
+IDT_32_END:
+
+IDT_32_PTR:
+dw    IDT_32_END - IDT_32_BEGIN - 1
+dd    IDT_32_BEGIN
 
 section code
 bits 16
@@ -57,31 +72,41 @@ open_A20_line:
   out  92h,  al
   pop  ax
 
-  BOCHS_MAGIC_BREAK
+;  BOCHS_MAGIC_BREAK
 
   cli
 
   db 0x66
-  lgdt [GDT_PTR_32]
+  lgdt [GDT_32_PTR]
+
+  db 0x66
+  lidt [IDT_32_PTR]
 
   mov eax, cr0
-  or eax, 1
-  mov cr0, eax             ; 进入保护模式.
+  or eax, CR0_PE           ; set PE flag.
+  mov cr0, eax             ; enter protected mode.
+
+  mov ax, SelectorCode32
+;  mov cs, ax
+  mov ds, ax               ; reload segment register.
+  mov es, ax               ; reload segment register.
+  mov fs, ax               ; reload segment register.
+  mov gs, ax               ; reload segment register.
 
   mov ax, SelectorData32
-;  mov cs, ax
-  mov ds, ax
-  mov es, ax
-  mov fs, ax
-  mov gs, ax
-  mov ss, ax
+  mov ss, ax               ; reload segment register.
+
+  BOCHS_MAGIC_BREAK
+
+  ; 此时, 段的高13bits就是gdt表中的索引.
+  jmp dword SelectorCode32:0 ; jump to 32 bit code.
+
   mov eax, cr0
-  and al, 11111110b
-  mov cr0, eax             ; 退出保护模式.
+  and al, ~(CR0_PE)        ; clear PE flag.
+  mov cr0, eax             ; exit protected mode.
 
   sti
 
-  BOCHS_MAGIC_BREAK
 
   ret
 

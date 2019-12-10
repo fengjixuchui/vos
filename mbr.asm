@@ -65,9 +65,18 @@ work:                    ; void work(void)
   call set_cursor
   add esp, 4
 
+  push 10                ; uint8 count        读取扇区数量
+  push 2                 ; uint8 sectorNum    扇区号
+  push 0                 ; uint8 cylinder     磁道
+  push 0                 ; uint8 head         磁头
+  push _DRIVE_NUM        ; uint8 driveNum     磁盘
+  push _KERNEL_OFFSET    ; uint16 offset
+  push _KERNEL_SEGMENT   ; uint16 segment
   call read_floppy
+  add esp, 14
 
 ;  BOCHS_MAGIC_BREAK             ;
+
   jmp _KERNEL_SEGMENT:_KERNEL_OFFSET
 
   ret
@@ -79,17 +88,17 @@ reset_floppy:            ; void reset_floppy(void)
   int 0x13
   ret
 
-read_floppy:             ; void read_floppy(uint8 driveNum, uint8 head, uint8 cylinder, uint8 sector)
+read_floppy:             ; void read_floppy(uint16 segment, uint16 offset, uint8 driveNum, uint8 head, uint8 cylinder, uint8 sectorNum, uint8 count)
   ; http://www.ctyme.com/intr/rb-0607.htm
-  mov ax, _KERNEL_SEGMENT
+  mov ax, [esp + 2]      ; segment
   mov es, ax
   mov ah, 2              ; AH = 02h
-  mov al, 1              ; AL = number of sectors to read (must be nonzero)
-  mov ch, 0              ; CH = low eight bits of cylinder number
-  mov cl, 0b00000010     ; CL = sector number 1-63 (bits 0-5), high two bits of cylinder (bits 6-7, hard disk only)
-  mov dh, 0              ; DH = head number
-  mov dl, _DRIVE_NUM     ; DL = drive number (bit 7 set for hard disk)
-  mov bx, _KERNEL_OFFSET ; ES:BX -> data buffer
+  mov al, [esp + 14]     ; AL = number of sectors to read (must be nonzero)
+  mov ch, [esp + 10]     ; CH = low eight bits of cylinder number
+  mov cl, [esp + 12]     ; CL = sector number 1-63 (bits 0-5), high two bits of cylinder (bits 6-7, hard disk only)
+  mov dh, [esp + 8]      ; DH = head number
+  mov dl, [esp + 6]      ; DL = drive number (bit 7 set for hard disk)
+  mov bx, [esp + 4]      ; ES:BX -> data buffer
   int 0x13               ;
   jc read_floppy
 
