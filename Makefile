@@ -1,5 +1,5 @@
 
-X_OBJS=mbr.x loader.x
+X_OBJS=mbr.x loader.x protected_mode.x ia_32e.x
 BOOTIMG=boot.img
 TEMPIMG=.boot.img
 

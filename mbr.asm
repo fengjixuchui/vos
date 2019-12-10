@@ -70,14 +70,14 @@ work:                    ; void work(void)
   push 0                 ; uint8 cylinder     磁道
   push 0                 ; uint8 head         磁头
   push _DRIVE_NUM        ; uint8 driveNum     磁盘
-  push _KERNEL_OFFSET    ; uint16 offset
-  push _KERNEL_SEGMENT   ; uint16 segment
+  push _LOADER_OFFSET    ; uint16 offset
+  push _LOADER_SEGMENT   ; uint16 segment
   call read_floppy
   add esp, 14
 
 ;  BOCHS_MAGIC_BREAK             ;
 
-  jmp _KERNEL_SEGMENT:_KERNEL_OFFSET
+  jmp _LOADER_SEGMENT:_LOADER_OFFSET
 
   ret
 
