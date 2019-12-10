@@ -86,8 +86,6 @@ open_A20_line:
   or eax, CR0_PE           ; set PE flag.
   mov cr0, eax             ; enter protected mode.
 
-  BOCHS_MAGIC_BREAK
-
   ; <<<<<<<<<<<<<<<<<<<<<<< 由于暂时不想实现文件系统, 这里先将保护模式的代码拷贝到32位代码区, 代码长度由 protected_mode.asm 的头开头 uint16 指定.
   mov ax, (GDT_32_PROTECT_MODE_DATA - GDT_32_BEGIN)
   mov fs, ax
@@ -111,6 +109,8 @@ open_A20_line:
 
   mov ax, (GDT_32_PROTECT_MODE_DATA - GDT_32_BEGIN)
   mov ss, ax               ; reload segment register. the ss register must be a pointer to data segment.
+
+  BOCHS_MAGIC_BREAK
 
   ; 此时, 段的高13bits就是gdt表中的索引.
   jmp dword (GDT_32_PROTECT_MODE_CODE - GDT_32_BEGIN):0 ; jump to 32 bit code.
