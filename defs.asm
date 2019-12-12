@@ -52,3 +52,8 @@
 %define CR4_SMEP (1 << 20)
 %define CR4_SMAP (1 << 21)
 %define CR4_PKE  (1 << 22)
+
+%define IA32_EFER_SCE (1 << 0)
+%define IA32_EFER_LME (1 << 8)
+%define IA32_EFER_LMA (1 << 10)
+%define IA32_EFER_NXE (1 << 11)

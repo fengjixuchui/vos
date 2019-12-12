@@ -22,12 +22,12 @@ limit32 dw GdtLen - 1
 base32  dd GDT_32_BEGIN
 
 
-;section GDT_64
+section GDT_64
 
 GDT_64_BEGIN:
 dq 0
-GDT_64_IA32E_MODE_DATA dq GDT_FLAGS_64(1) | GDT_ACCESS(0, 1, 0, 0, 1, 0)
-GDT_64_IA32E_MODE_CODE dq GDT_FLAGS_64(1) | GDT_ACCESS(0, 1, 0, 1, 1, 0)
+GDT_64_IA32E_MODE_DATA dq GDT_FLAGS_64(0) | GDT_ACCESS(0, 1, 0, 0, 1, 0)
+GDT_64_IA32E_MODE_CODE dq GDT_FLAGS_64(0) | GDT_ACCESS(0, 0, 0, 1, 1, 0)
 GDT_64_END:
 
 GdtLen64 equ $ - GDT_64_BEGIN
@@ -84,7 +84,7 @@ open_A20_line:
   mov gs, ax               ; reload segment register.
   mov ss, ax               ; reload segment register. the ss register must be a pointer to data segment.
 
-;  BOCHS_MAGIC_BREAK
+  BOCHS_MAGIC_BREAK
 
   ; 此时, 段的高13bits就是gdt表中的索引.
   jmp dword (GDT_32_PROTECT_MODE_CODE - GDT_32_BEGIN):PROTECTED_CODE ; jump to 32 bit code.
@@ -100,33 +100,46 @@ open_A20_line:
 PROTECTED_CODE:
 bits 32
 
-  mov dword [0x10000], 0x91007
-  mov dword [0x10800], 0x91007
-  mov dword [0x11000], 0x92007
-  mov dword [0x12000], 0x000083
-  mov dword [0x12008], 0x200083
-  mov dword [0x12010], 0x400083
-  mov dword [0x12018], 0x600083
-  mov dword [0x12020], 0x800083
-  mov dword [0x12028], 0xa00083
+  mov dword [0x20000], 0x91007
+  mov dword [0x20800], 0x91007
+  mov dword [0x21000], 0x92007
+  mov dword [0x22000], 0x000083
+  mov dword [0x22008], 0x200083
+  mov dword [0x22010], 0x400083
+  mov dword [0x22018], 0x600083
+  mov dword [0x22020], 0x800083
+  mov dword [0x22028], 0xa00083
 
   db 0x66
   lgdt [GDT_PTR_64]
 
-  mov ax, (GDT_64_IA32E_MODE_DATA - GDT_64_BEGIN)
-  mov ds, ax               ; reload segment register.
-  mov es, ax               ; reload segment register.
-  mov fs, ax               ; reload segment register.
-  mov gs, ax               ; reload segment register.
-  mov ss, ax               ; reload segment register. the ss register must be a pointer to data segment.
+  mov eax, (GDT_64_IA32E_MODE_DATA - GDT_64_BEGIN)
+  mov ds, eax               ; reload segment register.
+  mov es, eax               ; reload segment register.
+  mov fs, eax               ; reload segment register.
+  mov gs, eax               ; reload segment register.
+  mov ss, eax               ; reload segment register. the ss register must be a pointer to data segment.
 
   BOCHS_MAGIC_BREAK
-
-  jmp dword (GDT_64_IA32E_MODE_CODE - GDT_64_BEGIN):IA32E_CODE
 
   mov eax, cr4
   or  eax, CR4_PAE
   mov cr4, eax
+
+;  mov eax, 0x20000
+;  mov cr3, eax
+  
+  mov ecx, 0C0000080h    ;IA32_EFER
+  rdmsr
+  or eax, IA32_EFER_LME
+  wrmsr
+
+  mov eax, cr0
+  or eax, CR0_PE
+  or eax, CR0_PG
+  mov cr0, eax
+
+  jmp dword (GDT_64_IA32E_MODE_CODE - GDT_64_BEGIN):IA32E_CODE
 
 IA32E_CODE:
   jmp $
