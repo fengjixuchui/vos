@@ -1,19 +1,42 @@
+[TOC]
 
 # HELLO_MBR
 
-## Ubuntu
+## PROGRESS
+
+- BOOT
+
+  - [x] BIOS
+
+  - [ ] UEFI
+
+- FILE SYSTEM
+
+  - [ ] VFAT
+  
+  - [ ] EXT3 
+  
+  - [ ] EXT4
+
+- FEATURES
+
+  - [ ] VMX
+
+## BUILD
+
+### PREREQUISITES ON UBUNTU
 
 ```shell
 sudo apt install -y bochs bochs-x nasm
 ```
 
-## BUILD
+### COMPILE
 
 ```shell
 make
 ```
 
-## RUN & DEBUG
+### RUN & DEBUG
 
 ```shell
 make run
