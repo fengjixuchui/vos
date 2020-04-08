@@ -84,7 +84,7 @@ open_A20_line:
   mov gs, ax               ; reload segment register.
   mov ss, ax               ; reload segment register. the ss register must be a pointer to data segment.
 
-  BOCHS_MAGIC_BREAK
+;  BOCHS_MAGIC_BREAK
 
   ; 此时, 段的高13bits就是gdt表中的索引.
   jmp dword (GDT_32_PROTECT_MODE_CODE - GDT_32_BEGIN):PROTECTED_CODE ; jump to 32 bit code.
@@ -120,7 +120,7 @@ bits 32
   mov gs, eax               ; reload segment register.
   mov ss, eax               ; reload segment register. the ss register must be a pointer to data segment.
 
-  BOCHS_MAGIC_BREAK
+;  BOCHS_MAGIC_BREAK
 
   mov eax, cr4
   or  eax, CR4_PAE
@@ -139,7 +139,6 @@ bits 32
   or eax, CR0_PG
   mov cr0, eax
 
-  jmp dword (GDT_64_IA32E_MODE_CODE - GDT_64_BEGIN):IA32E_CODE
+  jmp dword (GDT_64_IA32E_MODE_CODE - GDT_64_BEGIN):__x86_64_ENTRYPOINT
 
-IA32E_CODE:
-  jmp $
+%include "x86_64.asm"

@@ -1,12 +1,11 @@
 
 X_OBJS=mbr.x loader.x
 BOOTIMG=boot.img
-TEMPIMG=.boot.img
 
 all: ${X_OBJS}
 	cat $^ > ${BOOTIMG}
 
-%.x: %.asm defs.asm
+%.x: %.asm defs.asm x86_64.asm vmx.asm misc.asm
 	nasm $< -f bin -o $@
 
 .PHONY : run

@@ -1,4 +1,7 @@
 
+%ifndef VOS_DEFS
+%define VOS_DEFS
+
 %define BOCHS_MAGIC_BREAK xchg bx, bx
 
 %define _VIDEO_PA       0xb800      ; 实模式中显存的段地址.
@@ -57,3 +60,36 @@
 %define IA32_EFER_LME (1 << 8)
 %define IA32_EFER_LMA (1 << 10)
 %define IA32_EFER_NXE (1 << 11)
+
+%define IA32_FEATURE_CONTROL 0x3A
+%define IA32_VMX_BASIC       0x480
+
+%if __BITS__ == 64
+%define __REG_BP rbp
+%define __REG_SP rsp
+%else
+%define __REG_BP ebp
+%define __REG_SP esp
+%endif
+
+%define __STEP           (__BITS__ / 8)
+%define __ARGS_SIZE(N)   (N * __STEP)
+%define __ARG(INDEX)     [__REG_SP + (INDEX + 1) * __STEP]
+%define __STACK_CLEAR(N) add __REG_SP, __ARGS_SIZE(N)
+
+struc vos_t
+.vmx_host resb 4096
+.vendor resb 12       ; CPU 提供商
+.cpuid  resb 16
+endstruc
+%define __VOS_PA__ 0x00300000
+
+struc cpuid_t
+.eax resb 4
+.ebx resb 4
+.ecx resb 4
+.edx resb 4
+endstruc
+
+%endif ; VOS_DEFS
+
