@@ -65,7 +65,7 @@ __putc:
 ; void (const char* str, uint64 len)
 __puts:
 
-  mov rdi, _VIDEO_PA
+  mov rdi, 0xb8000
 ;  mov es, 0x0008    ; data segment
   mov rcx, 0              ; 初始化.
 
@@ -90,7 +90,6 @@ __puts:
 
     loop __puts__
 
-  __puts_end__:
     ret
 
 %endif ; VOS_MISC

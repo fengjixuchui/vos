@@ -4,7 +4,6 @@
 
 %define BOCHS_MAGIC_BREAK xchg bx, bx
 
-%define _VIDEO_PA       0xb8000      ; 实模式中显存的段地址.
 %define _LOADER_SEGMENT 0x1000      ; 内核程序段基址.
 %define _LOADER_OFFSET  0x0000      ; 内核程序段偏移.
 

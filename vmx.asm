@@ -19,9 +19,17 @@ __start_vm:
   push __VOS_PA__ + vos_t
   call __memset
   __STACK_CLEAR(3)
+  BOCHS_MAGIC_BREAK
+
+  push IA32_VMX_BASIC
+  call __rdmsr
+  __STACK_CLEAR(1)
 
   ; 设置vmx版本号
-  mov qword [__VOS_PA__ + vos_t.vmx_host], 1
+  mov dword [__VOS_PA__ + vos_t.vmx_host], eax
+
+  shr rax, 32
+  and rax, 0b1111111111111  ; get 44:32 bits, 这个值就是vmcs结构的大小.
 
   call __readcr0
   or rax, CR0_NE       ; 不知道开虚拟机为啥要设置这个标志位,看bochs源码里面会检测这个.
@@ -34,7 +42,6 @@ __start_vm:
   push rax
   call __writecr4
   __STACK_CLEAR(1)
-  BOCHS_MAGIC_BREAK
 
   push __VOS_PA__ + vos_t.vmx_host
   call __vmxon

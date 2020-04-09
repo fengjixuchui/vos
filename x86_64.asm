@@ -167,12 +167,16 @@ __cpuid:
 __rdmsr:
   mov rcx, __ARG(0)
   rdmsr
+  shl rdx, 32
+  or rax, rdx           ; merge to uint64
   ret
 
 __wrmsr:
 ; void (uint64 id, uint64 value)
   mov rcx, __ARG(0)
-  mov rax, __ARG(1)
+  mov rax, __ARG(1)     ; low part
+  mov rdx, __ARG(1)
+  shr rdx, 32           ; high part
   wrmsr
   ret
 
