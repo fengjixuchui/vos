@@ -4,6 +4,7 @@
 
 %include "defs.asm"
 
+bits 64
 
 ; int (const char* a, const char* b, int len)
 __memcmp:
@@ -57,5 +58,39 @@ __memcpy:
   loop __lll
   mov eax, 0
   ret
+
+__putc:
+  ret
+
+; void (const char* str, uint64 len)
+__puts:
+
+  mov rdi, _VIDEO_PA
+;  mov es, 0x0008    ; data segment
+  mov rcx, 0              ; 初始化.
+
+  mov byte r8, [__VOS_PA__ + vos_t.terminal_x]
+  mov byte r9, [__VOS_PA__ + vos_t.terminal_y]
+  mov rcx, __ARG(1)    ; len
+  mov r10, __ARG(0)    ; str
+
+  __puts__:
+    mov rax, r9
+    mov rbx, 2
+    mul rbx
+    add rax, r8       ; y * 2 + x
+
+    mov ah, 0b00000111    ; 左4bit背景RGB, 右4bit字符RGB
+    mov al, [r10]         ; ascii
+    mov word [ds:rdi], ax
+
+    inc r10
+    inc rdi
+    inc rdi
+
+    loop __puts__
+
+  __puts_end__:
+    ret
 
 %endif ; VOS_MISC

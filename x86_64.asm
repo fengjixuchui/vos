@@ -7,7 +7,6 @@
 
 bits 64
 
-
 VENDOR_INTEL db "GenuineIntel"
 VENDOR_AMD   db "AuthenticAMD"
 
@@ -25,6 +24,11 @@ __x86_64_ENTRYPOINT:
   mov dword [__VOS_PA__ + vos_t.vendor + 4], eax
   mov eax, [__VOS_PA__ + vos_t.cpuid + cpuid_t.ecx]
   mov dword [__VOS_PA__ + vos_t.vendor + 8], eax
+
+  push 12
+  push __VOS_PA__ + vos_t.vendor
+  call __puts
+  __STACK_CLEAR(2)
 
   push 12
   push __VOS_PA__ + vos_t.vendor
@@ -51,55 +55,61 @@ __x86_64_ENTRYPOINT:
 
 __GenuineIntel_ENTRY:
 
-  push 1
-  push __VOS_PA__ + vos_t.cpuid
-  call __cpuid
-  __STACK_CLEAR(2)
-
-  mov rax, [__VOS_PA__ + vos_t.cpuid + cpuid_t.ecx]
-  and rax, ( 1 << 5 ) ; Virtual Machine Technology
+  call __check_vmx
   cmp rax, 0
-  je __Unsupport      ; 不支持vt-x
+  jne __check_vmx_failed
 
-  push IA32_FEATURE_CONTROL
-  call __rdmsr
-  __STACK_CLEAR(1)
-  and rax, ( 1 << 2 ) ; vmxon
+  call __check_ept
   cmp rax, 0
-  je __Unsupport      ; 不支持vt-x
+  jne __check_ept_failed
 
-  push vos_t_size
-  push 0
-  push __VOS_PA__ + vos_t
-  call __memset
-  __STACK_CLEAR(3)
+  call __start_vm
+  cmp rax, 0
+  jne __start_vm_failed
 
-  ; 设置vmx版本号
-  mov qword [__VOS_PA__ + vos_t.vmx_host], 1
-  BOCHS_MAGIC_BREAK
-
-  call __readcr4
-  or rax, CR4_VMXE
-  push rax
-  call __writecr4
-  __STACK_CLEAR(1)
-
-  push __VOS_PA__ + vos_t.vmx_host
-  call __vmxon
-  __STACK_CLEAR(1)
-
-  call __vmxoff
+  call __stop_vm
+  cmp rax, 0
+  jne __stop_vm_failed
 
   ret
+
+  EPT_FAILD DB "ept check failed"
+  __check_ept_failed:
+    push 16
+    push EPT_FAILD
+    call __puts
+    __STACK_CLEAR(2)
+    jmp $
+
+  VMX_FAILD DB "vmx check failed"
+  __check_vmx_failed:
+    push 16
+    push VMX_FAILD
+    call __puts
+    __STACK_CLEAR(2)
+    jmp $
+
+  STARTVM_FAILD DB "start vm failed"
+  __start_vm_failed:
+    push 15
+    push STARTVM_FAILD
+    call __puts
+    __STACK_CLEAR(2)
+    jmp $
+
+  STOPVM_FAILD DB "stop vm failed"
+  __stop_vm_failed:
+    push 15
+    push STOPVM_FAILD
+    call __puts
+    __STACK_CLEAR(2)
+    jmp $
 
 __AuthenticAMD_ENTRY:
   mov eax, 1
   ret
 
 __Unknow_ENTRY:
-  jmp $
-
-__Unsupport:
   jmp $
 
 ; uint64 ()
@@ -153,13 +163,16 @@ __cpuid:
 
   ret
 
-; uint64 krdmsr(uint64)
+; uint64 krdmsr(uint64 id)
 __rdmsr:
-  mov ecx, __ARG(0)
+  mov rcx, __ARG(0)
   rdmsr
   ret
 
 __wrmsr:
+; void (uint64 id, uint64 value)
+  mov rcx, __ARG(0)
+  mov rax, __ARG(1)
   wrmsr
   ret
 

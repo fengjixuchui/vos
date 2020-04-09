@@ -4,12 +4,17 @@
 
 %define BOCHS_MAGIC_BREAK xchg bx, bx
 
-%define _VIDEO_PA       0xb800      ; 实模式中显存的段地址.
+%define _VIDEO_PA       0xb8000      ; 实模式中显存的段地址.
 %define _LOADER_SEGMENT 0x1000      ; 内核程序段基址.
 %define _LOADER_OFFSET  0x0000      ; 内核程序段偏移.
 
-%define _PROTECTED_MODE_CODE_BASE_ 0x00100000
-%define _IA32E_MODE_CODE_BASE_     0x00200000
+%define _PROTECTED_MODE_CODE_BASE_ 0x00001000
+%define _PML4_BASE_                0x00010000
+%define _PDP_BASE_                 0x00011000
+%define _PD_BASE_                  0x00012000
+%define _PT_BASE_                  0x00013000
+%define _IA32E_MODE_CODE_BASE_     0x00100000
+%define __VOS_PA__                 0x00200000
 
 %define uint8  db
 %define uint16 dw
@@ -27,10 +32,10 @@
 ; See : CONTROL REGISTERS
 %define CR0_PE (1 << 0)
 %define CR0_MP (1 << 1)
-%define CR0_EM (1 << 1)
-%define CR0_TS (1 << 1)
-%define CR0_ET (1 << 1)
-%define CR0_NE (1 << 1)
+%define CR0_EM (1 << 2)
+%define CR0_TS (1 << 3)
+%define CR0_ET (1 << 4)
+%define CR0_NE (1 << 5)
 %define CR0_WP (1 << 16)
 %define CR0_AM (1 << 18)
 %define CR0_NW (1 << 29)
@@ -40,7 +45,7 @@
 %define CR3_PDB_32(x) ((x & 0x000fffff) << 20)
 %define CR3_PDB_64(x) ((x & 0x000fffffffffffff) << 20)
 
-%define CR4_VME  (1 << 0)
+%define CR4_VME  (1 << 0)   ; Virtual-8086 Mode Extensions (bit 0 of CR4)
 %define CR4_PVI  (1 << 1)
 %define CR4_TSD  (1 << 2)
 %define CR4_DE   (1 << 3)
@@ -50,7 +55,7 @@
 %define CR4_PGE  (1 << 7)
 %define CR4_PCE  (1 << 8)
 %define CR4_UMIP (1 << 11)
-%define CR4_VMXE (1 << 13)
+%define CR4_VMXE (1 << 13)  ;  Enables VMX operation when set. See Chapter 23, “Introduction to Virtual Machine Extensions.”
 %define CR4_SMXE (1 << 14)
 %define CR4_SMEP (1 << 20)
 %define CR4_SMAP (1 << 21)
@@ -72,17 +77,18 @@
 %define __REG_SP esp
 %endif
 
-%define __STEP           (__BITS__ / 8)
-%define __ARGS_SIZE(N)   (N * __STEP)
-%define __ARG(INDEX)     [__REG_SP + (INDEX + 1) * __STEP]
-%define __STACK_CLEAR(N) add __REG_SP, __ARGS_SIZE(N)
+%define __STEP                (__BITS__ / 8)
+%define __ARGS_SIZE(N)        (N * __STEP)
+%define __ARG(INDEX)          [__REG_SP + (INDEX + 1) * __STEP]
+%define __STACK_CLEAR(N)      add __REG_SP, __ARGS_SIZE(N)
 
 struc vos_t
-.vmx_host resb 4096
-.vendor resb 12       ; CPU 提供商
-.cpuid  resb 16
+.vmx_host   resb 4096
+.vendor     resb 12       ; CPU 提供商
+.cpuid      resb 16
+.terminal_x resb 1
+.terminal_y resb 1
 endstruc
-%define __VOS_PA__ 0x00300000
 
 struc cpuid_t
 .eax resb 4

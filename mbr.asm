@@ -48,22 +48,18 @@ init:                    ; void init(void)
   push 0
   push 0
   call set_cursor
-  add esp, 4
+  __STACK_CLEAR(2)
 
   call reset_floppy
 
   ret
 
 work:                    ; void work(void)
-  push len
-  push text
-  call puts
-  add esp, 4
 
-  push 0
-  push len
+  push 0   ; Y
+  push 0   ; X
   call set_cursor
-  add esp, 4
+  __STACK_CLEAR(2)
 
   push 10                ; uint8 count        读取扇区数量
   push 2                 ; uint8 sectorNum    扇区号
@@ -73,7 +69,7 @@ work:                    ; void work(void)
   push _LOADER_OFFSET    ; uint16 offset
   push _LOADER_SEGMENT   ; uint16 segment
   call read_floppy
-  add esp, 14
+  __STACK_CLEAR(7)
 
 ;  BOCHS_MAGIC_BREAK             ;
 
@@ -88,17 +84,18 @@ reset_floppy:            ; void reset_floppy(void)
   int 0x13
   ret
 
-read_floppy:             ; void read_floppy(uint16 segment, uint16 offset, uint8 driveNum, uint8 head, uint8 cylinder, uint8 sectorNum, uint8 count)
+; void (uint16 segment, uint16 offset, uint8 driveNum, uint8 head, uint8 cylinder, uint8 sectorNum, uint8 count)
+read_floppy:
   ; http://www.ctyme.com/intr/rb-0607.htm
-  mov ax, [esp + 2]      ; segment
+  mov ax, __ARG(0)      ; segment
   mov es, ax
   mov ah, 2              ; AH = 02h
-  mov al, [esp + 14]     ; AL = number of sectors to read (must be nonzero)
-  mov ch, [esp + 10]     ; CH = low eight bits of cylinder number
-  mov cl, [esp + 12]     ; CL = sector number 1-63 (bits 0-5), high two bits of cylinder (bits 6-7, hard disk only)
-  mov dh, [esp + 8]      ; DH = head number
-  mov dl, [esp + 6]      ; DL = drive number (bit 7 set for hard disk)
-  mov bx, [esp + 4]      ; ES:BX -> data buffer
+  mov al, __ARG(6)     ; AL = number of sectors to read (must be nonzero)
+  mov ch, __ARG(4)     ; CH = low eight bits of cylinder number
+  mov cl, __ARG(5)     ; CL = sector number 1-63 (bits 0-5), high two bits of cylinder (bits 6-7, hard disk only)
+  mov dh, __ARG(3)      ; DH = head number
+  mov dl, __ARG(2)      ; DL = drive number (bit 7 set for hard disk)
+  mov bx, __ARG(1)      ; ES:BX -> data buffer
   int 0x13               ;
   jc read_floppy
 
@@ -107,21 +104,16 @@ read_floppy:             ; void read_floppy(uint16 segment, uint16 offset, uint8
   ; 清空整个屏幕.
 clear:                   ; void clear(void)
   ;
-  mov ax, _VIDEO_PA
+  mov ax, 0xb800
   mov es, ax
   ; 屏幕字符个数.
   mov cx, 80*25
-
+  mov si, 0
   __clear__:
-    mov bx, cx
-    dec bx               ; bx = cx - 1
-    mov ax, 2
-    mul bx               ; ax = (cx - 1) * 2
-    mov si, ax           ; 屏幕坐标索引.
-
     mov dh, 0b00000111   ; 左4bit背景RGB, 右4bit字符RGB
     mov dl, 0            ; ascii
     mov word [es:si], dx
+    add si, 2
     loop __clear__
 
   ret
@@ -129,47 +121,17 @@ clear:                   ; void clear(void)
   ; 设置光标的位置.
 set_cursor:              ; void set_cursor (uint8 x, uint8 y)
   mov bh, 0              ; BH = page number
-  mov dl, [esp + 2]      ; DL = column (00h is left)
-  mov dh, [esp + 4]      ; DH = row (00h is top)
+  mov dl, __ARG(0)      ; DL = column (00h is left)
+  mov dh, __ARG(1)      ; DH = row (00h is top)
 
   ; http://www.ctyme.com/intr/rb-0087.htm
   mov ah, 2
   int 0x10
   ret
 
-puts:                    ; void puts(uint16 ptr, uint16 len)
-  mov cx, 0              ; 初始化.
-
-  __puts__:
-    cmp cx, [esp + 4]    ; len
-    je __puts_end__      ; 判断字符串是否结束.
-
-    mov bx, cx
-    mov ax, 2
-    mul bx               ; bx * ax
-    mov si, ax           ; 显存间接寻址.
-
-    mov ax, [esp + 2]    ; string address
-    add ax, cx
-
-    mov di, ax           ; 数据间接寻址
-
-    mov dh, 0b00000111   ; 左4bit背景RGB, 右4bit字符RGB
-    mov dl, [di]         ; ascii
-    mov word [es:si], dx
-
-    inc cx
-
-    jmp __puts__
-
-  __puts_end__:
-    ret
 
 end:                     ; void end(void)
   jmp $
-
-text: db "hello!", 0     ; 定义一个字符串.
-len equ ($ - text - 1)   ; 字符串的长度.
 
 times 510 - ($ - $$) nop
 db 0x55, 0xaa

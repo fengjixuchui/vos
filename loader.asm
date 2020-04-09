@@ -99,6 +99,7 @@ open_A20_line:
 
 PROTECTED_CODE:
 bits 32
+  BOCHS_MAGIC_BREAK
 
   mov dword [0x90000], 0x91007
   mov dword [0x90800], 0x91007
