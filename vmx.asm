@@ -14,12 +14,12 @@ __start_vm:
   call __wrmsr
   __STACK_CLEAR(2)
 
+  BOCHS_MAGIC_BREAK
   push vos_t_size
   push 0
   push __VOS_PA__ + vos_t
   call __memset
   __STACK_CLEAR(3)
-  BOCHS_MAGIC_BREAK
 
   push IA32_VMX_BASIC
   call __rdmsr

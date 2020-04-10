@@ -90,6 +90,6 @@ __puts:
 
     loop __puts__
 
-    ret
+  ret
 
 %endif ; VOS_MISC

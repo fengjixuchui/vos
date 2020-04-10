@@ -4,16 +4,14 @@
 
 %define BOCHS_MAGIC_BREAK xchg bx, bx
 
-%define _LOADER_SEGMENT 0x1000      ; 内核程序段基址.
+%define _LOADER_SEGMENT 0x0800      ; 内核程序段基址.
 %define _LOADER_OFFSET  0x0000      ; 内核程序段偏移.
 
-%define _PROTECTED_MODE_CODE_BASE_ 0x00001000
 %define _PML4_BASE_                0x00010000
 %define _PDP_BASE_                 0x00011000
 %define _PD_BASE_                  0x00012000
 %define _PT_BASE_                  0x00013000
-%define _IA32E_MODE_CODE_BASE_     0x00100000
-%define __VOS_PA__                 0x00200000
+%define __VOS_PA__                 0x00014000
 
 %define uint8  db
 %define uint16 dw

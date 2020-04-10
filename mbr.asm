@@ -10,6 +10,7 @@ bits 16
 BootSector:
   jmp short ENTRY16
   nop                    ; 3 BYTEs    jump to executable code
+
   db '0x7cc', 0, 0, 0    ; 8 BYTEs    OEM name and version
 
   ; https://en.wikipedia.org/wiki/BIOS_parameter_block#DOS_2.0_BPB

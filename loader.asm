@@ -4,7 +4,7 @@
 _LOADER_BASE_ equ (_LOADER_SEGMENT << 4 + _LOADER_OFFSET)
 org _LOADER_BASE_
 
-BEGIN:
+LOADER_BEGIN:
 jmp loader_ENTRY16
 
 ;section GDT_32
@@ -66,9 +66,9 @@ open_A20_line:
 ;  BOCHS_MAGIC_BREAK
 
   cli
-
+BOCHS_MAGIC_BREAK
   db 0x66
-  lgdt [GDT_32_PTR]
+  lgdt [GDT_32_PTR - _LOADER_SEGMENT]
 
 ;  db 0x66
 ;  lidt [IDT_32_PTR]
@@ -101,15 +101,38 @@ PROTECTED_CODE:
 bits 32
   BOCHS_MAGIC_BREAK
 
-  mov dword [0x90000], 0x91007
-  mov dword [0x90800], 0x91007
-  mov dword [0x91000], 0x92007
-  mov dword [0x92000], 0x000083
-  mov dword [0x92008], 0x200083
-  mov dword [0x92010], 0x400083
-  mov dword [0x92018], 0x600083
-  mov dword [0x92020], 0x800083
-  mov dword [0x92028], 0xa00083
+;  mov dword [0x90000], 0x91007
+;  mov dword [0x90800], 0x91007
+;  mov dword [0x91000], 0x92007
+;  mov dword [0x92000], 0x000083
+;  mov dword [0x92008], 0x200083
+;  mov dword [0x92010], 0x400083
+;  mov dword [0x92018], 0x600083
+;  mov dword [0x92020], 0x800083
+;  mov dword [0x92028], 0xa00083
+  mov dword [_PML4_BASE_], _PDP_BASE_ | 7
+  mov dword [_PDP_BASE_], _PD_BASE_ | 7
+  mov dword [_PD_BASE_], _PT_BASE_ | 7
+
+  ; 暂时只设置0x200000以内的内存分页, 512*4096 = 2097152 = 0x200000
+  ; 0x200000以内的虚拟内存地址就直接等于物理地址
+  mov ecx, 512
+  .__pt_set__
+  mov eax, ecx
+  dec eax
+  mov ebx, 8          ; 每项是uint64
+  mul ebx             ; 得出表项索引
+  mov edi, eax
+
+  mov eax, ecx
+  dec eax
+  mov ebx, 4096       ; 每个页4k大小
+  mul ebx             ; 得出表项中的值,即物理内存页的起始地址.
+
+  or eax, 7   ; read and write
+  mov dword [_PT_BASE_ + edi], eax
+
+  loop .__pt_set__
 
   db 0x66
   lgdt [GDT_PTR_64]
@@ -127,7 +150,7 @@ bits 32
   or  eax, CR4_PAE
   mov cr4, eax
 
-  mov eax, 0x90000
+  mov eax, _PML4_BASE_
   mov cr3, eax
   
   mov ecx, 0C0000080h    ;IA32_EFER
