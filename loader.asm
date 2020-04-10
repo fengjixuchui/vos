@@ -66,9 +66,9 @@ open_A20_line:
 ;  BOCHS_MAGIC_BREAK
 
   cli
-BOCHS_MAGIC_BREAK
+
   db 0x66
-  lgdt [GDT_32_PTR - _LOADER_SEGMENT]
+  lgdt [GDT_32_PTR - _LOADER_BASE_]
 
 ;  db 0x66
 ;  lidt [IDT_32_PTR]
@@ -110,6 +110,22 @@ bits 32
 ;  mov dword [0x92018], 0x600083
 ;  mov dword [0x92020], 0x800083
 ;  mov dword [0x92028], 0xa00083
+
+  push 4096
+  push 0
+  push _PML4_BASE_
+  call .memset32
+  __STACK_CLEAR(1)
+  push _PDP_BASE_
+  call .memset32
+  __STACK_CLEAR(1)
+  push _PD_BASE_
+  call .memset32
+  __STACK_CLEAR(1)
+  push _PT_BASE_
+  call .memset32
+  __STACK_CLEAR(3)
+
   mov dword [_PML4_BASE_], _PDP_BASE_ | 7
   mov dword [_PDP_BASE_], _PD_BASE_ | 7
   mov dword [_PD_BASE_], _PT_BASE_ | 7
@@ -164,5 +180,20 @@ bits 32
   mov cr0, eax
 
   jmp dword (GDT_64_IA32E_MODE_CODE - GDT_64_BEGIN):__x86_64_ENTRYPOINT
+
+; int (char* dst, uint8 v, int len)
+.memset32:
+  mov edi, __ARG(0)  ; dst
+  mov al,  __ARG(1)  ; v
+  mov ecx, __ARG(2)  ; len
+
+  .l:
+    mov edx, ecx
+    dec edx
+
+    mov [edi + edx], al
+  loop .l
+  mov eax, 0
+  ret
 
 %include "x86_64.asm"
