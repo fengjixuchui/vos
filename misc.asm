@@ -1,69 +1,70 @@
 %ifndef VOS_MISC
 %define VOS_MISC
 
-
-%include "defs.asm"
-
 bits 64
+%include "defs.asm"
 
 ; int (const char* a, const char* b, int len)
 __memcmp:
+  __FUNC_BEGIN_64
   mov edi, __ARG(0)
   mov esi, __ARG(1)
   mov ecx, __ARG(2)
 
-  __l:
+  .loop:
     mov edx, ecx
     dec edx
 
     mov al, [edi + edx]
     mov bl, [esi + edx]
     cmp al, bl
-    jne __err
-  loop __l
-  mov eax, 0
-  ret
+    jne .error
+    loop .loop
+  __FUNC_RETURN_64(0)
+  .error:
+  __FUNC_RETURN_64(-1)
 
-  __err:
-  mov eax, -1
-  ret
+  __FUNC_END_64
 
 ; int (char* dst, uint8 v, int len)
 __memset:
+  __FUNC_BEGIN_64
   mov edi, __ARG(0)  ; dst
   mov al,  __ARG(1)  ; v
   mov ecx, __ARG(2)  ; len
 
-  __ll:
+  .loop:
     mov edx, ecx
     dec edx
 
     mov [edi + edx], al
-  loop __ll
+  loop .loop
   mov eax, 0
-  ret
+  __FUNC_END_64
 
 ; int (char* dst, const char* src, int len)
 __memcpy:
+  __FUNC_BEGIN_64
   mov edi, __ARG(0)
   mov esi, __ARG(1)
   mov ecx, __ARG(2)
 
-  __lll:
+  .loop:
     mov edx, ecx
     dec edx
 
     mov bl, [esi + edx]
     mov [edi + edx], bl
-  loop __lll
+  loop .loop
   mov eax, 0
-  ret
+  __FUNC_END_64
 
 __putc:
   ret
 
 ; void (const char* str, uint64 len)
 __puts:
+  __FUNC_BEGIN_64
 
   mov rdi, 0xb8000
 ;  mov es, 0x0008    ; data segment
@@ -74,7 +75,7 @@ __puts:
   mov rcx, __ARG(1)    ; len
   mov r10, __ARG(0)    ; str
 
-  __puts__:
+  .loop:
     mov rax, r9
     mov rbx, 2
     mul rbx
@@ -88,8 +89,8 @@ __puts:
     inc rdi
     inc rdi
 
-    loop __puts__
+    loop .loop
 
-  ret
+  __FUNC_END_64
 
 %endif ; VOS_MISC

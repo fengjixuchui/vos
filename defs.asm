@@ -11,7 +11,7 @@
 %define _PDP_BASE_                 0x00011000
 %define _PD_BASE_                  0x00012000
 %define _PT_BASE_                  0x00013000
-%define __VOS_PA__                 0x00014000
+%define __VOS_PA__                 0x00100000
 
 %define uint8  db
 %define uint16 dw
@@ -66,18 +66,10 @@
 %define IA32_FEATURE_CONTROL 0x3A
 %define IA32_VMX_BASIC       0x480
 
-%if __BITS__ == 64
-%define __REG_BP rbp
-%define __REG_SP rsp
-%else
-%define __REG_BP ebp
-%define __REG_SP esp
-%endif
-
 %define __STEP                (__BITS__ / 8)
 %define __ARGS_SIZE(N)        (N * __STEP)
-%define __ARG(INDEX)          [__REG_SP + (INDEX + 1) * __STEP]
-%define __STACK_CLEAR(N)      add __REG_SP, __ARGS_SIZE(N)
+%define __ARG(INDEX)          [ebp + (INDEX + 2) * __STEP]
+%define __STACK_CLEAR(N)      add esp, __ARGS_SIZE(N)
 
 struc vos_t
 .vmx_host   resb 4096
@@ -93,6 +85,87 @@ struc cpuid_t
 .ecx resb 4
 .edx resb 4
 endstruc
+
+%macro __FUNC_BEGIN_16 0
+.begin:
+push bp
+mov  bp, sp
+push bx
+push cx
+push dx
+push si
+push di
+%endmacro
+
+%macro __FUNC_END_16 0
+.end:
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop bp
+ret
+%endmacro
+
+%macro __FUNC_RETURN_16 1
+mov ax, %1
+jmp .end
+%endmacro
+
+%macro __FUNC_BEGIN_32 0
+.begin:
+push ebp
+mov  ebp, esp
+push ebx
+push ecx
+push edx
+push esi
+push edi
+%endmacro
+
+%macro __FUNC_END_32 0
+.end:
+pop edi
+pop esi
+pop edx
+pop ecx
+pop ebx
+pop ebp
+ret
+%endmacro
+
+%macro __FUNC_RETURN_32 1
+mov eax, %1
+jmp .end
+%endmacro
+
+%macro __FUNC_BEGIN_64 0
+.begin:
+push rbp
+mov  rbp, rsp
+push rbx
+push rcx
+push rdx
+push rsi
+push rdi
+%endmacro
+
+%macro __FUNC_END_64 0
+.end:
+pop rdi
+pop rsi
+pop rdx
+pop rcx
+pop rbx
+pop rbp
+ret
+%endmacro
+
+%macro __FUNC_RETURN_64 1
+mov rax, %1
+jmp .end
+%endmacro
 
 %endif ; VOS_DEFS
 

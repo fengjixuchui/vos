@@ -99,56 +99,56 @@ open_A20_line:
 
 PROTECTED_CODE:
 bits 32
-  BOCHS_MAGIC_BREAK
-
-;  mov dword [0x90000], 0x91007
-;  mov dword [0x90800], 0x91007
-;  mov dword [0x91000], 0x92007
-;  mov dword [0x92000], 0x000083
-;  mov dword [0x92008], 0x200083
-;  mov dword [0x92010], 0x400083
-;  mov dword [0x92018], 0x600083
-;  mov dword [0x92020], 0x800083
-;  mov dword [0x92028], 0xa00083
 
   push 4096
   push 0
   push _PML4_BASE_
-  call .memset32
+  call __memset32
   __STACK_CLEAR(1)
   push _PDP_BASE_
-  call .memset32
+  call __memset32
   __STACK_CLEAR(1)
   push _PD_BASE_
-  call .memset32
+  call __memset32
   __STACK_CLEAR(1)
   push _PT_BASE_
-  call .memset32
+  call __memset32
   __STACK_CLEAR(3)
 
   mov dword [_PML4_BASE_], _PDP_BASE_ | 7
   mov dword [_PDP_BASE_], _PD_BASE_ | 7
-  mov dword [_PD_BASE_], _PT_BASE_ | 7
 
   ; 暂时只设置0x200000以内的内存分页, 512*4096 = 2097152 = 0x200000
-  ; 0x200000以内的虚拟内存地址就直接等于物理地址
-  mov ecx, 512
-  .__pt_set__
-  mov eax, ecx
-  dec eax
-  mov ebx, 8          ; 每项是uint64
-  mul ebx             ; 得出表项索引
-  mov edi, eax
+  ; 0x4000000以内的虚拟内存地址就直接等于物理地址
+;  BOCHS_MAGIC_BREAK
+  mov esi, _PD_BASE_
+  mov edi, _PT_BASE_
+  mov ecx, 32            ; 初始化32个内存页, 32*512*4096 =0x4000000= 64MiB
+  mov eax, 0
+  .loop
+    push eax
+    mov eax, edi
+    or eax, 7
+    mov dword [esi], eax
+    pop eax
 
-  mov eax, ecx
-  dec eax
-  mov ebx, 4096       ; 每个页4k大小
-  mul ebx             ; 得出表项中的值,即物理内存页的起始地址.
+    push 4096
+    push 0
+    push edi
+    call __memset32
+    __STACK_CLEAR(3)
 
-  or eax, 7   ; read and write
-  mov dword [_PT_BASE_ + edi], eax
+    push eax
+    push edi
+    call __gen_pt
 
-  loop .__pt_set__
+    pop edi
+    pop eax
+
+    inc eax
+    add esi, 8
+    add edi, 4096
+    loop .loop
 
   db 0x66
   lgdt [GDT_PTR_64]
@@ -181,19 +181,47 @@ bits 32
 
   jmp dword (GDT_64_IA32E_MODE_CODE - GDT_64_BEGIN):__x86_64_ENTRYPOINT
 
+
 ; int (char* dst, uint8 v, int len)
-.memset32:
+__memset32:
+  __FUNC_BEGIN_32
   mov edi, __ARG(0)  ; dst
   mov al,  __ARG(1)  ; v
   mov ecx, __ARG(2)  ; len
 
-  .l:
+  .loop:
     mov edx, ecx
     dec edx
 
     mov [edi + edx], al
-  loop .l
+    loop .loop
   mov eax, 0
-  ret
+  __FUNC_END_32
+
+; void (uint32 base, uint32 pageIndex)
+__gen_pt:
+  __FUNC_BEGIN_32
+  mov eax, __ARG(1)
+  mov ebx, 4096*512
+  mul ebx
+  mov edx, eax
+  ; edx = 内存页的起始地址
+
+  mov esi, __ARG(0)
+
+  mov ecx, 512
+  mov ebx, 0
+  .loop
+
+    mov eax, edx
+    or eax, 7   ; read and write
+    mov dword [esi], eax
+
+    add esi, 8            ; 得出表项索引
+    add edx, 4096     ; 每个页4k大小
+
+    loop .loop
+  __FUNC_END_32
+
 
 %include "x86_64.asm"

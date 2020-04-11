@@ -56,6 +56,7 @@ init:                    ; void init(void)
   ret
 
 work:                    ; void work(void)
+;  BOCHS_MAGIC_BREAK             ;
 
   push 0   ; Y
   push 0   ; X
@@ -88,6 +89,7 @@ reset_floppy:            ; void reset_floppy(void)
 ; void (uint16 segment, uint16 offset, uint8 driveNum, uint8 head, uint8 cylinder, uint8 sectorNum, uint8 count)
 read_floppy:
   ; http://www.ctyme.com/intr/rb-0607.htm
+  __FUNC_BEGIN_16
   mov ax, __ARG(0)      ; segment
   mov es, ax
   mov ah, 2              ; AH = 02h
@@ -100,7 +102,7 @@ read_floppy:
   int 0x13               ;
   jc read_floppy
 
-  ret
+  __FUNC_END_16
 
   ; 清空整个屏幕.
 clear:                   ; void clear(void)
@@ -110,17 +112,18 @@ clear:                   ; void clear(void)
   ; 屏幕字符个数.
   mov cx, 80*25
   mov si, 0
-  __clear__:
+  .loop:
     mov dh, 0b00000111   ; 左4bit背景RGB, 右4bit字符RGB
     mov dl, 0            ; ascii
     mov word [es:si], dx
     add si, 2
-    loop __clear__
+    loop .loop
 
   ret
 
   ; 设置光标的位置.
 set_cursor:              ; void set_cursor (uint8 x, uint8 y)
+  __FUNC_BEGIN_16
   mov bh, 0              ; BH = page number
   mov dl, __ARG(0)      ; DL = column (00h is left)
   mov dh, __ARG(1)      ; DH = row (00h is top)
@@ -128,7 +131,7 @@ set_cursor:              ; void set_cursor (uint8 x, uint8 y)
   ; http://www.ctyme.com/intr/rb-0087.htm
   mov ah, 2
   int 0x10
-  ret
+  __FUNC_END_16
 
 
 end:                     ; void end(void)

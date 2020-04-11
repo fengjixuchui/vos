@@ -112,16 +112,21 @@ __vmxoff:
   ret
 
 __vmxon:
+  __FUNC_BEGIN_64
   mov rax, __ARG(0)
   vmxon [rax]
-  ret
+  __FUNC_END_64
 
 __invept:
+  __FUNC_BEGIN_64
   invept rax, __ARG(0)
+  __FUNC_END_64
   ret
 
 __invvpid:
+  __FUNC_BEGIN_64
   invvpid rax, __ARG(0)
+  __FUNC_END_64
   ret
 
 __vmcall:

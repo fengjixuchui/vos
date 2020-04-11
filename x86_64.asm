@@ -6,12 +6,11 @@
 %include "misc.asm"
 
 bits 64
-
 VENDOR_INTEL db "GenuineIntel"
 VENDOR_AMD   db "AuthenticAMD"
 
 __x86_64_ENTRYPOINT:
-
+;  BOCHS_MAGIC_BREAK
   push 0
   push __VOS_PA__ + vos_t.cpuid
   call __cpuid
@@ -119,31 +118,36 @@ __readcr0:
 
 ; void (uint64)
 __writecr0:
+  __FUNC_BEGIN_64
   mov rax, __ARG(0)  ; output pointer
   mov cr0, rax
-  ret
+  __FUNC_END_64
 
 ; uint64 ()
 __readcr3:
+  __FUNC_BEGIN_64
   mov rax, cr3
-  ret
+  __FUNC_END_64
 
 ; void (uint64)
 __writecr3:
+  __FUNC_BEGIN_64
   mov rax, __ARG(0)  ; output pointer
   mov cr3, rax
-  ret
+  __FUNC_END_64
 
 ; uint64 ()
 __readcr4:
+  __FUNC_BEGIN_64
   mov rax, cr4
-  ret
+  __FUNC_END_64
 
 ; void (uint64)
 __writecr4:
+  __FUNC_BEGIN_64
   mov rax, __ARG(0)  ; output pointer
   mov cr4, rax
-  ret
+  __FUNC_END_64
 
 ; struct cpuid_t {
 ;   uint32 eax, ebx, ecx, edx
@@ -151,6 +155,7 @@ __writecr4:
 ; Table 3-8. Information Returned by CPUID Instruction
 ; void (struct cpuid_t*, int)
 __cpuid:
+  __FUNC_BEGIN_64
 
   mov esi, __ARG(0)  ; output pointer
   mov eax, __ARG(1)  ; function id
@@ -161,23 +166,25 @@ __cpuid:
   mov dword [esi + cpuid_t.ecx], ecx
   mov dword [esi + cpuid_t.edx], edx
 
-  ret
+  __FUNC_END_64
 
 ; uint64 krdmsr(uint64 id)
 __rdmsr:
+  __FUNC_BEGIN_64
   mov rcx, __ARG(0)
   rdmsr
   shl rdx, 32
   or rax, rdx           ; merge to uint64
-  ret
+  __FUNC_END_64
 
 __wrmsr:
 ; void (uint64 id, uint64 value)
+  __FUNC_BEGIN_64
   mov rcx, __ARG(0)
   mov rax, __ARG(1)     ; low part
   mov rdx, __ARG(1)
   shr rdx, 32           ; high part
   wrmsr
-  ret
+  __FUNC_END_64
 
 %endif ; VOS_X86_64
