@@ -22,7 +22,7 @@ limit32 dw GdtLen - 1
 base32  dd GDT_32_BEGIN
 
 
-section GDT_64
+;section GDT_64
 
 GDT_64_BEGIN:
 dq 0
@@ -45,7 +45,7 @@ IDT_32_PTR:
 dw    IDT_32_END - IDT_32_BEGIN - 1
 dd    IDT_32_BEGIN
 
-section code
+;section code
 bits 16
 
 loader_ENTRY16:
@@ -118,7 +118,7 @@ bits 32
   mov dword [_PML4_BASE_], _PDP_BASE_ | 7
   mov dword [_PDP_BASE_], _PD_BASE_ | 7
 
-  ; 暂时只设置0x200000以内的内存分页, 512*4096 = 2097152 = 0x200000
+  ; 暂时只设置0x4000000以内的内存分页
   ; 0x4000000以内的虚拟内存地址就直接等于物理地址
 ;  BOCHS_MAGIC_BREAK
   mov esi, _PD_BASE_
@@ -225,3 +225,5 @@ __gen_pt:
 
 
 %include "x86_64.asm"
+
+times 0x1000 - ($ - $$) nop
