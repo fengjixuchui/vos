@@ -39,4 +39,11 @@ run: all
 
 .PHONY : clean
 clean:
-	rm -rf *.bin *.img *.o *.s32 *.s64 *.c32 *.c64 loader kernel
+	rm -f loader kernel
+	find . -name *.bin | xargs rm -f
+	find . -name *.img | xargs rm -f
+	find . -name *.o   | xargs rm -f
+	find . -name *.s32 | xargs rm -f
+	find . -name *.s64 | xargs rm -f
+	find . -name *.c32 | xargs rm -f
+	find . -name *.c64 | xargs rm -f
