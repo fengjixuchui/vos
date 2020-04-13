@@ -11,7 +11,6 @@ VENDOR_AMD   db "AuthenticAMD"
 
 __x86_64_ENTRYPOINT:
   BOCHS_MAGIC_BREAK
-  jmp 0x9000
 
   push 0
   push __VOS_PA__ + vos_t.cpuid

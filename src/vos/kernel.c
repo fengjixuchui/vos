@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include "vos/types.h"
 
 const char* str   = "hello! this is my kernel64 program.";
 char*       video = (char*)0xb8000;
@@ -12,7 +12,5 @@ int x86_64_main ()
     ++i;
   }
 
-  while (1)
-    ;
   return 0;
 }
