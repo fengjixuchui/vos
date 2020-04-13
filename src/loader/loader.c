@@ -131,6 +131,5 @@ void loader_main ()
   enable_PAE ();
   init_GDT64 ();
   init_PML4 ();
-  bochs_break ();
   goto_IA32E ();
 }

@@ -5,7 +5,11 @@ C64_OBJS=kernel
 BOOTIMG=boot.img
 
 all: ${SXX_OBJS} ${C32_OBJS} ${C64_OBJS}
-	cat $^ > ${BOOTIMG}
+#	cat $^ > ${BOOTIMG}
+	rm -f ${BOOTIMG}
+	dd if=mbr.bin of=${BOOTIMG} ibs=512 conv=sync,notrunc oflag=append
+	dd if=loader  of=${BOOTIMG} ibs=4096 conv=sync,notrunc oflag=append
+	dd if=kernel  of=${BOOTIMG} ibs=1048576 conv=sync,notrunc oflag=append
 
 %.bin: %.asm
 	nasm $< -f bin -o $@
@@ -26,7 +30,7 @@ all: ${SXX_OBJS} ${C32_OBJS} ${C64_OBJS}
 loader: src/loader/loader.s32 src/loader/loader.c32 src/misc/memory.c32 src/bochs/bochs.s32
 	ld --oformat binary -m elf_i386 -s -n -o $@ -T loader.ld $^       # 链接成纯二进制代码
 
-kernel: src/vos/kernel.c64 src/misc/memory.c64 src/bochs/bochs.s64
+kernel: src/vos/kernel.s64 src/vos/kernel.c64 src/misc/memory.c64 src/bochs/bochs.s64
 	ld --oformat binary -m elf_x86_64 -s -n -o $@ -T kernel.ld $^     # 链接成纯二进制代码
 
 .PHONY : run
