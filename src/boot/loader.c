@@ -6,6 +6,7 @@
 #include "vos/vos.h"
 #include "vos/types.h"
 #include "vos/assert.h"
+#include "vos/memory.h"
 
 extern void enable_PAE ();
 extern void setup_GDT64 (uint32 paddr);
@@ -101,22 +102,22 @@ void init_PML4 ()
   page_begin = 0;
 
   uint32  offset = VOS_PML4_PA;
-  uint64* pml4   = make_PML4 (offset);
+  uint64* pml4   = make_PML4 ((void*)offset);
   offset += 4096;
   for (int L2 = 0; L2 < 1; ++L2)
   {
-    uint64* pbp = make_PDP (offset);
+    uint64* pbp = make_PDP ((void*)offset);
     offset += 4096;
     pml4[L2] = (uint32)pbp | 7;
     for (int L3 = 0; L3 < 1; ++L3)
     {
-      uint64* pb = make_PD (offset);
+      uint64* pb = make_PD ((void*)offset);
       offset += 4096;
       pbp[L3] = (uint32)pb | 7;
 
       for (int L4 = 0; L4 < 10; ++L4)
       {
-        uint64* pt = make_PT (offset);
+        uint64* pt = make_PT ((void*)offset);
         offset += 4096;
         pb[L4] = (uint32)pt | 7;
       }

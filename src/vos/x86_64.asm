@@ -17,6 +17,9 @@ global __writecr4
 global __cpuid
 global __rdmsr
 global __wrmsr
+global __rflags
+global __eflags
+global __flags
 global __vmptrld
 global __vmptrst
 global __vmclear
@@ -98,6 +101,18 @@ __wrmsr:
   wrmsr
   ret
 
+__rflags:
+__eflags:
+__flags:
+  pushfq
+  pop rax
+  ret
+
+
+
+
+
+
 __vmptrld:
   ;vmptrld
   ret
@@ -133,6 +148,7 @@ __vmxoff:
 __vmxon:
   mov rax, fastcall_argv0
   vmxon [rax]
+;  pushfq
   ret
 
 __invept:

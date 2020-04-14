@@ -5,4 +5,8 @@
 #ifndef VOS_STDIO_H
 #define VOS_STDIO_H
 
+void putc (char c);
+void puts (const char* s);
+void cls ();
+
 #endif //VOS_STDIO_H
