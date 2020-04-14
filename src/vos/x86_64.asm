@@ -133,6 +133,7 @@ __vmxoff:
 __vmxon:
   mov rax, fastcall_argv0
   vmxon [rax]
+  ret
 
 __invept:
   invept rax, [fastcall_argv0]

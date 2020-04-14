@@ -27,7 +27,7 @@ mbr: src/boot/mbr.asm
 loader: src/boot/loader.s32 src/boot/loader.c32 src/vos/memory.c32 src/bochs/bochs.s32
 	ld --oformat binary -m elf_i386 -s -n -o $@ -T loader.ld $^       # 链接成纯二进制代码
 
-kernel: src/vos/kernel.s64 src/vos/kernel.c64 src/vos/memory.c64 src/bochs/bochs.s64 src/vos/x86_64.s64
+kernel: src/vos/kernel.s64 src/vos/kernel.c64 src/vos/memory.c64 src/bochs/bochs.s64 src/vos/x86_64.s64 src/vos/intel/intel.c64 src/vos/amd/amd.c64
 	ld --oformat binary -m elf_x86_64 -s -n -o $@ -T kernel.ld $^     # 链接成纯二进制代码
 
 .PHONY : run

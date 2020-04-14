@@ -1,36 +1,9 @@
 #include "vos/types.h"
 #include "bochs/bochs.h"
-
-typedef struct
-{
-  uint32 eax;
-  uint32 ebx;
-  uint32 ecx;
-  uint32 edx;
-} cpuid_t;
-
-uint64 __readcr0 ();
-uint64 __readcr3 ();
-uint64 __readcr4 ();
-void   __writecr0 (uint64 value);
-void   __writecr3 (uint64 value);
-void   __writecr4 (uint64 value);
-void   __cpuid (cpuid_t* out, uint64 id);
-uint64 __rdmsr (uint64 id);
-void   __wrmsr (uint64 id, uint64 value);
-void   __vmptrld ();
-void   __vmptrst ();
-void   __vmclear ();
-void   __vmread ();
-void   __vmwrite ();
-void   __vmlaunch ();
-void   __vmresume ();
-void   __vmxoff ();
-void   __vmxon ();
-void   __invept ();
-void   __invvpid ();
-void   __vmcall ();
-void   __vmfunc ();
+#include "vos/vos.h"
+#include "vos/cpu.h"
+#include "vos/intel/intel.h"
+#include "vos/amd/amd.h"
 
 /*  Some screen stuff. */
 /*  The number of columns. */
@@ -98,34 +71,6 @@ void cls ()
   }
 }
 
-#define IA32_FEATURE_CONTROL 0x3A
-#define IA32_VMX_BASIC 0x480
-
-void intel_entry ()
-{
-  cpuid_t cpuid;
-  __cpuid (&cpuid, 1);
-  if (cpuid.eax & (1 << 5) == 0)
-  {
-    puts ("not support vmx");
-    return;
-  }
-
-  bochs_break ();
-  uint64 msr = __rdmsr (IA32_FEATURE_CONTROL);
-  if (msr & (1 << 2) == 0)
-  {
-    puts ("vmxon");
-    return;
-  }
-
-  puts ("intel cpu check completed.");
-}
-
-void amd_entry ()
-{
-}
-
 int x86_64_main ()
 {
   char vendor[13] = {0};
@@ -136,7 +81,6 @@ int x86_64_main ()
 
   cpuid_t cpuid;
   __cpuid (&cpuid, 0);
-  uint64 msr = __rdmsr (1);
 
   ((uint32*)vendor)[0] = cpuid.ebx;
   ((uint32*)vendor)[1] = cpuid.edx;
