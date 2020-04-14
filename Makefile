@@ -1,24 +1,21 @@
 
-SXX_OBJS=mbr.bin
-C32_OBJS=loader
-C64_OBJS=kernel
 BOOTIMG=boot.img
 
-all: ${SXX_OBJS} ${C32_OBJS} ${C64_OBJS}
+all: mbr loader kernel
 #	cat $^ > ${BOOTIMG}
 	rm -f ${BOOTIMG}
-	dd if=mbr.bin of=${BOOTIMG} ibs=512 conv=sync,notrunc oflag=append
-	dd if=loader  of=${BOOTIMG} ibs=4096 conv=sync,notrunc oflag=append
+	dd if=mbr     of=${BOOTIMG} ibs=512     conv=sync,notrunc oflag=append
+	dd if=loader  of=${BOOTIMG} ibs=4096    conv=sync,notrunc oflag=append
 	dd if=kernel  of=${BOOTIMG} ibs=1048576 conv=sync,notrunc oflag=append
 
-%.bin: %.asm
-	nasm $< -f bin -o $@
+mbr: src/boot/mbr.asm
+	nasm -Iinclude/ -f bin $< -o $@
 
 %.s32: %.asm
-	nasm $< -f elf32 -o $@
+	nasm -Iinclude/ -f elf32 $< -o $@
 
 %.s64: %.asm
-	nasm $< -f elf64 -o $@
+	nasm -Iinclude/ -f elf64 $< -o $@
 
 %.c32: %.c
 	cc $< -o $@ -c -Iinclude -m32 -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -fno-pic #-O3
@@ -27,10 +24,10 @@ all: ${SXX_OBJS} ${C32_OBJS} ${C64_OBJS}
 	cc $< -o $@ -c -Iinclude -m64 -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -fno-pic #-O3
 
 # loader.s32必须排在第一个,否则无法进入真正的入口点.
-loader: src/loader/loader.s32 src/loader/loader.c32 src/misc/memory.c32 src/bochs/bochs.s32
+loader: src/boot/loader.s32 src/boot/loader.c32 src/vos/memory.c32 src/bochs/bochs.s32
 	ld --oformat binary -m elf_i386 -s -n -o $@ -T loader.ld $^       # 链接成纯二进制代码
 
-kernel: src/vos/kernel.s64 src/vos/kernel.c64 src/misc/memory.c64 src/bochs/bochs.s64
+kernel: src/vos/kernel.s64 src/vos/kernel.c64 src/vos/memory.c64 src/bochs/bochs.s64 src/vos/x86_64.s64
 	ld --oformat binary -m elf_x86_64 -s -n -o $@ -T kernel.ld $^     # 链接成纯二进制代码
 
 .PHONY : run
@@ -39,8 +36,7 @@ run: all
 
 .PHONY : clean
 clean:
-	rm -f loader kernel
-	find . -name *.bin | xargs rm -f
+	rm -f mbr loader kernel
 	find . -name *.img | xargs rm -f
 	find . -name *.o   | xargs rm -f
 	find . -name *.s32 | xargs rm -f

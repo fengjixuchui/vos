@@ -2,15 +2,7 @@
 // Created by x7cc on 2020/4/13.
 //
 
-#include "misc/memory.h"
-
-int strlen (const char* s)
-{
-  int i = 0;
-  while (s[i])
-    ++i;
-  return i;
-}
+#include "vos/memory.h"
 
 void memset (void* dest, int c, int n)
 {
@@ -38,5 +30,6 @@ int memcmp (const void* a, const void* b, int n)
     if (((unsigned char*)a)[i] > ((unsigned char*)b)[i])
       return 1;
   }
+
   return 0;
 }
