@@ -41,7 +41,7 @@ void putc (char c)
   }
 
   *(video + (xpos + ypos * COLUMNS) * 2)     = c;
-  *(video + (xpos + ypos * COLUMNS) * 2 + 1) = ATTRIBUTE;
+  // *(video + (xpos + ypos * COLUMNS) * 2 + 1) = ATTRIBUTE;
 
   xpos++;
   if (xpos >= COLUMNS)

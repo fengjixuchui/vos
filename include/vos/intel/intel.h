@@ -42,6 +42,9 @@
 #define CR4_CET_MASK        (1 << 23)
 
 #define IA32_FEATURE_CONTROL        0x3A
+#define IA32_SYSENTER_CS            0x174
+#define IA32_SYSENTER_ESP           0x175
+#define IA32_SYSENTER_EIP           0x176
 #define IA32_VMX_BASIC              0x480
 #define IA32_VMX_PINBASEDCTLS       0x481
 #define IA32_VMX_PROCBASEDCTLS      0x482
