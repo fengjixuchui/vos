@@ -15,17 +15,6 @@ typedef unsigned char      uint8;
 typedef unsigned short     uint16;
 typedef unsigned int       uint32;
 typedef unsigned long long uint64;
-
-#if __x86_64__
-#  define intptr int64
-#  define uintptr uint64
-#elif __i386__
-#  define intptr int32
-#  define uintptr uint32
-#else
-#  error "wtf???"
-#endif
-
 AssertCompileSize (int8, 1);
 AssertCompileSize (int16, 2);
 AssertCompileSize (int32, 4);
@@ -34,5 +23,17 @@ AssertCompileSize (uint8, 1);
 AssertCompileSize (uint16, 2);
 AssertCompileSize (uint32, 4);
 AssertCompileSize (uint64, 8);
+
+// clang-format off
+#if __x86_64__
+  #define intptr  int64
+  #define uintptr uint64
+#elif __i386__
+  #define intptr  int32
+  #define uintptr uint32
+#else
+  #error "wtf???"
+#endif
+// clang-format on
 
 #endif //VOS_TYPES_H

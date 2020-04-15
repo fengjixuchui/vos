@@ -7,12 +7,6 @@
 %define _LOADER_SEGMENT 0x0800      ; 内核程序段基址.
 %define _LOADER_OFFSET  0x0000      ; 内核程序段偏移.
 
-%define _PML4_BASE_                0x00010000
-%define _PDP_BASE_                 0x00011000
-%define _PD_BASE_                  0x00012000
-%define _PT_BASE_                  0x00013000
-%define __VOS_PA__                 0x00100000
-
 %define uint8  db
 %define uint16 dw
 %define uint32 dd
@@ -39,9 +33,6 @@
 %define CR0_CD (1 << 30)
 %define CR0_PG (1 << 31)
 
-%define CR3_PDB_32(x) ((x & 0x000fffff) << 20)
-%define CR3_PDB_64(x) ((x & 0x000fffffffffffff) << 20)
-
 %define CR4_VME  (1 << 0)   ; Virtual-8086 Mode Extensions (bit 0 of CR4)
 %define CR4_PVI  (1 << 1)
 %define CR4_TSD  (1 << 2)
@@ -63,28 +54,10 @@
 %define IA32_EFER_LMA (1 << 10)
 %define IA32_EFER_NXE (1 << 11)
 
-%define IA32_FEATURE_CONTROL 0x3A
-%define IA32_VMX_BASIC       0x480
-
 %define __STEP                (__BITS__ / 8)
 %define __ARGS_SIZE(N)        (N * __STEP)
 %define __ARG(INDEX)          [ebp + (INDEX + 2) * __STEP]
 %define __STACK_CLEAR(N)      add esp, __ARGS_SIZE(N)
-
-struc vos_t
-.vmx_host   resb 4096
-.vendor     resb 12       ; CPU 提供商
-.cpuid      resb 16
-.terminal_x resb 1
-.terminal_y resb 1
-endstruc
-
-struc cpuid_t
-.eax resb 4
-.ebx resb 4
-.ecx resb 4
-.edx resb 4
-endstruc
 
 %macro __FUNC_BEGIN_16 0
 .begin:
@@ -140,32 +113,6 @@ mov eax, %1
 jmp .end
 %endmacro
 
-%macro __FUNC_BEGIN_64 0
-.begin:
-push rbp
-mov  rbp, rsp
-push rbx
-push rcx
-push rdx
-push rsi
-push rdi
-%endmacro
-
-%macro __FUNC_END_64 0
-.end:
-pop rdi
-pop rsi
-pop rdx
-pop rcx
-pop rbx
-pop rbp
-ret
-%endmacro
-
-%macro __FUNC_RETURN_64 1
-mov rax, %1
-jmp .end
-%endmacro
 
 %endif ; VOS_DEFS
 

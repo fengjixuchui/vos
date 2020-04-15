@@ -99,9 +99,12 @@ __write_cr4:
   mov cr4, rax
   ret
 
-; struct cpuid_t {
-;   uint32 eax, ebx, ecx, edx
-; }
+struc cpuid_t
+.eax resb 4
+.ebx resb 4
+.ecx resb 4
+.edx resb 4
+endstruc
 ; Table 3-8. Information Returned by CPUID Instruction
 ; void __fastcall f (struct cpuid_t*, int)
 __cpuid:

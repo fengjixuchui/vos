@@ -101,25 +101,25 @@ void init_PML4 ()
   // 全局变量在裸机下需要手动初始化.默认值无效.
   page_begin = 0;
 
-  uint32  offset = VOS_PML4_PA;
+  uint64  offset = VOS_PML4_PA;
   uint64* pml4   = make_PML4 ((void*)offset);
   offset += 4096;
   for (int L2 = 0; L2 < 1; ++L2)
   {
     uint64* pbp = make_PDP ((void*)offset);
     offset += 4096;
-    pml4[L2] = (uint32)pbp | 7;
+    pml4[L2] = (uint64)pbp | 7;
     for (int L3 = 0; L3 < 1; ++L3)
     {
       uint64* pb = make_PD ((void*)offset);
       offset += 4096;
-      pbp[L3] = (uint32)pb | 7;
+      pbp[L3] = (uint64)pb | 7;
 
-      for (int L4 = 0; L4 < 10; ++L4)
+      for (int L4 = 0; L4 < 512; ++L4)
       {
         uint64* pt = make_PT ((void*)offset);
         offset += 4096;
-        pb[L4] = (uint32)pt | 7;
+        pb[L4] = (uint64)pt | 7;
       }
     }
   }
@@ -130,7 +130,7 @@ void init_PML4 ()
 void loader_main ()
 {
   enable_PAE ();
-  init_GDT64 ();
   init_PML4 ();
+  init_GDT64 ();
   goto_IA32E ();
 }

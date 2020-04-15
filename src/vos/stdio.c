@@ -40,7 +40,7 @@ void putc (char c)
     return;
   }
 
-  *(video + (xpos + ypos * COLUMNS) * 2)     = c;
+  *(video + (xpos + ypos * COLUMNS) * 2) = c;
   // *(video + (xpos + ypos * COLUMNS) * 2 + 1) = ATTRIBUTE;
 
   xpos++;

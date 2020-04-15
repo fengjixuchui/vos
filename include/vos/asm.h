@@ -8,7 +8,7 @@
 #include "vos/types.h"
 
 typedef struct cpuid__ cpuid_t;
-typedef struct gdtr__ gdtr_t, ldtr_t, idtr_t;
+typedef struct gdtr__  gdtr_t, ldtr_t, idtr_t;
 
 extern uint64 __read_cr0 ();
 extern uint64 __read_cr3 ();
@@ -23,16 +23,16 @@ extern uint64 __rflags ();
 extern uint64 __eflags ();
 extern uint64 __flags ();
 
-extern uint64 __read_es();
-extern uint64 __read_cs();
-extern uint64 __read_ss();
-extern uint64 __read_ds();
-extern uint64 __read_fs();
-extern uint64 __read_gs();
-extern uint64 __read_tr();
-extern void __read_gdtr(gdtr_t* gdtr);
-extern void __read_ldtr(ldtr_t* ldtr);
-extern void __read_idtr(idtr_t* idtr);
+extern uint64 __read_es ();
+extern uint64 __read_cs ();
+extern uint64 __read_ss ();
+extern uint64 __read_ds ();
+extern uint64 __read_fs ();
+extern uint64 __read_gs ();
+extern uint64 __read_tr ();
+extern void   __read_gdtr (gdtr_t* gdtr);
+extern void   __read_ldtr (ldtr_t* ldtr);
+extern void   __read_idtr (idtr_t* idtr);
 
 extern void   __clgi ();
 extern void   __stgi ();

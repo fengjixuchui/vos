@@ -18,7 +18,8 @@ typedef struct cpuid__
 AssertCompileSize (struct cpuid__, 16);
 
 #pragma pack(1)
-typedef struct gdtr__{
+typedef struct gdtr__
+{
   uint16 limit;
   uint64 base;
 } gdtr_t, ldtr_t, idtr_t;
