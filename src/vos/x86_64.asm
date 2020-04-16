@@ -8,8 +8,21 @@ bits 64
 %ifidn __OUTPUT_FORMAT__, elf64
   %define fastcall_argv0 rdi
   %define fastcall_argv1 rsi
+  %define fastcall_argv2 rdx
+  %define fastcall_argv3 rcx
   %define argv0 fastcall_argv0
   %define argv1 fastcall_argv1
+  %define argv2 fastcall_argv2
+  %define argv3 fastcall_argv3
+%elifidn __OUTPUT_FORMAT__, win64
+  %define fastcall_argv0 rcx
+  %define fastcall_argv1 rdx
+  %define fastcall_argv2 r8
+  %define fastcall_argv3 r9
+  %define argv0 fastcall_argv0
+  %define argv1 fastcall_argv1
+  %define argv2 fastcall_argv2
+  %define argv3 fastcall_argv3
 %else
   %error "目前只支持elf64格式的fastcall"
 %endif

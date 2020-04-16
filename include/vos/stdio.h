@@ -8,5 +8,6 @@
 void putc (char c);
 void puts (const char* s);
 void cls ();
+void print (const char* format, ...);
 
 #endif //VOS_STDIO_H

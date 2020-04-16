@@ -62,7 +62,7 @@ init:                    ; void init(void)
 work:                    ; void work(void)
 ;  BOCHS_MAGIC_BREAK             ;
 
-  push 20                ; uint8 count        读取扇区数量
+  push 60                ; uint8 count        读取扇区数量
   push 2                 ; uint8 sectorNum    扇区号
   push 0                 ; uint8 cylinder     磁道
   push 0                 ; uint8 head         磁头
