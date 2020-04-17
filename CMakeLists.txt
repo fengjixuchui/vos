@@ -12,6 +12,7 @@ TEST_BIG_ENDIAN(XF_BIG_ENDIAN)
 
 # 检测大小端序
 add_definitions(-DXF_BIG_ENDIAN=${XF_BIG_ENDIAN})
+add_compile_options(-Wall -nostdlib -fno-builtin -fno-exceptions -fno-pic)
 
 set ( CMAKE_DEBUG_POSTFIX "d" )
 set ( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/ )
@@ -25,7 +26,7 @@ set ( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin/release/ 
 
 add_library ( loader
   src/boot/loader.c
-  )
+  include/vos/fs/fat.h )
 
 target_include_directories ( loader
   PUBLIC
@@ -56,7 +57,7 @@ add_library ( kernel
   src/vos/memory.c
   src/vos/stdio.c
   src/vos/string.c
-  )
+  include/vos/fs.h include/vos/fs/fat.h include/vos/fs/exfat.h )
 
 target_include_directories ( kernel
   PUBLIC

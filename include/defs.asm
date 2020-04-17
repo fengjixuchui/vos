@@ -17,8 +17,37 @@
 %define GDT_LIMIT(x)                          (((x >> 12) & 0x0000ffff) | (((x >> 12) & 0x000f0000) << 32))
 %define GDT_ACCESS(AC, RW, DC, EXEC, S, PRL)  (((AC & 1) << 40) | ((RW & 1) << 41) | ((DC & 1) << 42) | ((EXEC & 1) << 43) | ((S & 1) << 44) | ((PRL & 0b11) << 45) | ((PR & 1) << 47))
 %define SZ 1
-%define GDT_FLAGS_32(GR)                      (((GR & 1) << 55) | (1 << 54))
-%define GDT_FLAGS_64(GR)                      (((GR & 1) << 55) | ((1) << 53))
+%define L 1
+%define GDT_FLAGS_32(GR)                      (((GR & 1) << 55) | (SZ << 54))
+%define GDT_FLAGS_64(GR)                      (((GR & 1) << 55) | (L << 53))
+
+
+%define SEG_DESCTYPE     (1 << 44)            ; Descriptor type (0 for system, 1 for code/data)
+%define SEG_PRES         (1 << 47)            ; Present
+%define SEG_SAVL         (1 << 52)            ; Available for system use
+%define SEG_LONG         (1 << 53)            ; Long mode
+%define SEG_SIZE         (1 << 54)            ; Size (0 for 16-bit, 1 for 32)
+%define SEG_GRAN         (1 << 55)            ; Granularity (0 for 1B - 1MB, 1 for 4KB - 4GB)
+%define SEG_PRIV(x)      (((x) &  0x03) << 45)   ; Set privilege level (0 - 3)
+%define SEG_BASE(addr)   ((((addr) & 0x00ffffff) << 16) | (((addr) & 0xff000000) << 32))
+%define SEG_LIMIT(addr)  ((((addr) & 0x0ffff000) >> 12) | (((addr) & 0xf0000000) << 20))
+
+%define SEG_DATA_R       (0x00 << 40) ; Read-Only
+%define SEG_DATA_RA      (0x01 << 40) ; Read-Only, accessed
+%define SEG_DATA_RW      (0x02 << 40) ; Read/Write
+%define SEG_DATA_RWA     (0x03 << 40) ; Read/Write, accessed
+%define SEG_DATA_REXPD   (0x04 << 40) ; Read-Only, expand-down
+%define SEG_DATA_REXPDA  (0x05 << 40) ; Read-Only, expand-down, accessed
+%define SEG_DATA_RWEXPD  (0x06 << 40) ; Read/Write, expand-down
+%define SEG_DATA_RWEXPDA (0x07 << 40) ; Read/Write, expand-down, accessed
+%define SEG_CODE_X       (0x08 << 40) ; Execute-Only
+%define SEG_CODE_XA      (0x09 << 40) ; Execute-Only, accessed
+%define SEG_CODE_XR      (0x0A << 40) ; Execute/Read
+%define SEG_CODE_XRA     (0x0B << 40) ; Execute/Read, accessed
+%define SEG_CODE_XC      (0x0C << 40) ; Execute-Only, conforming
+%define SEG_CODE_XCA     (0x0D << 40) ; Execute-Only, conforming, accessed
+%define SEG_CODE_XRC     (0x0E << 40) ; Execute/Read, conforming
+%define SEG_CODE_XRCA    (0x0F << 40) ; Execute/Read, conforming, accessed
 
 ; See : CONTROL REGISTERS
 %define CR0_PE (1 << 0)

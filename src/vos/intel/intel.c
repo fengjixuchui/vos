@@ -3,27 +3,27 @@
 //
 
 #include "vos/intel/intel.h"
-#include "vos/intel/vmx.h"
-#include "vos/cpu.h"
-#include "vos/vos.h"
-#include "vos/asm.h"
-#include "vos/stdio.h"
-#include "vos/memory.h"
 #include "bochs/bochs.h"
+#include "vos/asm.h"
+#include "vos/cpu.h"
+#include "vos/intel/vmx.h"
+#include "vos/memory.h"
+#include "vos/stdio.h"
+#include "vos/vos.h"
 #include "vos/x86.h"
 
 int check_vmx ()
 {
   cpuid_t cpuid;
   __cpuid (&cpuid, 1);
-  if (cpuid.eax & (1 << 5) == 0)
+  if ((cpuid.eax & (1 << 5)) == 0)
   {
     puts ("not support vmx");
     return -1;
   }
 
   uint64 msr = __rdmsr (IA32_FEATURE_CONTROL);
-  if (msr & (IA32_FEATURE_CONTROL_VMX_MASK) == 0)
+  if ((msr & IA32_FEATURE_CONTROL_VMX_MASK) == 0)
   {
     puts ("vmxon");
     return -1;
@@ -45,8 +45,8 @@ static void VMMEntry ()
 
   bochs_break ();
   uint64 vmexit_reason             = __vmread (VMX_VMCS32_RO_EXIT_REASON);
-  uint64 basic_reason              = VMX_EXIT_REASON_BASIC (vmexit_reason);
   uint64 vmexit_instruction_length = __vmread (VMX_VMCS32_RO_EXIT_INSTR_LENGTH);
+  uint64 basic_reason              = VMX_EXIT_REASON_BASIC (vmexit_reason);
 
   bochs_break ();
   // clang-format off

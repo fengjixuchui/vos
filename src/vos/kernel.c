@@ -8,7 +8,7 @@
 #include "vos/asm.h"
 #include "vos/memory.h"
 
-int x86_64_main ()
+int x86_64_main (unsigned long magic, unsigned long addr)
 {
   char vendor[13] = {0};
 
