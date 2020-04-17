@@ -7,6 +7,8 @@
 %define _LOADER_SEGMENT 0x0800      ; 内核程序段基址.
 %define _LOADER_OFFSET  0x0000      ; 内核程序段偏移.
 
+%define __PML4_PTR__ 0x00F00000
+
 %define uint8  db
 %define uint16 dw
 %define uint32 dd

@@ -187,7 +187,7 @@ make_PML4:
     dec ecx
     jnz .l1      ; 指令太多,loop短跳转不让用...
   ret
-  .tablePtr dd 0x100000
+  .tablePtr dd __PML4_PTR__
   .pagePtr  dd 0
   .pml4     dd 0
   .pdp      dd 0
@@ -203,7 +203,7 @@ loader_entry:
 
   call make_PML4
 
-  mov eax, 0x100000
+  mov eax, __PML4_PTR__
   .setup_PML4:
     mov cr3, eax
 

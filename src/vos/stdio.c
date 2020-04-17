@@ -14,7 +14,7 @@
 /*  The number of lines. */
 #define LINES 25
 /*  The attribute of an character. */
-#define ATTRIBUTE 7
+#define ATTRIBUTE 23
 /*  The video memory address. */
 #define VIDEO 0xB8000
 /*  Variables. */
@@ -36,15 +36,15 @@ void putc (char c)
     {
       int FULLSIZE = COLUMNS * LINES * 2;
 
-      ypos = LINES - 1;
+      ypos = LINES - 2;
       memcpy (video, video + (2 * COLUMNS), FULLSIZE - 2 * COLUMNS);
-      memset (video + FULLSIZE - 2 * COLUMNS, 0, COLUMNS * 2);
+      memset (video + FULLSIZE - (2 * COLUMNS), 0, COLUMNS * 2);
     }
     return;
   }
 
-  *(video + (xpos + ypos * COLUMNS) * 2) = c;
-  // *(video + (xpos + ypos * COLUMNS) * 2 + 1) = ATTRIBUTE;
+  *(video + (xpos + ypos * COLUMNS) * 2)     = c;
+  *(video + (xpos + ypos * COLUMNS) * 2 + 1) = ATTRIBUTE;
 
   xpos++;
   if (xpos >= COLUMNS)
