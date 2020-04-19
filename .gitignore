@@ -1,4 +1,11 @@
+/disc
 /.idea/
 /cmake-build-debug/
 /cmake-build-release/
+*.c32
+*.c64
+*.s32
+*.s64
+*.iso
+*.img
 
