@@ -101,7 +101,7 @@ void init_PML4 ()
   // 全局变量在裸机下需要手动初始化.默认值无效.
   page_begin = 0;
 
-  uint64  offset = VOS_PML4_PA;
+  uint64  offset = VOS_HOST_PML4E_PA;
   uint64* pml4   = make_PML4 ((void*)offset);
   offset += 4096;
   for (int L2 = 0; L2 < 1; ++L2)
@@ -124,7 +124,7 @@ void init_PML4 ()
     }
   }
 
-  setup_PML4 (VOS_PML4_PA);
+  setup_PML4 (VOS_HOST_PML4E_PA);
 }
 
 void loader_main ()

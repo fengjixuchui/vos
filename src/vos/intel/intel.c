@@ -36,6 +36,7 @@ int check_vmx ()
 static void GuestEntry ()
 {
   puts ("GuestEntry");
+  bochs_break ();
   __vmcall ();
 }
 
@@ -43,12 +44,10 @@ static void VMMEntry ()
 {
   puts ("VMMEntry");
 
-  bochs_break ();
   uint64 vmexit_reason             = __vmread (VMX_VMCS32_RO_EXIT_REASON);
   uint64 vmexit_instruction_length = __vmread (VMX_VMCS32_RO_EXIT_INSTR_LENGTH);
   uint64 basic_reason              = VMX_EXIT_REASON_BASIC (vmexit_reason);
 
-  bochs_break ();
   // clang-format off
   switch (basic_reason) {
     case VMX_EXIT_INVALID:                  print("VMX_EXIT_INVALID(%d)",                  VMX_EXIT_INVALID);                  break;
@@ -119,6 +118,7 @@ static void VMMEntry ()
     case VMX_EXIT_TPAUSE:                   print("VMX_EXIT_TPAUSE(%d)",                   VMX_EXIT_TPAUSE);                   break;
   }
   // clang-format on
+  bochs_break ();
 }
 
 int vmx_start ()
@@ -196,19 +196,26 @@ int vmx_start ()
     __vmwrite (VMX_VMCS_HOST_RIP, &VMMEntry);
   }
 
-  // Guest
+  // Guest, See: 24.4 GUEST-STATE AREA
   {
+    ;
     __vmwrite (VMX_VMCS_GUEST_RSP, 0x2000);
     __vmwrite (VMX_VMCS_GUEST_RIP, &GuestEntry);
 
     __vmwrite (VMX_VMCS_GUEST_RFLAGS, __rflags ());
     __vmwrite (VMX_VMCS_GUEST_CR0, __read_cr0 ());
-    __vmwrite (VMX_VMCS_GUEST_CR3, __read_cr3 ());
+    __vmwrite (VMX_VMCS_GUEST_CR3, make_guest_PML4E ());
     __vmwrite (VMX_VMCS_GUEST_CR4, __read_cr4 ());
     __vmwrite (VMX_VMCS_GUEST_DR7, 0x400);
 
     __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_FULL, 0xffffffff);
     __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_HIGH, 0xffffffff);
+    uint64 msr = __rdmsr (IA32_VMX_ENTRYCTLS); // Adjust ???
+    msr &= (msr >> 32);
+    msr |= 0b00000000000000000000001000000000;
+    __vmwrite (VMX_VMCS32_CTRL_ENTRY, msr);
+    //    __vmwrite(VMX_VMCS32_CTRL_ENTRY, 0b00000000000000000000001000000000);
+    //    __vmwrite(VMX_VMCS32_CTRL_ENTRY_MSR_LOAD_COUNT, 0b1000001000000000);
 
     __vmwrite (VMX_VMCS16_GUEST_ES_SEL, __read_es () & 0xfff8);
     __vmwrite (VMX_VMCS16_GUEST_CS_SEL, __read_cs () & 0xfff8);
@@ -217,8 +224,38 @@ int vmx_start ()
     __vmwrite (VMX_VMCS16_GUEST_FS_SEL, __read_fs () & 0xfff8);
     __vmwrite (VMX_VMCS16_GUEST_GS_SEL, __read_gs () & 0xfff8);
     __vmwrite (VMX_VMCS16_GUEST_TR_SEL, 8 & 0xfff8);
+
+    __vmwrite (VMX_VMCS_GUEST_ES_BASE, 0);
+    __vmwrite (VMX_VMCS_GUEST_CS_BASE, 0);
+    __vmwrite (VMX_VMCS_GUEST_SS_BASE, 0);
+    __vmwrite (VMX_VMCS_GUEST_DS_BASE, 0);
+    __vmwrite (VMX_VMCS_GUEST_FS_BASE, 0);
+    __vmwrite (VMX_VMCS_GUEST_GS_BASE, 0);
+    __vmwrite (VMX_VMCS_GUEST_TR_BASE, 0);
+    __vmwrite (VMX_VMCS_GUEST_LDTR_BASE, 0);
     __vmwrite (VMX_VMCS_GUEST_GDTR_BASE, gdtr.base);
     __vmwrite (VMX_VMCS_GUEST_IDTR_BASE, idtr.base);
+
+    __vmwrite (VMX_VMCS32_GUEST_ES_LIMIT, 0xffffffff);
+    __vmwrite (VMX_VMCS32_GUEST_CS_LIMIT, 0xffffffff);
+    __vmwrite (VMX_VMCS32_GUEST_SS_LIMIT, 0xffffffff);
+    __vmwrite (VMX_VMCS32_GUEST_DS_LIMIT, 0xffffffff);
+    __vmwrite (VMX_VMCS32_GUEST_FS_LIMIT, 0xffffffff);
+    __vmwrite (VMX_VMCS32_GUEST_GS_LIMIT, 0xffffffff);
+    __vmwrite (VMX_VMCS32_GUEST_LDTR_LIMIT, 0xffffffff);
+    __vmwrite (VMX_VMCS32_GUEST_TR_LIMIT, 0xffffffff);
+    //    bochs_break();
+    __vmwrite (VMX_VMCS32_GUEST_GDTR_LIMIT, gdtr.limit);
+    __vmwrite (VMX_VMCS32_GUEST_IDTR_LIMIT, idtr.limit);
+
+    __vmwrite (VMX_VMCS32_GUEST_ES_ACCESS_RIGHTS, 0b1000000010010001);
+    __vmwrite (VMX_VMCS32_GUEST_CS_ACCESS_RIGHTS, 0b1010000010011101);
+    __vmwrite (VMX_VMCS32_GUEST_SS_ACCESS_RIGHTS, 0b1000000010010011);
+    __vmwrite (VMX_VMCS32_GUEST_DS_ACCESS_RIGHTS, 0b1000000010010001);
+    __vmwrite (VMX_VMCS32_GUEST_FS_ACCESS_RIGHTS, 0b1000000010010001);
+    __vmwrite (VMX_VMCS32_GUEST_GS_ACCESS_RIGHTS, 0b1000000010010001);
+    __vmwrite (VMX_VMCS32_GUEST_LDTR_ACCESS_RIGHTS, 0b1000000010000010);
+    __vmwrite (VMX_VMCS32_GUEST_TR_ACCESS_RIGHTS, 0b1000000010001011);
   }
 
   __vmlaunch ();

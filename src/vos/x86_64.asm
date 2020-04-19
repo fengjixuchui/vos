@@ -40,6 +40,7 @@ global __rflags
 global __eflags
 global __flags
 
+global __read_access_rights
 global __read_es
 global __read_cs
 global __read_ss
@@ -66,6 +67,10 @@ global __invept
 global __invvpid
 global __vmcall
 global __vmfunc
+
+__read_access_rights:
+  lar rax, argv0
+  ret
 
 __read_cr0:
   mov rax, cr0

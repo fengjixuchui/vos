@@ -66,6 +66,24 @@ multiboot_header_begin:
   multiboot_header_tag_entry_address_end:
 
   align 8 ; https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html#General-tag-structure
+  multiboot_header_tag_entry_address_efi32_begin:
+    ; https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html#EFI-i386-entry-address-tag-of-Multiboot2-header
+    dw MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI32
+    dw MULTIBOOT_HEADER_TAG_OPTIONAL
+    dd 12     ; size
+    dd multiboot_entry
+  multiboot_header_tag_entry_address_efi32_end:
+
+  align 8 ; https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html#General-tag-structure
+  multiboot_header_tag_entry_address_efi64_begin:
+    ; https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html#EFI-amd64-entry-address-tag-of-Multiboot2-header
+    dw MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI64
+    dw MULTIBOOT_HEADER_TAG_OPTIONAL
+    dd 12     ; size
+    dd x86_64_entry
+  multiboot_header_tag_entry_address_efi64_end:
+
+  align 8 ; https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html#General-tag-structure
   multiboot_header_tag_end_begin:
     ; Tags are terminated by a tag of type ‘0’ and size ‘8’.
     dw MULTIBOOT_HEADER_TAG_END
@@ -225,7 +243,7 @@ loader_entry:
     mov fs, eax               ; reload segment register.
     mov gs, eax               ; reload segment register.
     mov ss, eax               ; reload segment register. the ss register must be a pointer to data segment.
-
+;BOCHS_MAGIC_BREAK
   .goto_IA32E:
     mov ecx, 0C0000080h    ;IA32_EFER
     rdmsr
@@ -237,9 +255,9 @@ loader_entry:
     or eax, CR0_PG
     mov cr0, eax
 
-    call dword (.code64_ring0 - .gdt64):x86_64_main
+    jmp dword (.code64_ring0 - .gdt64):x86_64_entry
 
-  ret
+  jmp $
 
   align 8
   .gdt64:
@@ -262,3 +280,6 @@ loader_entry:
     .limit dw .gdt64_len - 1
     .base dq .gdt64
 
+x86_64_entry:
+  call x86_64_main
+  jmp $

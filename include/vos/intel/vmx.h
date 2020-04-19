@@ -5,6 +5,8 @@
 #ifndef VOS_VMX_H
 #define VOS_VMX_H
 
+#include "vos/types.h"
+
 // clang-format off
 
 /** 16-bit control fields.  */
@@ -544,5 +546,6 @@
   XX (28, "Invalid operand to INVEPT/INVVPID.")
 
 const char* VMX_INSTRUCTION_ERROR_STRING (int num);
+uint64      make_guest_PML4E ();
 
 #endif //VOS_VMX_H

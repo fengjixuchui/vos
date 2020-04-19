@@ -10,6 +10,7 @@
 typedef struct cpuid__ cpuid_t;
 typedef struct gdtr__  gdtr_t, ldtr_t, idtr_t;
 
+extern uint64 __read_access_rights ();
 extern uint64 __read_cr0 ();
 extern uint64 __read_cr3 ();
 extern uint64 __read_cr4 ();
