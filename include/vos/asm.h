@@ -18,8 +18,8 @@ extern void   __write_cr0 (uint64 value);
 extern void   __write_cr3 (uint64 value);
 extern void   __write_cr4 (uint64 value);
 extern void   __cpuid (cpuid_t* out, uint64 id);
-extern uint64 __rdmsr (uint64 id);
-extern void   __wrmsr (uint64 id, uint64 value);
+extern uint64 __read_msr (uint64 id);
+extern void   __write_msr (uint64 id, uint64 value);
 extern uint64 __rflags ();
 extern uint64 __eflags ();
 extern uint64 __flags ();
@@ -50,5 +50,6 @@ extern void   __invept ();
 extern void   __invvpid ();
 extern void   __vmcall (uint64 arg);
 extern void   __vmfunc ();
+extern void   __vmexit_handler ();
 
 #endif //VOS2_ASM_H

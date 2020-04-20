@@ -27,6 +27,8 @@ bits 64
   %error "目前只支持elf64格式的fastcall"
 %endif
 
+extern VmmVmExitHandler
+
 global __read_cr0
 global __write_cr0
 global __read_cr3
@@ -34,8 +36,8 @@ global __write_cr3
 global __read_cr4
 global __write_cr4
 global __cpuid
-global __rdmsr
-global __wrmsr
+global __read_msr
+global __write_msr
 global __rflags
 global __eflags
 global __flags
@@ -67,6 +69,7 @@ global __invept
 global __invvpid
 global __vmcall
 global __vmfunc
+global __vmexit_handler
 
 __read_access_rights:
   lar rax, argv0
@@ -137,14 +140,14 @@ __cpuid:
 
   ret
 
-__rdmsr:
+__read_msr:
   mov rcx, argv0
   rdmsr
   shl rdx, 32
   or rax, rdx        ; merge to uint64
   ret
 
-__wrmsr:
+__write_msr:
   mov rcx, argv0
   mov rax, argv1     ; low part
   mov rdx, argv1
@@ -266,5 +269,47 @@ __vmfunc:
   vmfunc
   ret
 
+struc GuestContext
+.ax resb 8
+.bx resb 8
+.cx resb 8
+.dx resb 8
+.si resb 8
+.di resb 8
+.arg resb 8
+endstruc
+
+__vmexit_handler:
+  push rbp
+  mov rbp, rsp
+
+  sub rsp, GuestContext_size
+
+  mov [rsp + GuestContext.ax], rax
+  mov [rsp + GuestContext.bx], rbx
+  mov [rsp + GuestContext.cx], rcx
+  mov [rsp + GuestContext.dx], rdx
+  mov [rsp + GuestContext.si], rsi
+  mov [rsp + GuestContext.di], rdi
+  mov [rsp + GuestContext.arg], argv0
+
+  mov argv0, rsp
+
+  call VmmVmExitHandler
+
+  mov rax, [rsp + GuestContext.ax]
+  mov rbx, [rsp + GuestContext.bx]
+  mov rcx, [rsp + GuestContext.cx]
+  mov rdx, [rsp + GuestContext.dx]
+  mov rsi, [rsp + GuestContext.si]
+  mov rdi, [rsp + GuestContext.di]
+
+  add rsp, GuestContext_size
+
+  pop rbp
+
+  call __vmresume        ; 这条命令执行成功将改变执行流程,不会返回.
+
+  ret
 
 %endif ; VOS_X86_64

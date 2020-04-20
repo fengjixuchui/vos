@@ -22,31 +22,52 @@ int check_vmx ()
     return -1;
   }
 
-  uint64 msr = __rdmsr (IA32_FEATURE_CONTROL);
+  uint64 msr = __read_msr (IA32_FEATURE_CONTROL);
   if ((msr & IA32_FEATURE_CONTROL_VMX_MASK) == 0)
   {
     puts ("vmxon");
     return -1;
   }
   msr |= IA32_FEATURE_CONTROL_LOCK_MASK;
-  __wrmsr (IA32_FEATURE_CONTROL, msr);
+  __write_msr (IA32_FEATURE_CONTROL, msr);
   return 0;
 }
 
 static void GuestEntry ()
 {
+  char vendor[13] = {0};
   puts ("GuestEntry 1");
   bochs_break ();
+  cpuid_t cpuid;
+  __cpuid (&cpuid, 0);
+
+  ((uint32*)vendor)[0] = cpuid.ebx;
+  ((uint32*)vendor)[1] = cpuid.edx;
+  ((uint32*)vendor)[2] = cpuid.ecx;
+  puts (vendor);
+
   __vmcall (0x1234);
   puts ("GuestEntry 2");
   __vmcall (0x1234);
   puts ("GuestEntry 3");
+
   bochs_break ();
 }
 
-static void VMMEntry ()
+typedef struct GuestContext
 {
-  puts ("VMMEntry");
+  uint64 rax;
+  uint64 rbx;
+  uint64 rcx;
+  uint64 rdx;
+  uint64 rsi;
+  uint64 rdi;
+  uint64 arg;
+} GuestContext_t;
+
+void VmmVmExitHandler (GuestContext_t* context)
+{
+  //  puts ("VmmVmExitHandler");
 
   uint64 vmexit_rdi                = __vmread (VMX_VMCS_RO_IO_RDI);
   uint64 vmexit_rip                = __vmread (VMX_VMCS_RO_IO_RIP);
@@ -68,7 +89,13 @@ static void VMMEntry ()
     case VMX_EXIT_INT_WINDOW:               print("VMX_EXIT_INT_WINDOW(%d)\n",               VMX_EXIT_INT_WINDOW);               break;
     case VMX_EXIT_NMI_WINDOW:               print("VMX_EXIT_NMI_WINDOW(%d)\n",               VMX_EXIT_NMI_WINDOW);               break;
     case VMX_EXIT_TASK_SWITCH:              print("VMX_EXIT_TASK_SWITCH(%d)\n",              VMX_EXIT_TASK_SWITCH);              break;
-    case VMX_EXIT_CPUID:                    print("VMX_EXIT_CPUID(%d)\n",                    VMX_EXIT_CPUID);                    break;
+    case VMX_EXIT_CPUID:
+      // print("VMX_EXIT_CPUID(%d)\n",                    VMX_EXIT_CPUID);
+      context->rax = 'aaaaaaaa';
+      context->rbx = 'bbbbbbbb';
+      context->rcx = 'cccccccc';
+      context->rdx = 'dddddddd';
+      break;
     case VMX_EXIT_GETSEC:                   print("VMX_EXIT_GETSEC(%d)\n",                   VMX_EXIT_GETSEC);                   break;
     case VMX_EXIT_HLT:                      print("VMX_EXIT_HLT(%d)\n",                      VMX_EXIT_HLT);                      break;
     case VMX_EXIT_INVD:                     print("VMX_EXIT_INVD(%d)\n",                     VMX_EXIT_INVD);                     break;
@@ -125,12 +152,11 @@ static void VMMEntry ()
     case VMX_EXIT_TPAUSE:                   print("VMX_EXIT_TPAUSE(%d)\n",                   VMX_EXIT_TPAUSE);                   break;
   }
   // clang-format on
-  bochs_break ();
+
   guest_rip += vmexit_instruction_length;
 
   // 让Guest执行后面的指令.
   __vmwrite (VMX_VMCS_GUEST_RIP, guest_rip);
-  __vmresume ();
 }
 
 #define CPUID_0x80000008_EAX_PA_BITS(EAX) (EAX & 0xff)        // 物理地址位宽.
@@ -151,7 +177,7 @@ int vmx_start ()
   cr4 |= CR4_VMXE_MASK;
   __write_cr4 (cr4);
 
-  uint64 msr = __rdmsr (IA32_VMX_BASIC);
+  uint64 msr = __read_msr (IA32_VMX_BASIC);
 
   uint64 vmcs_size        = IA32_VMX_BASIC_VMCS_SIZE (msr);
   uint64 vmcs_revision_id = (msr & IA32_VMX_BASIC_VMCS_REVISION_IDENTIFIER_MASK);
@@ -185,10 +211,10 @@ int vmx_start ()
   __read_gdtr (&gdtr);
   __read_idtr (&idtr);
 
-  __vmwrite (VMX_VMCS32_CTRL_PIN_EXEC, __rdmsr (MSR_IA32_VMX_PINBASED_CTLS) & 0xffffffff);
-  __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC, __rdmsr (MSR_IA32_VMX_PROCBASED_CTLS) & 0xffffffff);
-  __vmwrite (VMX_VMCS32_CTRL_EXIT, (__rdmsr (MSR_IA32_VMX_EXIT_CTLS) | VMX_EXIT_CTLS_HOST_ADDR_SPACE_SIZE) & 0xffffffff);
-  __vmwrite (VMX_VMCS32_CTRL_ENTRY, __rdmsr (MSR_IA32_VMX_ENTRY_CTLS) & 0xffffffff);
+  __vmwrite (VMX_VMCS32_CTRL_PIN_EXEC, __read_msr (MSR_IA32_VMX_PINBASED_CTLS) & 0xffffffff);
+  __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC, __read_msr (MSR_IA32_VMX_PROCBASED_CTLS) & 0xffffffff);
+  __vmwrite (VMX_VMCS32_CTRL_EXIT, (__read_msr (MSR_IA32_VMX_EXIT_CTLS) | VMX_EXIT_CTLS_HOST_ADDR_SPACE_SIZE) & 0xffffffff);
+  __vmwrite (VMX_VMCS32_CTRL_ENTRY, __read_msr (MSR_IA32_VMX_ENTRY_CTLS) & 0xffffffff);
 
   // Host
   {
@@ -204,16 +230,16 @@ int vmx_start ()
     __vmwrite (VMX_VMCS_HOST_GDTR_BASE, gdtr.base); // 居然没有设置limit的接口...
     __vmwrite (VMX_VMCS_HOST_IDTR_BASE, idtr.base); // 居然没有设置limit的接口...
 
-    //  __vmwrite (VMX_VMCS_HOST_IA32_SYSENTER_CS_MSR, __rdmsr(MSR_IA32_SYSENTER_CS));
-    __vmwrite (VMX_VMCS_HOST_SYSENTER_ESP, __rdmsr (MSR_IA32_SYSENTER_ESP));
-    __vmwrite (VMX_VMCS_HOST_SYSENTER_EIP, __rdmsr (MSR_IA32_SYSENTER_EIP));
+    //  __vmwrite (VMX_VMCS_HOST_IA32_SYSENTER_CS_MSR, __read_msr(MSR_IA32_SYSENTER_CS));
+    __vmwrite (VMX_VMCS_HOST_SYSENTER_ESP, __read_msr (MSR_IA32_SYSENTER_ESP));
+    __vmwrite (VMX_VMCS_HOST_SYSENTER_EIP, __read_msr (MSR_IA32_SYSENTER_EIP));
 
     __vmwrite (VMX_VMCS_HOST_CR0, __read_cr0 ());
     __vmwrite (VMX_VMCS_HOST_CR3, __read_cr3 ());
     __vmwrite (VMX_VMCS_HOST_CR4, __read_cr4 ());
 
     __vmwrite (VMX_VMCS_HOST_RSP, 0x1000); // 返回Host时的栈基指针.
-    __vmwrite (VMX_VMCS_HOST_RIP, &VMMEntry);
+    __vmwrite (VMX_VMCS_HOST_RIP, &__vmexit_handler);
   }
 
   // Guest, See: 24.4 GUEST-STATE AREA
@@ -231,8 +257,8 @@ int vmx_start ()
     __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_FULL, 0xffffffff);
     __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_HIGH, 0xffffffff);
 
-    uint64 msr = __rdmsr (IA32_VMX_ENTRYCTLS); // Adjust ???
-    msr |= 0b00000000000000000000001000000000; // IA32e guest
+    uint64 msr = __read_msr (IA32_VMX_ENTRYCTLS); // Adjust ???
+    msr |= 0b00000000000000000000001000000000;    // IA32e guest
     msr &= (msr >> 32);
     __vmwrite (VMX_VMCS32_CTRL_ENTRY, msr);
     //    __vmwrite(VMX_VMCS32_CTRL_ENTRY, 0b00000000000000000000001000000000);
