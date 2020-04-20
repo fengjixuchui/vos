@@ -48,7 +48,7 @@ extern void   __vmxoff ();
 extern void   __vmxon (uint64 paddr);
 extern void   __invept ();
 extern void   __invvpid ();
-extern void   __vmcall ();
+extern void   __vmcall (uint64 arg);
 extern void   __vmfunc ();
 
 #endif //VOS2_ASM_H

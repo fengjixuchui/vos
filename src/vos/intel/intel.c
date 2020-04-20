@@ -35,94 +35,114 @@ int check_vmx ()
 
 static void GuestEntry ()
 {
-  puts ("GuestEntry");
+  puts ("GuestEntry 1");
   bochs_break ();
-  __vmcall ();
+  __vmcall (0x1234);
+  puts ("GuestEntry 2");
+  __vmcall (0x1234);
+  puts ("GuestEntry 3");
+  bochs_break ();
 }
 
 static void VMMEntry ()
 {
   puts ("VMMEntry");
 
+  uint64 vmexit_rdi                = __vmread (VMX_VMCS_RO_IO_RDI);
+  uint64 vmexit_rip                = __vmread (VMX_VMCS_RO_IO_RIP);
+  uint64 guest_rip                 = __vmread (VMX_VMCS_GUEST_RIP);
   uint64 vmexit_reason             = __vmread (VMX_VMCS32_RO_EXIT_REASON);
   uint64 vmexit_instruction_length = __vmread (VMX_VMCS32_RO_EXIT_INSTR_LENGTH);
   uint64 basic_reason              = VMX_EXIT_REASON_BASIC (vmexit_reason);
 
   // clang-format off
   switch (basic_reason) {
-    case VMX_EXIT_INVALID:                  print("VMX_EXIT_INVALID(%d)",                  VMX_EXIT_INVALID);                  break;
-    case VMX_EXIT_XCPT_OR_NMI:              print("VMX_EXIT_XCPT_OR_NMI(%d)",              VMX_EXIT_XCPT_OR_NMI);              break;
-    case VMX_EXIT_EXT_INT:                  print("VMX_EXIT_EXT_INT(%d)",                  VMX_EXIT_EXT_INT);                  break;
-    case VMX_EXIT_TRIPLE_FAULT:             print("VMX_EXIT_TRIPLE_FAULT(%d)",             VMX_EXIT_TRIPLE_FAULT);             break;
-    case VMX_EXIT_INIT_SIGNAL:              print("VMX_EXIT_INIT_SIGNAL(%d)",              VMX_EXIT_INIT_SIGNAL);              break;
-    case VMX_EXIT_SIPI:                     print("VMX_EXIT_SIPI(%d)",                     VMX_EXIT_SIPI);                     break;
-    case VMX_EXIT_IO_SMI:                   print("VMX_EXIT_IO_SMI(%d)",                   VMX_EXIT_IO_SMI);                   break;
-    case VMX_EXIT_SMI:                      print("VMX_EXIT_SMI(%d)",                      VMX_EXIT_SMI);                      break;
-    case VMX_EXIT_INT_WINDOW:               print("VMX_EXIT_INT_WINDOW(%d)",               VMX_EXIT_INT_WINDOW);               break;
-    case VMX_EXIT_NMI_WINDOW:               print("VMX_EXIT_NMI_WINDOW(%d)",               VMX_EXIT_NMI_WINDOW);               break;
-    case VMX_EXIT_TASK_SWITCH:              print("VMX_EXIT_TASK_SWITCH(%d)",              VMX_EXIT_TASK_SWITCH);              break;
-    case VMX_EXIT_CPUID:                    print("VMX_EXIT_CPUID(%d)",                    VMX_EXIT_CPUID);                    break;
-    case VMX_EXIT_GETSEC:                   print("VMX_EXIT_GETSEC(%d)",                   VMX_EXIT_GETSEC);                   break;
-    case VMX_EXIT_HLT:                      print("VMX_EXIT_HLT(%d)",                      VMX_EXIT_HLT);                      break;
-    case VMX_EXIT_INVD:                     print("VMX_EXIT_INVD(%d)",                     VMX_EXIT_INVD);                     break;
-    case VMX_EXIT_INVLPG:                   print("VMX_EXIT_INVLPG(%d)",                   VMX_EXIT_INVLPG);                   break;
-    case VMX_EXIT_RDPMC:                    print("VMX_EXIT_RDPMC(%d)",                    VMX_EXIT_RDPMC);                    break;
-    case VMX_EXIT_RDTSC:                    print("VMX_EXIT_RDTSC(%d)",                    VMX_EXIT_RDTSC);                    break;
-    case VMX_EXIT_RSM:                      print("VMX_EXIT_RSM(%d)",                      VMX_EXIT_RSM);                      break;
-    case VMX_EXIT_VMCALL:                   print("VMX_EXIT_VMCALL(%d)",                   VMX_EXIT_VMCALL);                   break;
-    case VMX_EXIT_VMCLEAR:                  print("VMX_EXIT_VMCLEAR(%d)",                  VMX_EXIT_VMCLEAR);                  break;
-    case VMX_EXIT_VMLAUNCH:                 print("VMX_EXIT_VMLAUNCH(%d)",                 VMX_EXIT_VMLAUNCH);                 break;
-    case VMX_EXIT_VMPTRLD:                  print("VMX_EXIT_VMPTRLD(%d)",                  VMX_EXIT_VMPTRLD);                  break;
-    case VMX_EXIT_VMPTRST:                  print("VMX_EXIT_VMPTRST(%d)",                  VMX_EXIT_VMPTRST);                  break;
-    case VMX_EXIT_VMREAD:                   print("VMX_EXIT_VMREAD(%d)",                   VMX_EXIT_VMREAD);                   break;
-    case VMX_EXIT_VMRESUME:                 print("VMX_EXIT_VMRESUME(%d)",                 VMX_EXIT_VMRESUME);                 break;
-    case VMX_EXIT_VMWRITE:                  print("VMX_EXIT_VMWRITE(%d)",                  VMX_EXIT_VMWRITE);                  break;
-    case VMX_EXIT_VMXOFF:                   print("VMX_EXIT_VMXOFF(%d)",                   VMX_EXIT_VMXOFF);                   break;
-    case VMX_EXIT_VMXON:                    print("VMX_EXIT_VMXON(%d)",                    VMX_EXIT_VMXON);                    break;
-    case VMX_EXIT_MOV_CRX:                  print("VMX_EXIT_MOV_CRX(%d)",                  VMX_EXIT_MOV_CRX);                  break;
-    case VMX_EXIT_MOV_DRX:                  print("VMX_EXIT_MOV_DRX(%d)",                  VMX_EXIT_MOV_DRX);                  break;
-    case VMX_EXIT_IO_INSTR:                 print("VMX_EXIT_IO_INSTR(%d)",                 VMX_EXIT_IO_INSTR);                 break;
-    case VMX_EXIT_RDMSR:                    print("VMX_EXIT_RDMSR(%d)",                    VMX_EXIT_RDMSR);                    break;
-    case VMX_EXIT_WRMSR:                    print("VMX_EXIT_WRMSR(%d)",                    VMX_EXIT_WRMSR);                    break;
-    case VMX_EXIT_ERR_INVALID_GUEST_STATE:  print("VMX_EXIT_ERR_INVALID_GUEST_STATE(%d)",  VMX_EXIT_ERR_INVALID_GUEST_STATE);  break;
-    case VMX_EXIT_ERR_MSR_LOAD:             print("VMX_EXIT_ERR_MSR_LOAD(%d)",             VMX_EXIT_ERR_MSR_LOAD);             break;
-    case VMX_EXIT_MWAIT:                    print("VMX_EXIT_MWAIT(%d)",                    VMX_EXIT_MWAIT);                    break;
-    case VMX_EXIT_MTF:                      print("VMX_EXIT_MTF(%d)",                      VMX_EXIT_MTF);                      break;
-    case VMX_EXIT_MONITOR:                  print("VMX_EXIT_MONITOR(%d)",                  VMX_EXIT_MONITOR);                  break;
-    case VMX_EXIT_PAUSE:                    print("VMX_EXIT_PAUSE(%d)",                    VMX_EXIT_PAUSE);                    break;
-    case VMX_EXIT_ERR_MACHINE_CHECK:        print("VMX_EXIT_ERR_MACHINE_CHECK(%d)",        VMX_EXIT_ERR_MACHINE_CHECK);        break;
-    case VMX_EXIT_TPR_BELOW_THRESHOLD:      print("VMX_EXIT_TPR_BELOW_THRESHOLD(%d)",      VMX_EXIT_TPR_BELOW_THRESHOLD);      break;
-    case VMX_EXIT_APIC_ACCESS:              print("VMX_EXIT_APIC_ACCESS(%d)",              VMX_EXIT_APIC_ACCESS);              break;
-    case VMX_EXIT_VIRTUALIZED_EOI:          print("VMX_EXIT_VIRTUALIZED_EOI(%d)",          VMX_EXIT_VIRTUALIZED_EOI);          break;
-    case VMX_EXIT_GDTR_IDTR_ACCESS:         print("VMX_EXIT_GDTR_IDTR_ACCESS(%d)",         VMX_EXIT_GDTR_IDTR_ACCESS);         break;
-    case VMX_EXIT_LDTR_TR_ACCESS:           print("VMX_EXIT_LDTR_TR_ACCESS(%d)",           VMX_EXIT_LDTR_TR_ACCESS);           break;
-    case VMX_EXIT_EPT_VIOLATION:            print("VMX_EXIT_EPT_VIOLATION(%d)",            VMX_EXIT_EPT_VIOLATION);            break;
-    case VMX_EXIT_EPT_MISCONFIG:            print("VMX_EXIT_EPT_MISCONFIG(%d)",            VMX_EXIT_EPT_MISCONFIG);            break;
-    case VMX_EXIT_INVEPT:                   print("VMX_EXIT_INVEPT(%d)",                   VMX_EXIT_INVEPT);                   break;
-    case VMX_EXIT_RDTSCP:                   print("VMX_EXIT_RDTSCP(%d)",                   VMX_EXIT_RDTSCP);                   break;
-    case VMX_EXIT_PREEMPT_TIMER:            print("VMX_EXIT_PREEMPT_TIMER(%d)",            VMX_EXIT_PREEMPT_TIMER);            break;
-    case VMX_EXIT_INVVPID:                  print("VMX_EXIT_INVVPID(%d)",                  VMX_EXIT_INVVPID);                  break;
-    case VMX_EXIT_WBINVD:                   print("VMX_EXIT_WBINVD(%d)",                   VMX_EXIT_WBINVD);                   break;
-    case VMX_EXIT_XSETBV:                   print("VMX_EXIT_XSETBV(%d)",                   VMX_EXIT_XSETBV);                   break;
-    case VMX_EXIT_APIC_WRITE:               print("VMX_EXIT_APIC_WRITE(%d)",               VMX_EXIT_APIC_WRITE);               break;
-    case VMX_EXIT_RDRAND:                   print("VMX_EXIT_RDRAND(%d)",                   VMX_EXIT_RDRAND);                   break;
-    case VMX_EXIT_INVPCID:                  print("VMX_EXIT_INVPCID(%d)",                  VMX_EXIT_INVPCID);                  break;
-    case VMX_EXIT_VMFUNC:                   print("VMX_EXIT_VMFUNC(%d)",                   VMX_EXIT_VMFUNC);                   break;
-    case VMX_EXIT_ENCLS:                    print("VMX_EXIT_ENCLS(%d)",                    VMX_EXIT_ENCLS);                    break;
-    case VMX_EXIT_RDSEED:                   print("VMX_EXIT_RDSEED(%d)",                   VMX_EXIT_RDSEED);                   break;
-    case VMX_EXIT_PML_FULL:                 print("VMX_EXIT_PML_FULL(%d)",                 VMX_EXIT_PML_FULL);                 break;
-    case VMX_EXIT_XSAVES:                   print("VMX_EXIT_XSAVES(%d)",                   VMX_EXIT_XSAVES);                   break;
-    case VMX_EXIT_XRSTORS:                  print("VMX_EXIT_XRSTORS(%d)",                  VMX_EXIT_XRSTORS);                  break;
-    case VMX_EXIT_SPP_EVENT:                print("VMX_EXIT_SPP_EVENT(%d)",                VMX_EXIT_SPP_EVENT);                break;
-    case VMX_EXIT_UMWAIT:                   print("VMX_EXIT_UMWAIT(%d)",                   VMX_EXIT_UMWAIT);                   break;
-    case VMX_EXIT_TPAUSE:                   print("VMX_EXIT_TPAUSE(%d)",                   VMX_EXIT_TPAUSE);                   break;
+    case VMX_EXIT_INVALID:                  print("VMX_EXIT_INVALID(%d)\n",                  VMX_EXIT_INVALID);                  break;
+    case VMX_EXIT_XCPT_OR_NMI:              print("VMX_EXIT_XCPT_OR_NMI(%d)\n",              VMX_EXIT_XCPT_OR_NMI);              break;
+    case VMX_EXIT_EXT_INT:                  print("VMX_EXIT_EXT_INT(%d)\n",                  VMX_EXIT_EXT_INT);                  break;
+    case VMX_EXIT_TRIPLE_FAULT:             print("VMX_EXIT_TRIPLE_FAULT(%d)\n",             VMX_EXIT_TRIPLE_FAULT);             break;
+    case VMX_EXIT_INIT_SIGNAL:              print("VMX_EXIT_INIT_SIGNAL(%d)\n",              VMX_EXIT_INIT_SIGNAL);              break;
+    case VMX_EXIT_SIPI:                     print("VMX_EXIT_SIPI(%d)\n",                     VMX_EXIT_SIPI);                     break;
+    case VMX_EXIT_IO_SMI:                   print("VMX_EXIT_IO_SMI(%d)\n",                   VMX_EXIT_IO_SMI);                   break;
+    case VMX_EXIT_SMI:                      print("VMX_EXIT_SMI(%d)\n",                      VMX_EXIT_SMI);                      break;
+    case VMX_EXIT_INT_WINDOW:               print("VMX_EXIT_INT_WINDOW(%d)\n",               VMX_EXIT_INT_WINDOW);               break;
+    case VMX_EXIT_NMI_WINDOW:               print("VMX_EXIT_NMI_WINDOW(%d)\n",               VMX_EXIT_NMI_WINDOW);               break;
+    case VMX_EXIT_TASK_SWITCH:              print("VMX_EXIT_TASK_SWITCH(%d)\n",              VMX_EXIT_TASK_SWITCH);              break;
+    case VMX_EXIT_CPUID:                    print("VMX_EXIT_CPUID(%d)\n",                    VMX_EXIT_CPUID);                    break;
+    case VMX_EXIT_GETSEC:                   print("VMX_EXIT_GETSEC(%d)\n",                   VMX_EXIT_GETSEC);                   break;
+    case VMX_EXIT_HLT:                      print("VMX_EXIT_HLT(%d)\n",                      VMX_EXIT_HLT);                      break;
+    case VMX_EXIT_INVD:                     print("VMX_EXIT_INVD(%d)\n",                     VMX_EXIT_INVD);                     break;
+    case VMX_EXIT_INVLPG:                   print("VMX_EXIT_INVLPG(%d)\n",                   VMX_EXIT_INVLPG);                   break;
+    case VMX_EXIT_RDPMC:                    print("VMX_EXIT_RDPMC(%d)\n",                    VMX_EXIT_RDPMC);                    break;
+    case VMX_EXIT_RDTSC:                    print("VMX_EXIT_RDTSC(%d)\n",                    VMX_EXIT_RDTSC);                    break;
+    case VMX_EXIT_RSM:                      print("VMX_EXIT_RSM(%d)\n",                      VMX_EXIT_RSM);                      break;
+    case VMX_EXIT_VMCALL:                   print("VMX_EXIT_VMCALL(%d)\n",                   VMX_EXIT_VMCALL);                   break;
+    case VMX_EXIT_VMCLEAR:                  print("VMX_EXIT_VMCLEAR(%d)\n",                  VMX_EXIT_VMCLEAR);                  break;
+    case VMX_EXIT_VMLAUNCH:                 print("VMX_EXIT_VMLAUNCH(%d)\n",                 VMX_EXIT_VMLAUNCH);                 break;
+    case VMX_EXIT_VMPTRLD:                  print("VMX_EXIT_VMPTRLD(%d)\n",                  VMX_EXIT_VMPTRLD);                  break;
+    case VMX_EXIT_VMPTRST:                  print("VMX_EXIT_VMPTRST(%d)\n",                  VMX_EXIT_VMPTRST);                  break;
+    case VMX_EXIT_VMREAD:                   print("VMX_EXIT_VMREAD(%d)\n",                   VMX_EXIT_VMREAD);                   break;
+    case VMX_EXIT_VMRESUME:                 print("VMX_EXIT_VMRESUME(%d)\n",                 VMX_EXIT_VMRESUME);                 break;
+    case VMX_EXIT_VMWRITE:                  print("VMX_EXIT_VMWRITE(%d)\n",                  VMX_EXIT_VMWRITE);                  break;
+    case VMX_EXIT_VMXOFF:                   print("VMX_EXIT_VMXOFF(%d)\n",                   VMX_EXIT_VMXOFF);                   break;
+    case VMX_EXIT_VMXON:                    print("VMX_EXIT_VMXON(%d)\n",                    VMX_EXIT_VMXON);                    break;
+    case VMX_EXIT_MOV_CRX:                  print("VMX_EXIT_MOV_CRX(%d)\n",                  VMX_EXIT_MOV_CRX);                  break;
+    case VMX_EXIT_MOV_DRX:                  print("VMX_EXIT_MOV_DRX(%d)\n",                  VMX_EXIT_MOV_DRX);                  break;
+    case VMX_EXIT_IO_INSTR:                 print("VMX_EXIT_IO_INSTR(%d)\n",                 VMX_EXIT_IO_INSTR);                 break;
+    case VMX_EXIT_RDMSR:                    print("VMX_EXIT_RDMSR(%d)\n",                    VMX_EXIT_RDMSR);                    break;
+    case VMX_EXIT_WRMSR:                    print("VMX_EXIT_WRMSR(%d)\n",                    VMX_EXIT_WRMSR);                    break;
+    case VMX_EXIT_ERR_INVALID_GUEST_STATE:  print("VMX_EXIT_ERR_INVALID_GUEST_STATE(%d)\n",  VMX_EXIT_ERR_INVALID_GUEST_STATE);  break;
+    case VMX_EXIT_ERR_MSR_LOAD:             print("VMX_EXIT_ERR_MSR_LOAD(%d)\n",             VMX_EXIT_ERR_MSR_LOAD);             break;
+    case VMX_EXIT_MWAIT:                    print("VMX_EXIT_MWAIT(%d)\n",                    VMX_EXIT_MWAIT);                    break;
+    case VMX_EXIT_MTF:                      print("VMX_EXIT_MTF(%d)\n",                      VMX_EXIT_MTF);                      break;
+    case VMX_EXIT_MONITOR:                  print("VMX_EXIT_MONITOR(%d)\n",                  VMX_EXIT_MONITOR);                  break;
+    case VMX_EXIT_PAUSE:                    print("VMX_EXIT_PAUSE(%d)\n",                    VMX_EXIT_PAUSE);                    break;
+    case VMX_EXIT_ERR_MACHINE_CHECK:        print("VMX_EXIT_ERR_MACHINE_CHECK(%d)\n",        VMX_EXIT_ERR_MACHINE_CHECK);        break;
+    case VMX_EXIT_TPR_BELOW_THRESHOLD:      print("VMX_EXIT_TPR_BELOW_THRESHOLD(%d)\n",      VMX_EXIT_TPR_BELOW_THRESHOLD);      break;
+    case VMX_EXIT_APIC_ACCESS:              print("VMX_EXIT_APIC_ACCESS(%d)\n",              VMX_EXIT_APIC_ACCESS);              break;
+    case VMX_EXIT_VIRTUALIZED_EOI:          print("VMX_EXIT_VIRTUALIZED_EOI(%d)\n",          VMX_EXIT_VIRTUALIZED_EOI);          break;
+    case VMX_EXIT_GDTR_IDTR_ACCESS:         print("VMX_EXIT_GDTR_IDTR_ACCESS(%d)\n",         VMX_EXIT_GDTR_IDTR_ACCESS);         break;
+    case VMX_EXIT_LDTR_TR_ACCESS:           print("VMX_EXIT_LDTR_TR_ACCESS(%d)\n",           VMX_EXIT_LDTR_TR_ACCESS);           break;
+    case VMX_EXIT_EPT_VIOLATION:            print("VMX_EXIT_EPT_VIOLATION(%d)\n",            VMX_EXIT_EPT_VIOLATION);            break;
+    case VMX_EXIT_EPT_MISCONFIG:            print("VMX_EXIT_EPT_MISCONFIG(%d)\n",            VMX_EXIT_EPT_MISCONFIG);            break;
+    case VMX_EXIT_INVEPT:                   print("VMX_EXIT_INVEPT(%d)\n",                   VMX_EXIT_INVEPT);                   break;
+    case VMX_EXIT_RDTSCP:                   print("VMX_EXIT_RDTSCP(%d)\n",                   VMX_EXIT_RDTSCP);                   break;
+    case VMX_EXIT_PREEMPT_TIMER:            print("VMX_EXIT_PREEMPT_TIMER(%d)\n",            VMX_EXIT_PREEMPT_TIMER);            break;
+    case VMX_EXIT_INVVPID:                  print("VMX_EXIT_INVVPID(%d)\n",                  VMX_EXIT_INVVPID);                  break;
+    case VMX_EXIT_WBINVD:                   print("VMX_EXIT_WBINVD(%d)\n",                   VMX_EXIT_WBINVD);                   break;
+    case VMX_EXIT_XSETBV:                   print("VMX_EXIT_XSETBV(%d)\n",                   VMX_EXIT_XSETBV);                   break;
+    case VMX_EXIT_APIC_WRITE:               print("VMX_EXIT_APIC_WRITE(%d)\n",               VMX_EXIT_APIC_WRITE);               break;
+    case VMX_EXIT_RDRAND:                   print("VMX_EXIT_RDRAND(%d)\n",                   VMX_EXIT_RDRAND);                   break;
+    case VMX_EXIT_INVPCID:                  print("VMX_EXIT_INVPCID(%d)\n",                  VMX_EXIT_INVPCID);                  break;
+    case VMX_EXIT_VMFUNC:                   print("VMX_EXIT_VMFUNC(%d)\n",                   VMX_EXIT_VMFUNC);                   break;
+    case VMX_EXIT_ENCLS:                    print("VMX_EXIT_ENCLS(%d)\n",                    VMX_EXIT_ENCLS);                    break;
+    case VMX_EXIT_RDSEED:                   print("VMX_EXIT_RDSEED(%d)\n",                   VMX_EXIT_RDSEED);                   break;
+    case VMX_EXIT_PML_FULL:                 print("VMX_EXIT_PML_FULL(%d)\n",                 VMX_EXIT_PML_FULL);                 break;
+    case VMX_EXIT_XSAVES:                   print("VMX_EXIT_XSAVES(%d)\n",                   VMX_EXIT_XSAVES);                   break;
+    case VMX_EXIT_XRSTORS:                  print("VMX_EXIT_XRSTORS(%d)\n",                  VMX_EXIT_XRSTORS);                  break;
+    case VMX_EXIT_SPP_EVENT:                print("VMX_EXIT_SPP_EVENT(%d)\n",                VMX_EXIT_SPP_EVENT);                break;
+    case VMX_EXIT_UMWAIT:                   print("VMX_EXIT_UMWAIT(%d)\n",                   VMX_EXIT_UMWAIT);                   break;
+    case VMX_EXIT_TPAUSE:                   print("VMX_EXIT_TPAUSE(%d)\n",                   VMX_EXIT_TPAUSE);                   break;
   }
   // clang-format on
   bochs_break ();
+  guest_rip += vmexit_instruction_length;
+
+  // 让Guest执行后面的指令.
+  __vmwrite (VMX_VMCS_GUEST_RIP, guest_rip);
+  __vmresume ();
 }
+
+#define CPUID_0x80000008_EAX_PA_BITS(EAX) (EAX & 0xff)        // 物理地址位宽.
+#define CPUID_0x80000008_EAX_LA_BITS(EAX) ((EAX >> 8) & 0xff) // 线性地址位宽.
 
 int vmx_start ()
 {
+  cpuid_t cpuid;
+  __cpuid (&cpuid, 0x80000008);
+  uint8 pa_width = CPUID_0x80000008_EAX_PA_BITS (cpuid.eax);
+  uint8 la_width = CPUID_0x80000008_EAX_LA_BITS (cpuid.eax);
+
   uint64 cr0 = __read_cr0 ();
   cr0 |= CR0_NE_MASK;
   __write_cr0 (cr0);
@@ -181,8 +201,8 @@ int vmx_start ()
     __vmwrite (VMX_VMCS16_HOST_TR_SEL, 8 & 0xfff8);
 
     __vmwrite (VMX_VMCS_HOST_TR_BASE, 8);
-    __vmwrite (VMX_VMCS_HOST_GDTR_BASE, gdtr.base);
-    __vmwrite (VMX_VMCS_HOST_IDTR_BASE, idtr.base);
+    __vmwrite (VMX_VMCS_HOST_GDTR_BASE, gdtr.base); // 居然没有设置limit的接口...
+    __vmwrite (VMX_VMCS_HOST_IDTR_BASE, idtr.base); // 居然没有设置limit的接口...
 
     //  __vmwrite (VMX_VMCS_HOST_IA32_SYSENTER_CS_MSR, __rdmsr(MSR_IA32_SYSENTER_CS));
     __vmwrite (VMX_VMCS_HOST_SYSENTER_ESP, __rdmsr (MSR_IA32_SYSENTER_ESP));
@@ -192,14 +212,14 @@ int vmx_start ()
     __vmwrite (VMX_VMCS_HOST_CR3, __read_cr3 ());
     __vmwrite (VMX_VMCS_HOST_CR4, __read_cr4 ());
 
-    __vmwrite (VMX_VMCS_HOST_RSP, 0x2000); // 先让他报错
+    __vmwrite (VMX_VMCS_HOST_RSP, 0x1000); // 返回Host时的栈基指针.
     __vmwrite (VMX_VMCS_HOST_RIP, &VMMEntry);
   }
 
   // Guest, See: 24.4 GUEST-STATE AREA
   {
     ;
-    __vmwrite (VMX_VMCS_GUEST_RSP, 0x2000);
+    __vmwrite (VMX_VMCS_GUEST_RSP, 0x2000); // Guest 中的栈基指针.
     __vmwrite (VMX_VMCS_GUEST_RIP, &GuestEntry);
 
     __vmwrite (VMX_VMCS_GUEST_RFLAGS, __rflags ());
@@ -210,9 +230,10 @@ int vmx_start ()
 
     __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_FULL, 0xffffffff);
     __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_HIGH, 0xffffffff);
+
     uint64 msr = __rdmsr (IA32_VMX_ENTRYCTLS); // Adjust ???
+    msr |= 0b00000000000000000000001000000000; // IA32e guest
     msr &= (msr >> 32);
-    msr |= 0b00000000000000000000001000000000;
     __vmwrite (VMX_VMCS32_CTRL_ENTRY, msr);
     //    __vmwrite(VMX_VMCS32_CTRL_ENTRY, 0b00000000000000000000001000000000);
     //    __vmwrite(VMX_VMCS32_CTRL_ENTRY_MSR_LOAD_COUNT, 0b1000001000000000);
