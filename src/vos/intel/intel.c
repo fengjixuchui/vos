@@ -16,21 +16,64 @@ int check_vmx ()
 {
   cpuid_t cpuid;
   __cpuid (&cpuid, 1);
-  if ((cpuid.eax & (1 << 5)) == 0)
+  if ((cpuid.ecx & (1 << 5)) == 0)
   {
     puts ("not support vmx");
     return -1;
   }
 
   uint64 msr = __read_msr (IA32_FEATURE_CONTROL);
-  if ((msr & IA32_FEATURE_CONTROL_VMX_MASK) == 0)
+  if ((msr & IA32_FEATURE_CONTROL_VMXON_MASK) == 0)
   {
     puts ("vmxon");
     return -1;
   }
+
+  if (msr & IA32_FEATURE_CONTROL_LOCK_MASK)
+  {
+    puts ("locked");
+    //    return -1;
+  }
+
   msr |= IA32_FEATURE_CONTROL_LOCK_MASK;
   __write_msr (IA32_FEATURE_CONTROL, msr);
   return 0;
+}
+
+// clang-format off
+#define IA32_VMX_EPTVPIDCAP_execute_only_pages_MASK                        ((uint64)1 <<  0)
+#define IA32_VMX_EPTVPIDCAP_page_walk_length4_MASK                         ((uint64)1 <<  6)
+#define IA32_VMX_EPTVPIDCAP_uncacheble_memory_type_MASK                    ((uint64)1 <<  8)
+#define IA32_VMX_EPTVPIDCAP_write_back_memory_type_MASK                    ((uint64)1 << 14)
+#define IA32_VMX_EPTVPIDCAP_pde_2mb_pages_MASK                             ((uint64)1 << 16)
+#define IA32_VMX_EPTVPIDCAP_pdpte_1_gb_pages_MASK                          ((uint64)1 << 17)
+#define IA32_VMX_EPTVPIDCAP_invept_MASK                                    ((uint64)1 << 20)
+#define IA32_VMX_EPTVPIDCAP_accessed_and_dirty_flag_MASK                   ((uint64)1 << 21)
+#define IA32_VMX_EPTVPIDCAP_single_context_invept_MASK                     ((uint64)1 << 25)
+#define IA32_VMX_EPTVPIDCAP_all_context_invept_MASK                        ((uint64)1 << 26)
+#define IA32_VMX_EPTVPIDCAP_invvpid_MASK                                   ((uint64)1 << 32)
+#define IA32_VMX_EPTVPIDCAP_individual_address_invvpid_MASK                ((uint64)1 << 40)
+#define IA32_VMX_EPTVPIDCAP_single_context_invvpid_MASK                    ((uint64)1 << 41)
+#define IA32_VMX_EPTVPIDCAP_all_context_invvpid_MASK                       ((uint64)1 << 42)
+#define IA32_VMX_EPTVPIDCAP_single_context_retaining_globals_invvpid_MASK  ((uint64)1 << 43)
+// clang-format on
+
+int check_ept ()
+{
+  uint64 result = 0;
+  uint64 msr    = __read_msr (IA32_VMX_EPTVPIDCAP);
+  result |= ((msr & IA32_VMX_EPTVPIDCAP_page_walk_length4_MASK) == 0);
+  result |= ((msr & IA32_VMX_EPTVPIDCAP_write_back_memory_type_MASK) == 0);
+  result |= ((msr & IA32_VMX_EPTVPIDCAP_invept_MASK) == 0);
+  result |= ((msr & IA32_VMX_EPTVPIDCAP_single_context_invept_MASK) == 0);
+  result |= ((msr & IA32_VMX_EPTVPIDCAP_all_context_invept_MASK) == 0);
+  result |= ((msr & IA32_VMX_EPTVPIDCAP_invvpid_MASK) == 0);
+  result |= ((msr & IA32_VMX_EPTVPIDCAP_individual_address_invvpid_MASK) == 0);
+  result |= ((msr & IA32_VMX_EPTVPIDCAP_single_context_invvpid_MASK) == 0);
+  result |= ((msr & IA32_VMX_EPTVPIDCAP_all_context_invvpid_MASK) == 0);
+  result |= ((msr & IA32_VMX_EPTVPIDCAP_single_context_retaining_globals_invvpid_MASK) == 0);
+
+  return result;
 }
 
 static void GuestEntry ()
@@ -69,8 +112,6 @@ void VmmVmExitHandler (GuestContext_t* context)
 {
   //  puts ("VmmVmExitHandler");
 
-  uint64 vmexit_rdi                = __vmread (VMX_VMCS_RO_IO_RDI);
-  uint64 vmexit_rip                = __vmread (VMX_VMCS_RO_IO_RIP);
   uint64 guest_rip                 = __vmread (VMX_VMCS_GUEST_RIP);
   uint64 vmexit_reason             = __vmread (VMX_VMCS32_RO_EXIT_REASON);
   uint64 vmexit_instruction_length = __vmread (VMX_VMCS32_RO_EXIT_INSTR_LENGTH);
@@ -91,10 +132,16 @@ void VmmVmExitHandler (GuestContext_t* context)
     case VMX_EXIT_TASK_SWITCH:              print("VMX_EXIT_TASK_SWITCH(%d)\n",              VMX_EXIT_TASK_SWITCH);              break;
     case VMX_EXIT_CPUID:
       // print("VMX_EXIT_CPUID(%d)\n",                    VMX_EXIT_CPUID);
-      context->rax = 'aaaaaaaa';
-      context->rbx = 'bbbbbbbb';
-      context->rcx = 'cccccccc';
-      context->rdx = 'dddddddd';
+      if (context->rax == 0) {
+        context->rax = 0;
+        context->rbx = 'bcda';
+        context->rdx = 'hgfe';
+        context->rcx = 'lkji';
+      }
+      else {
+        cpuid_t cpuid;
+        __cpuid(&cpuid, context->rax);
+      }
       break;
     case VMX_EXIT_GETSEC:                   print("VMX_EXIT_GETSEC(%d)\n",                   VMX_EXIT_GETSEC);                   break;
     case VMX_EXIT_HLT:                      print("VMX_EXIT_HLT(%d)\n",                      VMX_EXIT_HLT);                      break;
@@ -165,9 +212,20 @@ void VmmVmExitHandler (GuestContext_t* context)
 int vmx_start ()
 {
   cpuid_t cpuid;
+  void*   host = (void*)VOS_VMX_HOST_PA;
+
   __cpuid (&cpuid, 0x80000008);
   uint8 pa_width = CPUID_0x80000008_EAX_PA_BITS (cpuid.eax);
   uint8 la_width = CPUID_0x80000008_EAX_LA_BITS (cpuid.eax);
+
+  uint64 msr = __read_msr (IA32_VMX_BASIC);
+
+  uint64 vmcs_size        = IA32_VMX_BASIC_VMCS_SIZE (msr);
+  uint64 vmcs_revision_id = (msr & IA32_VMX_BASIC_VMCS_REVISION_IDENTIFIER_MASK);
+
+  memset (host, 0, vmcs_size);
+
+  *((uint64*)host) = vmcs_revision_id;
 
   uint64 cr0 = __read_cr0 ();
   cr0 |= CR0_NE_MASK;
@@ -177,17 +235,7 @@ int vmx_start ()
   cr4 |= CR4_VMXE_MASK;
   __write_cr4 (cr4);
 
-  uint64 msr = __read_msr (IA32_VMX_BASIC);
-
-  uint64 vmcs_size        = IA32_VMX_BASIC_VMCS_SIZE (msr);
-  uint64 vmcs_revision_id = (msr & IA32_VMX_BASIC_VMCS_REVISION_IDENTIFIER_MASK);
-
-  void* host = (void*)VOS_VMX_HOST_PA;
-  memset (host, 0, vmcs_size);
-
-  *((uint64*)host) = vmcs_revision_id;
-
-  __vmxon (&host);
+  __vmxon ((uint64)&host);
 
   uint64 rflags = __rflags ();
   if ((rflags & FLAGS_CF_MASK) != 0)
@@ -202,7 +250,7 @@ int vmx_start ()
   memset (vmcs, 0, vmcs_size);
   *((uint64*)vmcs) = vmcs_revision_id;
 
-  __vmclear (&vmcs);
+  __vmclear ((uint64)&vmcs);
 
   __vmptrld (&vmcs);
 
@@ -239,14 +287,14 @@ int vmx_start ()
     __vmwrite (VMX_VMCS_HOST_CR4, __read_cr4 ());
 
     __vmwrite (VMX_VMCS_HOST_RSP, 0x1000); // 返回Host时的栈基指针.
-    __vmwrite (VMX_VMCS_HOST_RIP, &__vmexit_handler);
+    __vmwrite (VMX_VMCS_HOST_RIP, (uint64)&__vmexit_handler);
   }
 
   // Guest, See: 24.4 GUEST-STATE AREA
   {
     ;
     __vmwrite (VMX_VMCS_GUEST_RSP, 0x2000); // Guest 中的栈基指针.
-    __vmwrite (VMX_VMCS_GUEST_RIP, &GuestEntry);
+    __vmwrite (VMX_VMCS_GUEST_RIP, (uint64)&GuestEntry);
 
     __vmwrite (VMX_VMCS_GUEST_RFLAGS, __rflags ());
     __vmwrite (VMX_VMCS_GUEST_CR0, __read_cr0 ());
@@ -326,10 +374,22 @@ int vmx_stop ()
 
 void intel_entry ()
 {
-  if (check_vmx () != 0)
-    return;
 
-  puts ("intel cpu check completed.");
+  if (check_vmx () != 0)
+  {
+    puts ("VMX check failed");
+    return;
+  }
+
+  puts ("VMX check successful.");
+
+  if (check_ept () != 0)
+  {
+    puts ("EPT check failed");
+    return;
+  }
+  puts ("EPT check successful.");
+
   vmx_start ();
   vmx_stop ();
 }

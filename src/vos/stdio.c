@@ -117,7 +117,7 @@ void itoa (char* buf, int base, int d)
 
 /*  Format a string and print it on the screen, just like the libc
    function printf. */
-void __attribute__ ((__stdcall)) print (const char* format, ...)
+void print (const char* format, ...)
 {
   va_list p_args;
 

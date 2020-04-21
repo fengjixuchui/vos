@@ -16,7 +16,7 @@ int x86_64_main (unsigned long magic, unsigned long addr)
   cls ();
 
   puts ("hello! welcome to my vos project.");
-  print ("magic : %x, addr : %x\n", magic, addr);
+  print ("magic : 0x%x, addr : 0x%x\n", magic, addr);
   struct multiboot_tag* tag;
   unsigned              size;
 
@@ -179,6 +179,7 @@ int x86_64_main (unsigned long magic, unsigned long addr)
   ((uint32*)vendor)[0] = cpuid.ebx;
   ((uint32*)vendor)[1] = cpuid.edx;
   ((uint32*)vendor)[2] = cpuid.ecx;
+  puts (vendor);
   if (memcmp (vendor, "GenuineIntel", 12) == 0)
     intel_entry ();
   else if (memcmp (vendor, "AuthenticAMD", 12) == 0)
