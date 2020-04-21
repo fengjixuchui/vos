@@ -29,14 +29,12 @@ int check_vmx ()
     return -1;
   }
 
-  if (msr & IA32_FEATURE_CONTROL_LOCK_MASK)
+  if ((msr & IA32_FEATURE_CONTROL_LOCK_MASK) == 0)
   {
-    puts ("locked");
-    //    return -1;
+    msr |= IA32_FEATURE_CONTROL_LOCK_MASK;
+    __write_msr (IA32_FEATURE_CONTROL, msr);
   }
 
-  msr |= IA32_FEATURE_CONTROL_LOCK_MASK;
-  __write_msr (IA32_FEATURE_CONTROL, msr);
   return 0;
 }
 
