@@ -202,13 +202,6 @@ int x86_64_main (unsigned long magic, unsigned long addr)
   tag = (struct multiboot_tag*)((multiboot_uint8_t*)tag + ((tag->size + 7) & ~7));
 
   puts ("hello! welcome to my vos project.");
-  for (int j = 0; j < 3; ++j)
-  {
-    void* p = (void*)malloc (9999);
-    print ("malloc : 0x%x\n", p);
-    free (p);
-  }
-  bochs_break ();
 
   cpuid_t cpuid;
   __cpuid (&cpuid, 0);
@@ -223,9 +216,6 @@ int x86_64_main (unsigned long magic, unsigned long addr)
     amd_entry ();
   else
     puts ("Unsupported CPU vendors.");
-
-  while (1)
-    ;
 
   return 0;
 }

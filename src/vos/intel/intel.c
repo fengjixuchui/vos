@@ -212,7 +212,6 @@ void VmmVmExitHandler (GuestContext_t* context)
 int vmx_start ()
 {
   cpuid_t cpuid;
-  void*   host = (void*)VOS_VMX_HOST_PA;
 
   __cpuid (&cpuid, 0x80000008);
   uint8 pa_width = CPUID_0x80000008_EAX_PA_BITS (cpuid.eax);
@@ -223,7 +222,7 @@ int vmx_start ()
   uint64 vmcs_size        = IA32_VMX_BASIC_VMCS_SIZE (msr);
   uint64 vmcs_revision_id = (msr & IA32_VMX_BASIC_VMCS_REVISION_IDENTIFIER_MASK);
 
-  memset (host, 0, vmcs_size);
+  void* host = (void*)calloc (4096);
 
   *((uint64*)host) = vmcs_revision_id;
 
@@ -246,8 +245,7 @@ int vmx_start ()
 
   puts ("vmxon successful.");
 
-  void* vmcs = (void*)VOS_VMX_VMCS_PA;
-  memset (vmcs, 0, vmcs_size);
+  void* vmcs       = calloc (vmcs_size);
   *((uint64*)vmcs) = vmcs_revision_id;
 
   __vmclear ((uint64)&vmcs);

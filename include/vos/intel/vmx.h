@@ -546,6 +546,6 @@
   XX (28, "Invalid operand to INVEPT/INVVPID.")
 
 const char* VMX_INSTRUCTION_ERROR_STRING (int num);
-uint64      make_guest_PML4E ();
+void*       make_guest_PML4E ();
 
 #endif //VOS_VMX_H
