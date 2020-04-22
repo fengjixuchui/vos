@@ -284,19 +284,19 @@ int vmx_start ()
     __vmwrite (VMX_VMCS_HOST_CR3, __read_cr3 ());
     __vmwrite (VMX_VMCS_HOST_CR4, __read_cr4 ());
 
-    __vmwrite (VMX_VMCS_HOST_RSP, 0x1000); // 返回Host时的栈基指针.
+    __vmwrite (VMX_VMCS_HOST_RSP, 4096 + (uint64)calloc (4096)); // 返回Host时的栈底指针.栈是向下增长,所以把指针指向内存末尾.
     __vmwrite (VMX_VMCS_HOST_RIP, (uint64)&__vmexit_handler);
   }
 
   // Guest, See: 24.4 GUEST-STATE AREA
   {
     ;
-    __vmwrite (VMX_VMCS_GUEST_RSP, 0x2000); // Guest 中的栈基指针.
+    __vmwrite (VMX_VMCS_GUEST_RSP, 4096 + (uint64)calloc (4096)); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
     __vmwrite (VMX_VMCS_GUEST_RIP, (uint64)&GuestEntry);
 
     __vmwrite (VMX_VMCS_GUEST_RFLAGS, __rflags ());
     __vmwrite (VMX_VMCS_GUEST_CR0, __read_cr0 ());
-    __vmwrite (VMX_VMCS_GUEST_CR3, make_guest_PML4E ());
+    __vmwrite (VMX_VMCS_GUEST_CR3, (uint64)make_guest_PML4E ());
     __vmwrite (VMX_VMCS_GUEST_CR4, __read_cr4 ());
     __vmwrite (VMX_VMCS_GUEST_DR7, 0x400);
 

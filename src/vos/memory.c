@@ -4,6 +4,7 @@
 //
 
 #include "vos/memory.h"
+#include "vos/vos.h"
 
 static uint  page_base;
 static uint* page_map;
@@ -11,7 +12,7 @@ static uint  page_count;
 
 static inline calc_page_num (uint size)
 {
-  return (size + 4095) >> 12;
+  return (size + VOS_PAGE_SIZE - 1) >> 12;
 }
 
 static inline calc_page_idx (uint addr)
@@ -27,7 +28,7 @@ void init_memory (uint addr, uint len)
   {
     page_map[i] = 0;
   }
-  page_base = addr + (((sizeof (*page_map) * page_count) + 4095) & ~(uint)0xfff);
+  page_base = addr + (((sizeof (*page_map) * page_count) + VOS_PAGE_SIZE - 1) & ~(uint)0xfff);
 }
 
 static uint alloc_mem (uint size)
@@ -50,9 +51,9 @@ static uint alloc_mem (uint size)
       page_map[i + k] = 1;
     }
     page_map[i] |= (n << 1); // 标识这块内存有多少个页.
-    print ("alloc_mem : 0x%x, pageIdx : %d, pageNum : %d, blockSize : %d\n", (page_base + (i * 4096)), i, n, size);
+    // print ("alloc_mem : 0x%x, pageIdx : %d, pageNum : %d, blockSize : %d\n", (page_base + (i * VOS_PAGE_SIZE)), i, n, size);
     // bochs_break();
-    return (page_base + (i * 4096));
+    return (page_base + (i * VOS_PAGE_SIZE));
 
   fail:
     continue;
