@@ -85,7 +85,7 @@ static void GuestEntry ()
   ((uint32*)vendor)[0] = cpuid.ebx;
   ((uint32*)vendor)[1] = cpuid.edx;
   ((uint32*)vendor)[2] = cpuid.ecx;
-  puts (vendor);
+  print ("CPU Vendor : %s\n", vendor);
 
   __vmcall (0x1234);
   puts ("GuestEntry 2");
@@ -134,9 +134,9 @@ void VmmVmExitHandler (GuestContext_t* context)
       // print("VMX_EXIT_CPUID(%d)\n",                    VMX_EXIT_CPUID);
       if (context->rax == 0) {
         context->rax = 0;
-        context->rbx = 'bcda';
-        context->rdx = 'hgfe';
-        context->rcx = 'lkji';
+        context->rbx = 'uneG';
+        context->rdx = '0eni';
+        context->rcx = 'cc7x';
       }
       else {
         cpuid_t cpuid;
