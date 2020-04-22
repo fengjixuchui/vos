@@ -36,9 +36,9 @@ void putc (char c)
     {
       int FULLSIZE = COLUMNS * LINES * 2;
 
-      ypos = LINES - 2;
+      ypos = LINES - 1;
       memcpy (video, video + (2 * COLUMNS), FULLSIZE - 2 * COLUMNS);
-      memset (video + FULLSIZE - (2 * COLUMNS), 0, COLUMNS * 2);
+      memset16 (video + FULLSIZE - (2 * COLUMNS), ATTRIBUTE << 8, COLUMNS);
     }
     return;
   }

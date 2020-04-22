@@ -11,6 +11,8 @@ void init_memory (uint addr, uint len);
 
 void memset (void* dest, uint8 c, uint n);
 
+void memset16 (void* dest, uint16 c, uint n);
+
 void memcpy (void* dest, const void* src, uint n);
 
 int memcmp (const void* a, const void* b, uint n);

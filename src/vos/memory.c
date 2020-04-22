@@ -11,7 +11,7 @@ static uint  page_count;
 
 static inline calc_page_num (uint size)
 {
-  return (size + 4096) >> 12;
+  return (size + 4095) >> 12;
 }
 
 static inline calc_page_idx (uint addr)
@@ -27,7 +27,7 @@ void init_memory (uint addr, uint len)
   {
     page_map[i] = 0;
   }
-  page_base = addr + (((sizeof (*page_map) * page_count) + 4096) & ~(uint)0xfff);
+  page_base = addr + (((sizeof (*page_map) * page_count) + 4095) & ~(uint)0xfff);
 }
 
 static uint alloc_mem (uint size)
@@ -50,7 +50,8 @@ static uint alloc_mem (uint size)
       page_map[i + k] = 1;
     }
     page_map[i] |= (n << 1); // 标识这块内存有多少个页.
-    // print("alloc_mem : 0x%x, pageIdx : %d, pageNum : %d\n", (page_base + (i * 4096)), i, n);
+    print ("alloc_mem : 0x%x, pageIdx : %d, pageNum : %d, blockSize : %d\n", (page_base + (i * 4096)), i, n, size);
+    // bochs_break();
     return (page_base + (i * 4096));
 
   fail:
@@ -64,6 +65,14 @@ void memset (void* dest, uint8 c, uint n)
   for (int i = 0; i < n; ++i)
   {
     ((uint8*)dest)[i] = c;
+  }
+}
+
+void memset16 (void* dest, uint16 c, uint n)
+{
+  for (int i = 0; i < n; ++i)
+  {
+    ((uint16*)dest)[i] = c;
   }
 }
 
