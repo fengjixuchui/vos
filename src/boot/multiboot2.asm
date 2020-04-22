@@ -1,7 +1,7 @@
 
 %include "defs.asm"
 extern x86_64_main
-
+global x86_64_entry
 
 MULTIBOOT2_HEADER_MAGIC                   equ 0xE85250D6
 ; /*  This should be in %eax. */
@@ -71,7 +71,7 @@ multiboot_header_begin:
     dw MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI32
     dw MULTIBOOT_HEADER_TAG_OPTIONAL
     dd 12     ; size
-    dd multiboot_entry
+    dd multiboot_entry_efi32
   multiboot_header_tag_entry_address_efi32_end:
 
   align 8 ; https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html#General-tag-structure
@@ -80,7 +80,7 @@ multiboot_header_begin:
     dw MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI64
     dw MULTIBOOT_HEADER_TAG_OPTIONAL
     dd 12     ; size
-    dd x86_64_entry
+    dd multiboot_entry_efi64
   multiboot_header_tag_entry_address_efi64_end:
 
   align 8 ; https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html#General-tag-structure
@@ -94,15 +94,16 @@ multiboot_header_begin:
 multiboot_header_end:
 
 section .text32
+multiboot_entry_efi32:
+multiboot_entry_efi64:
+  int 3
 multiboot_entry:
-
   ;/*  Push the pointer to the Multiboot information structure. */
   push ebx
   ;/*  Push the magic value. */
   push eax
 
   jmp loader_entry
-
 
 
 
@@ -114,8 +115,8 @@ memset:
   ret
 
 %define PDP_NUM 1
-%define PD_NUM 1
-%define PT_NUM 64
+%define PD_NUM 4
+%define PT_NUM 512
 make_PML4:
   mov ecx, (0x1000 + (0x1000 * PDP_NUM) + (0x1000 * PDP_NUM * PD_NUM) + (0x1000 * PDP_NUM * PD_NUM * PT_NUM))
   mov edi, [.tablePtr]
@@ -225,12 +226,12 @@ loader_entry:
   .setup_PML4:
     mov cr3, eax
 
-  %define fastcall_argv0 edi  ; elf64 fastcall
-  %define fastcall_argv1 esi  ; elf64 fastcall
+  %define elf64_fastcall_argv0 edi  ; elf64 fastcall
+  %define elf64_fastcall_argv1 esi  ; elf64 fastcall
 
   ; 后面重新加载ss寄存器后,就不能pop了...
-  pop fastcall_argv0        ;/*  Push the magic value. */
-  pop fastcall_argv1        ;/*  Push the pointer to the Multiboot information structure. */
+  pop elf64_fastcall_argv0        ;/*  Push the magic value. */
+  pop elf64_fastcall_argv1        ;/*  Push the pointer to the Multiboot information structure. */
 
   mov eax, .gdt64_ptr
   .setup_GDT64:
@@ -280,6 +281,7 @@ loader_entry:
     .limit dw .gdt64_len - 1
     .base dq .gdt64
 
+bits 64
 x86_64_entry:
   call x86_64_main
   jmp $
