@@ -26,14 +26,20 @@ AssertCompileSize (uint64, 8);
 
 // clang-format off
 #if __x86_64__
-  #define intptr  int64
-  #define uintptr uint64
+  #define intptr    int64
+  #define uintptr   uint64
+  #define uint      uint64
 #elif __i386__
-  #define intptr  int32
-  #define uintptr uint32
+  #define intptr    int32
+  #define uintptr   uint32
+  #define uint      uint32
 #else
   #error "wtf???"
 #endif
 // clang-format on
+
+AssertCompile ((sizeof (void*) == sizeof (intptr)));
+AssertCompile ((sizeof (void*) == sizeof (uintptr)));
+AssertCompile ((sizeof (void*) == sizeof (uint)));
 
 #endif //VOS_TYPES_H

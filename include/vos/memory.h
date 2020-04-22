@@ -5,10 +5,18 @@
 #ifndef VOS_MEMORY_H
 #define VOS_MEMORY_H
 
-void memset (void* dest, int c, int n);
+#include "vos/types.h"
 
-void memcpy (void* dest, const void* src, int n);
+void init_memory (uint addr, uint len);
 
-int memcmp (const void* a, const void* b, int n);
+void memset (void* dest, uint8 c, uint n);
+
+void memcpy (void* dest, const void* src, uint n);
+
+int memcmp (const void* a, const void* b, uint n);
+
+void* malloc (uint64 size);
+void* calloc (uint64 size);
+void  free (void* mem);
 
 #endif //VOS_MEMORY_H

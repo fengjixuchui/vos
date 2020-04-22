@@ -13,12 +13,9 @@ int x86_64_main (unsigned long magic, unsigned long addr)
 {
   char vendor[13] = {0};
 
-  cls ();
-
-  puts ("hello! welcome to my vos project.");
-  print ("magic : 0x%x, addr : 0x%x\n", magic, addr);
   struct multiboot_tag* tag;
   unsigned              size;
+  cls ();
 
   /*  Am I booted by a Multiboot-compliant boot loader? */
   if (magic != MULTIBOOT2_BOOTLOADER_MAGIC)
@@ -73,9 +70,11 @@ int x86_64_main (unsigned long magic, unsigned long addr)
 
         print ("mmap\n");
 
+        uint64 addr, len = 0;
         for (mmap = ((struct multiboot_tag_mmap*)tag)->entries;
              (multiboot_uint8_t*)mmap < (multiboot_uint8_t*)tag + tag->size;
              mmap = (multiboot_memory_map_t*)((unsigned long)mmap + ((struct multiboot_tag_mmap*)tag)->entry_size))
+        {
           print (" base_addr = 0x%x%x,"
                  " length = 0x%x%x, type = 0x%x\n",
                  (unsigned)(mmap->addr >> 32),
@@ -83,6 +82,15 @@ int x86_64_main (unsigned long magic, unsigned long addr)
                  (unsigned)(mmap->len >> 32),
                  (unsigned)(mmap->len & 0xffffffff),
                  (unsigned)mmap->type);
+          // 找出最大的一块可用内存
+          if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE && mmap->len > len)
+          {
+            addr = mmap->addr;
+            len  = mmap->len;
+          }
+        }
+
+        init_memory (addr, len);
       }
       break;
       case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:
@@ -146,6 +154,9 @@ int x86_64_main (unsigned long magic, unsigned long addr)
             break;
         }
 
+        print ("framebuffer_red_mask_size : %x, framebuffer_red_field_position : %d\n", tagfb->framebuffer_red_mask_size, tagfb->framebuffer_red_field_position);
+        print ("framebuffer_green_mask_size : %x, framebuffer_green_field_position : %d\n", tagfb->framebuffer_green_mask_size, tagfb->framebuffer_green_field_position);
+        print ("framebuffer_blue_mask_size : %x, framebuffer_blue_field_position : %d\n", tagfb->framebuffer_blue_mask_size, tagfb->framebuffer_blue_field_position);
         print ("framebuffer_addr : %x, framebuffer_type : %d\n", tagfb->common.framebuffer_addr, tagfb->common.framebuffer_type);
         print ("framebuffer_width : %d, framebuffer_height : %d\n", tagfb->common.framebuffer_width, tagfb->common.framebuffer_height);
         print ("framebuffer_bpp : %d, framebuffer_pitch : %d\n", tagfb->common.framebuffer_bpp, tagfb->common.framebuffer_pitch);
@@ -189,6 +200,15 @@ int x86_64_main (unsigned long magic, unsigned long addr)
     }
   }
   tag = (struct multiboot_tag*)((multiboot_uint8_t*)tag + ((tag->size + 7) & ~7));
+
+  puts ("hello! welcome to my vos project.");
+  for (int j = 0; j < 3; ++j)
+  {
+    void* p = (void*)malloc (9999);
+    print ("malloc : 0x%x\n", p);
+    free (p);
+  }
+  bochs_break ();
 
   cpuid_t cpuid;
   __cpuid (&cpuid, 0);
