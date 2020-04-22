@@ -123,6 +123,18 @@ int x86_64_main (unsigned long magic, unsigned long addr)
           case MULTIBOOT_FRAMEBUFFER_TYPE_RGB:
             color = ((1 << tagfb->framebuffer_blue_mask_size) - 1)
                     << tagfb->framebuffer_blue_field_position;
+            for (int x = 0; x < tagfb->common.framebuffer_width; ++x)
+            {
+              for (int y = 0; y < tagfb->common.framebuffer_height; ++y)
+              {
+                uint8* pixel = fb + (y * tagfb->common.framebuffer_pitch) + (x * 4);
+                pixel[0]     = 0xF0; // B
+                pixel[1]     = 0xF0; // G
+                pixel[2]     = 0xF0; // R?
+                pixel[3]     = 255;
+              }
+            }
+
             break;
 
           case MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT:
@@ -134,39 +146,44 @@ int x86_64_main (unsigned long magic, unsigned long addr)
             break;
         }
 
+        print ("framebuffer_addr : %x, framebuffer_type : %d\n", tagfb->common.framebuffer_addr, tagfb->common.framebuffer_type);
+        print ("framebuffer_width : %d, framebuffer_height : %d\n", tagfb->common.framebuffer_width, tagfb->common.framebuffer_height);
+        print ("framebuffer_bpp : %d, framebuffer_pitch : %d\n", tagfb->common.framebuffer_bpp, tagfb->common.framebuffer_pitch);
         // bochs_break ();
-        for (i = 0; i < tagfb->common.framebuffer_width && i < tagfb->common.framebuffer_height; i++)
-        {
-          switch (tagfb->common.framebuffer_bpp)
-          {
-            case 8:
-            {
-              multiboot_uint8_t* pixel = fb + tagfb->common.framebuffer_pitch * i + i;
-              //*pixel                   = color;
-            }
-            break;
-            case 15:
-            case 16:
-            {
-              multiboot_uint16_t* pixel = fb + tagfb->common.framebuffer_pitch * i + 2 * i;
-              //*pixel                    = color;
-            }
-            break;
-            case 24:
-            {
-              multiboot_uint32_t* pixel = fb + tagfb->common.framebuffer_pitch * i + 3 * i;
-              //*pixel                    = (color & 0xffffff) | (*pixel & 0xff000000);
-            }
-            break;
+        //        for (i = 0; i < tagfb->common.framebuffer_width && i < tagfb->common.framebuffer_height; i++)
+        //        {
+        //          switch (tagfb->common.framebuffer_bpp)
+        //          {
+        //            case 8:
+        //            {
+        //              multiboot_uint8_t* pixel = fb + tagfb->common.framebuffer_pitch * i + i;
+        //              //*pixel                   = color;
+        //            }
+        //            break;
+        //            case 15:
+        //            case 16:
+        //            {
+        //              multiboot_uint16_t* pixel = fb + tagfb->common.framebuffer_pitch * i + 2 * i;
+        //              //*pixel                    = color;
+        //            }
+        //            break;
+        //            case 24:
+        //            {
+        //              multiboot_uint32_t* pixel = fb + tagfb->common.framebuffer_pitch * i + 3 * i;
+        //              //*pixel                    = (color & 0xffffff) | (*pixel & 0xff000000);
+        //            }
+        //            break;
+        //
+        //            case 32:
+        //            {
+        //              bochs_break();
+        //              multiboot_uint32_t* pixel = fb + tagfb->common.framebuffer_pitch * i + 4 * i;
+        //              //*pixel                    = color;
+        //            }
+        //            break;
+        //          }
+        //        }
 
-            case 32:
-            {
-              multiboot_uint32_t* pixel = fb + tagfb->common.framebuffer_pitch * i + 4 * i;
-              //*pixel                    = color;
-            }
-            break;
-          }
-        }
         break;
       }
     }

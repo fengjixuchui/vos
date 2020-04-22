@@ -93,6 +93,8 @@ static void GuestEntry ()
   puts ("GuestEntry 3");
 
   bochs_break ();
+  while (1)
+    ;
 }
 
 typedef struct GuestContext
