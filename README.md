@@ -41,6 +41,12 @@ gdb --init-command=.gdbinit
 
 ## REFERENCES
 
+- [Bochs](http://bochs.sourceforge.net/)
+
+- [Intel Manuals](https://software.intel.com/en-us/articles/intel-sdm)
+
+- [AMD Manuals](https://developer.amd.com/resources/developer-guides-manuals/)
+
 - [Multiboot2 Specification version 2.0](https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html)
 
 - [VirtualBox](https://www.virtualbox.org/)
