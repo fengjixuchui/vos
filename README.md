@@ -15,13 +15,31 @@ sudo apt install -y bochs bochs-x nasm
 make
 ```
 
-### RUN & DEBUG
+## RUN & DEBUG
+
+### bochs
 
 ```shell
-make run
+make run-bochs
 ```
 
-## References
+### qemu
+
+```shell
+make run-qemu
+``` 
+
+### qemu(Debug for C language)
+
+```shell
+make run-qemu-debug
+``` 
+
+```shell
+gdb --init-command=.gdbinit
+```
+
+## REFERENCES
 
 - [Multiboot2 Specification version 2.0](https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html)
 
