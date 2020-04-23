@@ -90,7 +90,7 @@ int x86_64_main (unsigned long magic, unsigned long addr)
           }
         }
 
-        init_memory (addr, len);
+        init_memory (0x2000000, len - (0x2000000 - addr));
       }
       break;
       case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:

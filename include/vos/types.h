@@ -25,11 +25,11 @@ AssertCompileSize (uint32, 4);
 AssertCompileSize (uint64, 8);
 
 // clang-format off
-#if __x86_64__
+#if __x86_64__ || _WIN64
   #define intptr    int64
   #define uintptr   uint64
   #define uint      uint64
-#elif __i386__
+#elif __i386__ || _WIN32
   #define intptr    int32
   #define uintptr   uint32
   #define uint      uint32

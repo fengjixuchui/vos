@@ -133,14 +133,22 @@ void VmmVmExitHandler (GuestContext_t* context)
     case VMX_EXIT_CPUID:
       // print("VMX_EXIT_CPUID(%d)\n",                    VMX_EXIT_CPUID);
       if (context->rax == 0) {
+        // Genuine0x7cc or AuthenticVOS
         context->rax = 0;
         context->rbx = 'uneG';
         context->rdx = '0eni';
         context->rcx = 'cc7x';
+        // context->rbx = 'htuA';
+        // context->rdx = 'itne';
+        // context->rcx = 'SOVc';
       }
       else {
         cpuid_t cpuid;
         __cpuid(&cpuid, context->rax);
+        context->rax = cpuid.eax;
+        context->rbx = cpuid.ebx;
+        context->rcx = cpuid.ecx;
+        context->rdx = cpuid.edx;
       }
       break;
     case VMX_EXIT_GETSEC:                   print("VMX_EXIT_GETSEC(%d)\n",                   VMX_EXIT_GETSEC);                   break;
@@ -150,7 +158,9 @@ void VmmVmExitHandler (GuestContext_t* context)
     case VMX_EXIT_RDPMC:                    print("VMX_EXIT_RDPMC(%d)\n",                    VMX_EXIT_RDPMC);                    break;
     case VMX_EXIT_RDTSC:                    print("VMX_EXIT_RDTSC(%d)\n",                    VMX_EXIT_RDTSC);                    break;
     case VMX_EXIT_RSM:                      print("VMX_EXIT_RSM(%d)\n",                      VMX_EXIT_RSM);                      break;
-    case VMX_EXIT_VMCALL:                   print("VMX_EXIT_VMCALL(%d)\n",                   VMX_EXIT_VMCALL);                   break;
+    case VMX_EXIT_VMCALL:
+      // print("VMX_EXIT_VMCALL(%d)\n",                   VMX_EXIT_VMCALL);
+      break;
     case VMX_EXIT_VMCLEAR:                  print("VMX_EXIT_VMCLEAR(%d)\n",                  VMX_EXIT_VMCLEAR);                  break;
     case VMX_EXIT_VMLAUNCH:                 print("VMX_EXIT_VMLAUNCH(%d)\n",                 VMX_EXIT_VMLAUNCH);                 break;
     case VMX_EXIT_VMPTRLD:                  print("VMX_EXIT_VMPTRLD(%d)\n",                  VMX_EXIT_VMPTRLD);                  break;

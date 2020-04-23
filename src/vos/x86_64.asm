@@ -5,24 +5,26 @@
 
 bits 64
 
+%define elf64_fastcall_argv0 rdi
+%define elf64_fastcall_argv1 rsi
+%define elf64_fastcall_argv2 rdx
+%define elf64_fastcall_argv3 rcx
+
+%define win64_fastcall_argv0 rcx
+%define win64_fastcall_argv1 rdx
+%define win64_fastcall_argv2 r8
+%define win64_fastcall_argv3 r9
+
 %ifidn __OUTPUT_FORMAT__, elf64
-  %define fastcall_argv0 rdi
-  %define fastcall_argv1 rsi
-  %define fastcall_argv2 rdx
-  %define fastcall_argv3 rcx
-  %define argv0 fastcall_argv0
-  %define argv1 fastcall_argv1
-  %define argv2 fastcall_argv2
-  %define argv3 fastcall_argv3
+  %define argv0 elf64_fastcall_argv0
+  %define argv1 elf64_fastcall_argv1
+  %define argv2 elf64_fastcall_argv2
+  %define argv3 elf64_fastcall_argv3
 %elifidn __OUTPUT_FORMAT__, win64
-  %define fastcall_argv0 rcx
-  %define fastcall_argv1 rdx
-  %define fastcall_argv2 r8
-  %define fastcall_argv3 r9
-  %define argv0 fastcall_argv0
-  %define argv1 fastcall_argv1
-  %define argv2 fastcall_argv2
-  %define argv3 fastcall_argv3
+  %define argv0 win64_fastcall_argv0
+  %define argv1 win64_fastcall_argv1
+  %define argv2 win64_fastcall_argv2
+  %define argv3 win64_fastcall_argv3
 %else
   %error "目前只支持elf64格式的fastcall"
 %endif
@@ -129,7 +131,7 @@ endstruc
 ; Table 3-8. Information Returned by CPUID Instruction
 ; void __fastcall f (struct cpuid_t*, int)
 __cpuid:
-  mov rax, fastcall_argv1
+  mov rax, argv1
 
   cpuid
 
@@ -233,13 +235,15 @@ __vmread:
   ret
 
 __vmwrite:
-  vmwrite argv0, fastcall_argv1
+  vmwrite argv0, argv1
   ret
 
+; 若执行成功,代码执行流程将改变,不会返回.
 __vmlaunch:
   vmlaunch
   ret
 
+; 若执行成功,代码执行流程将改变,不会返回.
 __vmresume:
   vmresume
   ret
