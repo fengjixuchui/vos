@@ -82,8 +82,8 @@ int check_ept ()
 static void GuestEntry ()
 {
   char vendor[13] = {0};
-  puts ("GuestEntry 1");
-  bochs_break ();
+  puts ("GuestEntry begin");
+
   cpuid_t cpuid;
   __cpuid (&cpuid, 0);
 
@@ -92,12 +92,11 @@ static void GuestEntry ()
   ((uint32*)vendor)[2] = cpuid.ecx;
   print ("CPU Vendor : %s\n", vendor);
 
-  __vmcall (0x1234);
-  puts ("GuestEntry 2");
-  __vmcall (0x1234);
-  puts ("GuestEntry 3");
+  __vmcall (CMD_CHECK, 0, 0);
+  __vmcall (CMD_HOOK_FUNC, 0x1000, 0x2000);
 
-  bochs_break ();
+  puts ("GuestEntry end");
+
   while (1)
     ;
 }
@@ -110,6 +109,14 @@ typedef struct VMExitContext
   uint64 rdx;
   uint64 rsi;
   uint64 rdi;
+  uint64 r8;
+  uint64 r9;
+  uint64 r10;
+  uint64 r11;
+  uint64 r12;
+  uint64 r13;
+  uint64 r14;
+  uint64 r15;
   uint64 reason;
 } VMExitContext_t;
 
@@ -201,19 +208,19 @@ uint VmmVmExitHandler (VMExitContext_t* context)
       switch (context->argv0)
       {
         case CMD_CHECK:
-          puts ("CMD_CHECK\n");
+          puts ("CMD_CHECK");
           context->rax = context->argv0;
           return 0;
         case CMD_HOOK_FUNC:
-          puts ("CMD_HOOK_FUNC\n");
+          print ("CMD_HOOK_FUNC from : 0x%x to 0x%x\n", context->argv1, context->argv2);
           context->rax = context->argv0;
           return 0;
         case CMD_HIDE_PROCESS:
-          puts ("CMD_HIDE_PROCESS\n");
+          puts ("CMD_HIDE_PROCESS");
           context->rax = context->argv0;
           return 0;
         case CMD_PROTECT_PROCESS:
-          puts ("CMD_PROTECT_PROCESS\n");
+          puts ("CMD_PROTECT_PROCESS");
           context->rax = context->argv0;
           return 0;
         default:

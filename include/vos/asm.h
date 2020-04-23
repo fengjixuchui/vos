@@ -48,7 +48,7 @@ extern void   __vmxoff ();
 extern void   __vmxon (uint64 paddr);
 extern void   __invept ();
 extern void   __invvpid ();
-extern void   __vmcall (uint64 arg);
+extern void   __vmcall (uint64 cmd, uint64 arg0, uint64 arg1);
 extern void   __vmfunc ();
 extern void   __vmexit_handler ();
 
