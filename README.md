@@ -29,7 +29,7 @@ make run-bochs
 make run-qemu
 ``` 
 
-### qemu(Debug for C language)
+### qemu(Debug with C language)
 
 ```shell
 make run-qemu-debug
