@@ -273,47 +273,69 @@ __vmfunc:
   vmfunc
   ret
 
-struc GuestContext
-.ax resb 8
-.bx resb 8
-.cx resb 8
-.dx resb 8
-.si resb 8
-.di resb 8
-.arg resb 8
+struc VMExitContext
+.ax     resb 8
+.bx     resb 8
+.cx     resb 8
+.dx     resb 8
+.si     resb 8
+.di     resb 8
+.reason resb 8
 endstruc
+
+%define VMX_VMCS_GUEST_RIP                                      0x681e
+%define VMX_VMCS32_RO_EXIT_REASON                               0x4402
+%define VMX_VMCS32_RO_EXIT_INSTR_LENGTH                         0x440c
 
 __vmexit_handler:
   push rbp
   mov rbp, rsp
 
-  sub rsp, GuestContext_size
+  sub rsp, VMExitContext_size
 
-  mov [rsp + GuestContext.ax], rax
-  mov [rsp + GuestContext.bx], rbx
-  mov [rsp + GuestContext.cx], rcx
-  mov [rsp + GuestContext.dx], rdx
-  mov [rsp + GuestContext.si], rsi
-  mov [rsp + GuestContext.di], rdi
-  mov [rsp + GuestContext.arg], argv0
+  mov [rsp + VMExitContext.ax], rax
+  mov [rsp + VMExitContext.bx], rbx
+  mov [rsp + VMExitContext.cx], rcx
+  mov [rsp + VMExitContext.dx], rdx
+  mov [rsp + VMExitContext.si], rsi
+  mov [rsp + VMExitContext.di], rdi
 
-  mov argv0, rsp
+  mov argv0, VMX_VMCS32_RO_EXIT_REASON
+  vmread rax, argv0
+  mov [rsp + VMExitContext.reason], rax
+
+  mov argv0, rsp  ; context
 
   call VmmVmExitHandler
 
-  mov rax, [rsp + GuestContext.ax]
-  mov rbx, [rsp + GuestContext.bx]
-  mov rcx, [rsp + GuestContext.cx]
-  mov rdx, [rsp + GuestContext.dx]
-  mov rsi, [rsp + GuestContext.si]
-  mov rdi, [rsp + GuestContext.di]
+  cmp rax, 0
+  jne .fail      ; 判断是否执行失败.
 
-  add rsp, GuestContext_size
+  mov argv0, VMX_VMCS_GUEST_RIP
+  vmread rax, argv0
+
+  mov argv0, VMX_VMCS32_RO_EXIT_INSTR_LENGTH
+  vmread rbx, argv0
+  add rbx, rax
+
+  mov argv0, VMX_VMCS_GUEST_RIP
+  vmwrite argv0, rbx
+
+  mov rax, [rsp + VMExitContext.ax]
+  mov rbx, [rsp + VMExitContext.bx]
+  mov rcx, [rsp + VMExitContext.cx]
+  mov rdx, [rsp + VMExitContext.dx]
+  mov rsi, [rsp + VMExitContext.si]
+  mov rdi, [rsp + VMExitContext.di]
+
+  add rsp, VMExitContext_size
 
   pop rbp
 
   call __vmresume        ; 这条命令执行成功将改变执行流程,不会返回.
 
+  .fail:
+  int 3
   ret
 
 %endif ; VOS_X86_64

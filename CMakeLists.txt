@@ -6,13 +6,13 @@ set ( CMAKE_CXX_STANDARD 11 )
 
 include ( GNUInstallDirs )
 
-include (TestBigEndian)
+include ( TestBigEndian )
 
-TEST_BIG_ENDIAN(XF_BIG_ENDIAN)
+TEST_BIG_ENDIAN ( XF_BIG_ENDIAN )
 
 # 检测大小端序
-add_definitions(-DXF_BIG_ENDIAN=${XF_BIG_ENDIAN})
-add_compile_options(-Wall -nostdlib -fno-builtin -fno-exceptions -fno-pic)
+add_definitions ( -DXF_BIG_ENDIAN=${XF_BIG_ENDIAN} )
+add_compile_options ( -Wall -nostdlib -fno-builtin -fno-exceptions -fno-pic )
 
 set ( CMAKE_DEBUG_POSTFIX "d" )
 set ( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/ )
@@ -24,14 +24,14 @@ set ( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin/release/ 
 
 ##################################################
 
-add_library ( loader
-  src/boot/loader.c
-  include/vos/fs/fat.h )
-
-target_include_directories ( loader
-  PUBLIC
-  ${PROJECT_SOURCE_DIR}/include
-  )
+#add_library ( loader
+#  src/boot/loader.c
+#  include/vos/fs/fat.h )
+#
+#target_include_directories ( loader
+#  PUBLIC
+#  ${PROJECT_SOURCE_DIR}/include
+#  )
 
 ##################################################
 
@@ -42,6 +42,11 @@ add_library ( kernel
   include/vos/asm.h
   include/vos/assert.h
   include/vos/cpu.h
+  include/vos/fs.h
+  include/vos/fs/exfat.h
+  include/vos/fs/fat.h
+  include/vos/guest.h
+  include/vos/host.h
   include/vos/intel/intel.h
   include/vos/intel/vmx.h
   include/vos/memory.h
@@ -57,7 +62,7 @@ add_library ( kernel
   src/vos/memory.c
   src/vos/stdio.c
   src/vos/string.c
-  include/vos/fs.h include/vos/fs/fat.h include/vos/fs/exfat.h )
+  )
 
 target_include_directories ( kernel
   PUBLIC
