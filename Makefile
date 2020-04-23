@@ -31,7 +31,7 @@ run-qemu: all
 
 .PHONY : run-qemu-debug
 run-qemu-debug: all
-	sudo qemu-system-x86_64 -cpu host -cdrom ${BOOTIMG} --enable-kvm -no-reboot -no-shutdown -gdb tcp::1234 -S
+	sudo qemu-system-x86_64 -cpu host -cdrom ${BOOTIMG} --enable-kvm -no-reboot -no-shutdown -gdb tcp::1234
 
 .PHONY : run-bochs
 run-bochs: all
