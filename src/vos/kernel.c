@@ -1,7 +1,7 @@
 #include "vos/types.h"
 #include "vos/bochs.h"
 #include "vos/vos.h"
-#include "vos/cpu.h"
+#include "vos/x86.h"
 #include "vos/intel.h"
 #include "vos/amd.h"
 #include "vos/stdio.h"

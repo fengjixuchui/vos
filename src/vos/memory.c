@@ -10,12 +10,12 @@ static uint  page_base;
 static uint* page_map;
 static uint  page_count;
 
-static inline calc_page_num (uint size)
+static inline uint calc_page_num (uint size)
 {
   return (size + VOS_PAGE_SIZE - 1) >> 12;
 }
 
-static inline calc_page_idx (uint addr)
+static inline uint calc_page_idx (uint addr)
 {
   return (addr - page_base) >> 12;
 }

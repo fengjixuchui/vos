@@ -4,7 +4,7 @@
 
 #include "vos/amd.h"
 #include "vos/x86_64.h"
-#include "vos/cpu.h"
+#include "vos/x86.h"
 #include "vos/stdio.h"
 
 #define CPUID_80000001_SVM (uint32) (1 << 2)
