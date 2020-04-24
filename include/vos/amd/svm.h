@@ -5,4 +5,4 @@
 #ifndef VOS_SVM_H
 #define VOS_SVM_H
 
-#endif //VOS2SVM_H
+#endif //VOSSVM_H

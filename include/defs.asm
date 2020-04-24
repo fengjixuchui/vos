@@ -85,65 +85,30 @@
 %define IA32_EFER_LMA (1 << 10)
 %define IA32_EFER_NXE (1 << 11)
 
-%define __STEP                (__BITS__ / 8)
-%define __ARGS_SIZE(N)        (N * __STEP)
-%define __ARG(INDEX)          [ebp + (INDEX + 2) * __STEP]
-%define __STACK_CLEAR(N)      add esp, __ARGS_SIZE(N)
 
-%macro __FUNC_BEGIN_16 0
-.begin:
-push bp
-mov  bp, sp
-push bx
-push cx
-push dx
-push si
-push di
-%endmacro
+%define elf64_fastcall_argv0 rdi
+%define elf64_fastcall_argv1 rsi
+%define elf64_fastcall_argv2 rdx
+%define elf64_fastcall_argv3 rcx
 
-%macro __FUNC_END_16 0
-.end:
-pop di
-pop si
-pop dx
-pop cx
-pop bx
-pop bp
-ret
-%endmacro
+%define win64_fastcall_argv0 rcx
+%define win64_fastcall_argv1 rdx
+%define win64_fastcall_argv2 r8
+%define win64_fastcall_argv3 r9
 
-%macro __FUNC_RETURN_16 1
-mov ax, %1
-jmp .end
-%endmacro
-
-%macro __FUNC_BEGIN_32 0
-.begin:
-push ebp
-mov  ebp, esp
-push ebx
-push ecx
-push edx
-push esi
-push edi
-%endmacro
-
-%macro __FUNC_END_32 0
-.end:
-pop edi
-pop esi
-pop edx
-pop ecx
-pop ebx
-pop ebp
-ret
-%endmacro
-
-%macro __FUNC_RETURN_32 1
-mov eax, %1
-jmp .end
-%endmacro
-
+%ifidn __OUTPUT_FORMAT__, elf64
+  %define argv0 elf64_fastcall_argv0
+  %define argv1 elf64_fastcall_argv1
+  %define argv2 elf64_fastcall_argv2
+  %define argv3 elf64_fastcall_argv3
+%elifidn __OUTPUT_FORMAT__, win64
+  %define argv0 win64_fastcall_argv0
+  %define argv1 win64_fastcall_argv1
+  %define argv2 win64_fastcall_argv2
+  %define argv3 win64_fastcall_argv3
+%else
+  %error "目前只支持elf64格式的fastcall"
+%endif
 
 %endif ; VOS_DEFS
 

@@ -2,8 +2,8 @@
 // Created by x7cc on 2020/4/14.
 //
 
-#ifndef VOS2_ASM_H
-#define VOS2_ASM_H
+#ifndef VOS_ASM_H
+#define VOS_ASM_H
 
 #include "vos/types.h"
 
@@ -52,4 +52,4 @@ extern void   __vmcall (uint64 cmd, uint64 arg0, uint64 arg1);
 extern void   __vmfunc ();
 extern void   __vmexit_handler ();
 
-#endif //VOS2_ASM_H
+#endif //VOS_ASM_H

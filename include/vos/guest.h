@@ -2,8 +2,8 @@
 // Created by x7cc on 2020/4/24.
 //
 
-#ifndef VOS2_GUEST_H
-#define VOS2_GUEST_H
+#ifndef VOS_GUEST_H
+#define VOS_GUEST_H
 
 #include "vos/types.h"
 
@@ -17,4 +17,4 @@ typedef struct guest_config
   uint8  thread_num;
 } guest_config_t;
 
-#endif //VOS2_GUEST_H
+#endif //VOS_GUEST_H

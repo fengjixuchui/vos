@@ -2,8 +2,8 @@
 // Created by x7cc on 2020/4/15.
 //
 
-#ifndef VOS2_X86_H
-#define VOS2_X86_H
+#ifndef VOS_X86_H
+#define VOS_X86_H
 
 // clang-format off
 
@@ -708,4 +708,4 @@
 /** @} */
 // clang-format on
 
-#endif //VOS2_X86_H
+#endif //VOS_X86_H

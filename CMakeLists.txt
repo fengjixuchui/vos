@@ -1,7 +1,7 @@
 
 cmake_minimum_required ( VERSION 3.13 )
 
-project ( vos2 )
+project ( vos )
 set ( CMAKE_CXX_STANDARD 11 )
 
 include ( GNUInstallDirs )
@@ -52,7 +52,9 @@ add_library ( kernel
   include/vos/memory.h
   include/vos/stdio.h
   include/vos/string.h
+  include/vos/svm.h
   include/vos/types.h
+  include/vos/vmx.h
   include/vos/vos.h
   include/vos/x86.h
   src/vos/amd/amd.c

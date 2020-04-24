@@ -2,8 +2,8 @@
 // Created by x7cc on 2020/4/14.
 //
 
-#ifndef VOS2_CPU_H
-#define VOS2_CPU_H
+#ifndef VOS_CPU_H
+#define VOS_CPU_H
 
 #include "vos/types.h"
 #include "vos/assert.h"
@@ -26,4 +26,4 @@ typedef struct gdtr__
 #pragma pack()
 AssertCompileSize (struct gdtr__, 10);
 
-#endif //VOS2_CPU_H
+#endif //VOS_CPU_H
