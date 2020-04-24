@@ -36,10 +36,9 @@ set ( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin/release/ 
 ##################################################
 
 add_library ( kernel
-  include/bochs/bochs.h
-  include/vos/amd/amd.h
-  include/vos/amd/svm.h
-  include/vos/asm.h
+  include/vos/bochs.h
+  include/vos/amd.h
+  include/vos/x86_64.h
   include/vos/assert.h
   include/vos/cpu.h
   include/vos/fs.h
@@ -47,8 +46,7 @@ add_library ( kernel
   include/vos/fs/fat.h
   include/vos/guest.h
   include/vos/host.h
-  include/vos/intel/intel.h
-  include/vos/intel/vmx.h
+  include/vos/intel.h
   include/vos/memory.h
   include/vos/stdio.h
   include/vos/string.h
@@ -57,9 +55,9 @@ add_library ( kernel
   include/vos/vmx.h
   include/vos/vos.h
   include/vos/x86.h
-  src/vos/amd/amd.c
-  src/vos/intel/intel.c
-  src/vos/intel/vmx.c
+  src/vos/amd.c
+  src/vos/intel.c
+  src/vos/vmx.c
   src/vos/kernel.c
   src/vos/memory.c
   src/vos/stdio.c

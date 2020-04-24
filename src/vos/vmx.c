@@ -2,7 +2,7 @@
 // Created by x7cc on 2020/4/15.
 //
 
-#include "vos/intel/vmx.h"
+#include "vos/vmx.h"
 #include "vos/types.h"
 #include "vos/vos.h"
 #include "vos/memory.h"

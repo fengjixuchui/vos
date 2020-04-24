@@ -2,8 +2,8 @@
 // Created by x7cc on 2020/4/14.
 //
 
-#ifndef VOS_ASM_H
-#define VOS_ASM_H
+#ifndef VOS_X86_64_H
+#define VOS_X86_64_H
 
 #include "vos/types.h"
 
@@ -35,21 +35,7 @@ extern void   __read_gdtr (gdtr_t* gdtr);
 extern void   __read_ldtr (ldtr_t* ldtr);
 extern void   __read_idtr (idtr_t* idtr);
 
-extern void   __clgi ();
-extern void   __stgi ();
-extern void   __vmptrld ();
-extern void   __vmptrst ();
-extern void   __vmclear (uint64 paddr);
-extern uint64 __vmread (uint64 field);
-extern void   __vmwrite (uint64 field, uint64 value);
-extern void   __vmlaunch ();
-extern void   __vmresume ();
-extern void   __vmxoff ();
-extern void   __vmxon (uint64 paddr);
-extern void   __invept ();
-extern void   __invvpid ();
-extern void   __vmcall (uint64 cmd, uint64 arg0, uint64 arg1);
-extern void   __vmfunc ();
-extern void   __vmexit_handler ();
+extern void __clgi ();
+extern void __stgi ();
 
-#endif //VOS_ASM_H
+#endif //VOS_X86_64_H

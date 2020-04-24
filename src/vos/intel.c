@@ -2,15 +2,15 @@
 // Created by x7cc on 2020/4/14.
 //
 
-#include "vos/intel/intel.h"
-#include "bochs/bochs.h"
-#include "vos/asm.h"
+#include "vos/intel.h"
+#include "vos/bochs.h"
+#include "vos/x86_64.h"
 #include "vos/cpu.h"
-#include "vos/intel/vmx.h"
 #include "vos/memory.h"
 #include "vos/stdio.h"
 #include "vos/vos.h"
 #include "vos/x86.h"
+#include "vos/vmx.h"
 
 #define CMD_CHECK (uint32) (0x14CD14DB)
 #define CMD_HOOK_FUNC (uint32) (0x14CD14DC)
