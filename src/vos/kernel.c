@@ -1,5 +1,5 @@
 #include "vos/types.h"
-#include "vos/bochs.h"
+#include "vos/debug.h"
 #include "vos/vos.h"
 #include "vos/x86.h"
 #include "vos/intel.h"
@@ -8,6 +8,54 @@
 #include "vos/x86_64.h"
 #include "vos/memory.h"
 #include "grub/multiboot2.h"
+
+extern void interrupt_0 ();
+extern void interrupt_1 ();
+extern void interrupt_2 ();
+extern void interrupt_3 ();
+extern void interrupt_4 ();
+extern void interrupt_5 ();
+extern void interrupt_6 ();
+extern void interrupt_7 ();
+extern void interrupt_8 ();
+extern void interrupt_9 ();
+extern void interrupt_10 ();
+extern void interrupt_11 ();
+extern void interrupt_12 ();
+
+typedef struct
+{
+  uint16 offset_1;  // offset bits 0..15
+  uint16 selector;  // a code segment selector in GDT or LDT
+  uint8  ist;       // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
+  uint8  type_attr; // type and attributes
+  uint16 offset_2;  // offset bits 16..31
+  uint32 offset_3;  // offset bits 32..63
+  uint32 zero;      // reserved
+} IDTDesc64;
+
+void make_interrupt (void* idt, uint idx, uint64 addr, uint dpl, uint cs, uint p)
+{
+  IDTDesc64* desc = (IDTDesc64*)idt + idx;
+  desc->selector  = cs;
+  desc->ist       = 0;
+  desc->offset_1  = addr & 0xffff;
+  desc->offset_2  = (addr >> 16) & 0xffff;
+  desc->offset_3  = (addr >> 32) & 0xffffffff;
+  desc->zero      = 0;
+  desc->type_attr = 0b1110 | (dpl << 5) | (p << 7);
+}
+
+void init_idt ()
+{
+  uint64* idt = (uint64*)calloc (4096);
+  make_interrupt ((void*)idt, 3, (uint64)&interrupt_3, 0, __read_cs (), 1);
+  idtr_t idtr;
+  idtr.base  = idt;
+  idtr.limit = 4096;
+  bochs_break ();
+  __write_idtr (&idtr);
+}
 
 int x86_64_main (unsigned long magic, unsigned long addr)
 {
@@ -202,6 +250,8 @@ int x86_64_main (unsigned long magic, unsigned long addr)
   tag = (struct multiboot_tag*)((multiboot_uint8_t*)tag + ((tag->size + 7) & ~7));
 
   puts ("hello! welcome to my vos project.");
+
+  init_idt ();
 
   cpuid_t cpuid;
   __cpuid (&cpuid, 0);

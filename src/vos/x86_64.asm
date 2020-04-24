@@ -29,6 +29,9 @@ global __read_tr
 global __read_gdtr
 global __read_ldtr
 global __read_idtr
+global __write_gdtr
+global __write_ldtr
+global __write_idtr
 
 global __clgi
 global __stgi
@@ -164,6 +167,19 @@ __read_ldtr:
 
 __read_idtr:
   sidt [argv0]
+  ret
+
+__write_gdtr:
+  lgdt [argv0]
+  ret
+
+__write_ldtr:
+  lldt [argv0]
+  ret
+
+__write_idtr:
+  lidt [argv0]
+  int 3
   ret
 
 __clgi:

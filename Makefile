@@ -3,16 +3,17 @@ BOOTIMG=vos.iso
 CC_ARGS=
 KERNEL_OBJS= \
             src/boot/multiboot2.s64 \
-            src/vos/bochs.s64 \
             src/vos/amd.c64 \
+            src/vos/debug.s64 \
+            src/vos/idt.s64 \
             src/vos/intel.c64 \
             src/vos/kernel.c64 \
             src/vos/memory.c64 \
             src/vos/stdio.c64 \
-            src/vos/x86_64.s64 \
+            src/vos/svm.s64 \
             src/vos/vmx.c64 \
             src/vos/vmx.s64 \
-            src/vos/svm.s64 \
+            src/vos/x86_64.s64 \
 
 
 all: kernel

@@ -34,6 +34,9 @@ extern uint64 __read_tr ();
 extern void   __read_gdtr (gdtr_t* gdtr);
 extern void   __read_ldtr (ldtr_t* ldtr);
 extern void   __read_idtr (idtr_t* idtr);
+extern void   __write_gdtr (const gdtr_t* gdtr);
+extern void   __write_ldtr (const ldtr_t* ldtr);
+extern void   __write_idtr (const idtr_t* idtr);
 
 extern void __clgi ();
 extern void __stgi ();

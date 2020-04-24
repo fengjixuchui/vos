@@ -3,7 +3,7 @@
 //
 
 #include "vos/intel.h"
-#include "vos/bochs.h"
+#include "vos/debug.h"
 #include "vos/x86_64.h"
 #include "vos/memory.h"
 #include "vos/stdio.h"
@@ -95,25 +95,6 @@ static void GuestEntry ()
     ;
 }
 
-typedef struct VMExitContext
-{
-  uint64 rax;
-  uint64 rbx;
-  uint64 rcx;
-  uint64 rdx;
-  uint64 rsi;
-  uint64 rdi;
-  uint64 r8;
-  uint64 r9;
-  uint64 r10;
-  uint64 r11;
-  uint64 r12;
-  uint64 r13;
-  uint64 r14;
-  uint64 r15;
-  uint64 reason;
-} VMExitContext_t;
-
 uint VmmVmExitHandler (VMExitContext_t* context)
 {
   uint64 basic_reason = VMX_EXIT_REASON_BASIC (context->reason);
@@ -198,6 +179,7 @@ uint VmmVmExitHandler (VMExitContext_t* context)
       print ("VMX_EXIT_RSM(%d)\n", VMX_EXIT_RSM);
       break;
     case VMX_EXIT_VMCALL:
+      gdb_break ();
       // print("VMX_EXIT_VMCALL(%d)\n",                   VMX_EXIT_VMCALL);
       switch (context->argv0)
       {

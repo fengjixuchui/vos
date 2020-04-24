@@ -4,7 +4,7 @@
 
 #include "vos/stdio.h"
 #include "vos/memory.h"
-#include "vos/bochs.h"
+#include "vos/debug.h"
 #include "vos/types.h"
 #include <stdarg.h>
 
