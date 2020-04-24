@@ -32,6 +32,13 @@
 #endif
 
 #define VOS_PAGE_SIZE 4096
+
+
+#define CMD_CHECK           ((uint32)0x14CD14DB)
+#define CMD_HOOK_FUNC       ((uint32)0x14CD14DC)
+#define CMD_HIDE_PROCESS    ((uint32)0x14CD14DD)
+#define CMD_PROTECT_PROCESS ((uint32)0x14CD14DE)
+
 // clang-format on
 
 #endif //VOS_VOS_H

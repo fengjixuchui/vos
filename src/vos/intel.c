@@ -5,17 +5,11 @@
 #include "vos/intel.h"
 #include "vos/bochs.h"
 #include "vos/x86_64.h"
-#include "vos/cpu.h"
 #include "vos/memory.h"
 #include "vos/stdio.h"
 #include "vos/vos.h"
 #include "vos/x86.h"
 #include "vos/vmx.h"
-
-#define CMD_CHECK (uint32) (0x14CD14DB)
-#define CMD_HOOK_FUNC (uint32) (0x14CD14DC)
-#define CMD_HIDE_PROCESS (uint32) (0x14CD14DD)
-#define CMD_PROTECT_PROCESS (uint32) (0x14CD14DE)
 
 int check_vmx ()
 {

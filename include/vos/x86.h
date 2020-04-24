@@ -5,6 +5,26 @@
 #ifndef VOS_X86_H
 #define VOS_X86_H
 
+#include "vos/assert.h"
+
+typedef struct cpuid__
+{
+  uint32 eax;
+  uint32 ebx;
+  uint32 ecx;
+  uint32 edx;
+} cpuid_t;
+AssertCompileSize (struct cpuid__, 16);
+
+#pragma pack(1)
+typedef struct gdtr__
+{
+  uint16 limit;
+  uint64 base;
+} gdtr_t, ldtr_t, idtr_t;
+#pragma pack()
+AssertCompileSize (struct gdtr__, 10);
+
 // clang-format off
 
 /** @name Machine Specific Registers

@@ -40,7 +40,6 @@ add_library ( kernel
   include/vos/amd.h
   include/vos/x86_64.h
   include/vos/assert.h
-  include/vos/cpu.h
   include/vos/fs.h
   include/vos/fs/exfat.h
   include/vos/fs/fat.h
