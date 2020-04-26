@@ -32,8 +32,12 @@ make qemu
 ### qemu(Debug)
 
 ```shell
-make qemu-debug
+make debug-qemu
 ``` 
+
+```shell
+make debug-qemu-amd
+```
 
 ```shell
 gdb --init-command=.gdbinit
