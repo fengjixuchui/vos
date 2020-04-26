@@ -20,19 +20,19 @@ make
 ### bochs
 
 ```shell
-make run-bochs
+make bochs
 ```
 
 ### qemu
 
 ```shell
-make run-qemu
+make qemu
 ``` 
 
-### qemu(Debug with C language)
+### qemu(Debug)
 
 ```shell
-make run-qemu-debug
+make qemu-debug
 ``` 
 
 ```shell
@@ -52,5 +52,7 @@ gdb --init-command=.gdbinit
 - [VirtualBox](https://www.virtualbox.org/)
 
 - [HyperPlatform](https://github.com/tandasat/HyperPlatform)
+
+- [SimpleSvm](https://github.com/tandasat/SimpleSvm)
 
 - 《[一个64位操作系统的设计与实现](https://www.ituring.com.cn/book/2450)》

@@ -10,11 +10,13 @@
 typedef struct cpuid__ cpuid_t;
 typedef struct gdtr__  gdtr_t, ldtr_t, idtr_t;
 
-extern uint64 __read_access_rights ();
+extern uint64 __read_access_rights (uint64 selector);
 extern uint64 __read_cr0 ();
+extern uint64 __read_cr2 ();
 extern uint64 __read_cr3 ();
 extern uint64 __read_cr4 ();
 extern void   __write_cr0 (uint64 value);
+extern void   __write_cr2 (uint64 value);
 extern void   __write_cr3 (uint64 value);
 extern void   __write_cr4 (uint64 value);
 extern void   __cpuid (cpuid_t* out, uint64 id);
@@ -40,5 +42,7 @@ extern void   __write_idtr (const idtr_t* idtr);
 
 extern void __clgi ();
 extern void __stgi ();
+
+void* make_guest_PML4E ();
 
 #endif //VOS_X86_64_H

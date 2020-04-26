@@ -1,5 +1,6 @@
 
-%include "defs.asm"
+%include "vos.asm"
+
 extern x86_64_main
 global x86_64_entry
 

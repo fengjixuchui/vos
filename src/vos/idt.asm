@@ -1,4 +1,4 @@
-%include "defs.asm"
+%include "vos.asm"
 
 bits 64
 

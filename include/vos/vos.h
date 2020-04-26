@@ -39,26 +39,6 @@
 #define CMD_HIDE_PROCESS    ((uint32)0x14CD14DD)
 #define CMD_PROTECT_PROCESS ((uint32)0x14CD14DE)
 
-
-typedef struct VMExitContext
-{
-  uint64 rax;
-  uint64 rbx;
-  uint64 rcx;
-  uint64 rdx;
-  uint64 rsi;
-  uint64 rdi;
-  uint64 r8;
-  uint64 r9;
-  uint64 r10;
-  uint64 r11;
-  uint64 r12;
-  uint64 r13;
-  uint64 r14;
-  uint64 r15;
-  uint64 reason;
-} VMExitContext_t;
-
 // clang-format on
 
 #endif //VOS_VOS_H

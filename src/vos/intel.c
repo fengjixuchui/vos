@@ -38,21 +38,21 @@ int check_vmx ()
 }
 
 // clang-format off
-#define IA32_VMX_EPTVPIDCAP_execute_only_pages_MASK                        ((uint64)1 <<  0)
-#define IA32_VMX_EPTVPIDCAP_page_walk_length4_MASK                         ((uint64)1 <<  6)
-#define IA32_VMX_EPTVPIDCAP_uncacheble_memory_type_MASK                    ((uint64)1 <<  8)
-#define IA32_VMX_EPTVPIDCAP_write_back_memory_type_MASK                    ((uint64)1 << 14)
-#define IA32_VMX_EPTVPIDCAP_pde_2mb_pages_MASK                             ((uint64)1 << 16)
-#define IA32_VMX_EPTVPIDCAP_pdpte_1_gb_pages_MASK                          ((uint64)1 << 17)
-#define IA32_VMX_EPTVPIDCAP_invept_MASK                                    ((uint64)1 << 20)
-#define IA32_VMX_EPTVPIDCAP_accessed_and_dirty_flag_MASK                   ((uint64)1 << 21)
-#define IA32_VMX_EPTVPIDCAP_single_context_invept_MASK                     ((uint64)1 << 25)
-#define IA32_VMX_EPTVPIDCAP_all_context_invept_MASK                        ((uint64)1 << 26)
-#define IA32_VMX_EPTVPIDCAP_invvpid_MASK                                   ((uint64)1 << 32)
-#define IA32_VMX_EPTVPIDCAP_individual_address_invvpid_MASK                ((uint64)1 << 40)
-#define IA32_VMX_EPTVPIDCAP_single_context_invvpid_MASK                    ((uint64)1 << 41)
-#define IA32_VMX_EPTVPIDCAP_all_context_invvpid_MASK                       ((uint64)1 << 42)
-#define IA32_VMX_EPTVPIDCAP_single_context_retaining_globals_invvpid_MASK  ((uint64)1 << 43)
+#define IA32_VMX_EPTVPIDCAP_execute_only_pages_MASK                        (1ull <<  0)
+#define IA32_VMX_EPTVPIDCAP_page_walk_length4_MASK                         (1ull <<  6)
+#define IA32_VMX_EPTVPIDCAP_uncacheble_memory_type_MASK                    (1ull <<  8)
+#define IA32_VMX_EPTVPIDCAP_write_back_memory_type_MASK                    (1ull << 14)
+#define IA32_VMX_EPTVPIDCAP_pde_2mb_pages_MASK                             (1ull << 16)
+#define IA32_VMX_EPTVPIDCAP_pdpte_1_gb_pages_MASK                          (1ull << 17)
+#define IA32_VMX_EPTVPIDCAP_invept_MASK                                    (1ull << 20)
+#define IA32_VMX_EPTVPIDCAP_accessed_and_dirty_flag_MASK                   (1ull << 21)
+#define IA32_VMX_EPTVPIDCAP_single_context_invept_MASK                     (1ull << 25)
+#define IA32_VMX_EPTVPIDCAP_all_context_invept_MASK                        (1ull << 26)
+#define IA32_VMX_EPTVPIDCAP_invvpid_MASK                                   (1ull << 32)
+#define IA32_VMX_EPTVPIDCAP_individual_address_invvpid_MASK                (1ull << 40)
+#define IA32_VMX_EPTVPIDCAP_single_context_invvpid_MASK                    (1ull << 41)
+#define IA32_VMX_EPTVPIDCAP_all_context_invvpid_MASK                       (1ull << 42)
+#define IA32_VMX_EPTVPIDCAP_single_context_retaining_globals_invvpid_MASK  (1ull << 43)
 // clang-format on
 
 int check_ept ()
@@ -95,9 +95,10 @@ static void GuestEntry ()
     ;
 }
 
-uint VmmVmExitHandler (VMExitContext_t* context)
+uint VmmVmExitHandler (VmxVMExitContext_t* context)
 {
-  uint64 basic_reason = VMX_EXIT_REASON_BASIC (context->reason);
+  uint64 reason       = __vmread (VMX_VMCS32_RO_EXIT_REASON);
+  uint64 basic_reason = VMX_EXIT_REASON_BASIC (reason);
 
   switch (basic_reason)
   {
@@ -138,14 +139,10 @@ uint VmmVmExitHandler (VMExitContext_t* context)
       // print("VMX_EXIT_CPUID(%d)\n",                    VMX_EXIT_CPUID);
       if (context->rax == 0)
       {
-        // Genuine0x7cc or AuthenticVOS
         context->rax = 0;
         context->rbx = 'uneG';
         context->rdx = '0eni';
         context->rcx = 'cc7x';
-        // context->rbx = 'htuA';
-        // context->rdx = 'itne';
-        // context->rcx = 'SOVc';
       }
       else
       {
@@ -479,7 +476,7 @@ int vmx_start ()
     __vmwrite (VMX_VMCS32_GUEST_GS_LIMIT, 0xffffffff);
     __vmwrite (VMX_VMCS32_GUEST_LDTR_LIMIT, 0xffffffff);
     __vmwrite (VMX_VMCS32_GUEST_TR_LIMIT, 0xffffffff);
-    //    bochs_break();
+
     __vmwrite (VMX_VMCS32_GUEST_GDTR_LIMIT, gdtr.limit);
     __vmwrite (VMX_VMCS32_GUEST_IDTR_LIMIT, idtr.limit);
 

@@ -53,7 +53,7 @@ void init_idt ()
   idtr_t idtr;
   idtr.base  = idt;
   idtr.limit = 4096;
-  bochs_break ();
+  // bochs_break ();
   __write_idtr (&idtr);
 }
 

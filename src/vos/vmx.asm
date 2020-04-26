@@ -1,4 +1,4 @@
-%include "defs.asm"
+%include "vos.asm"
 
 bits 64
 
@@ -76,52 +76,29 @@ __vmfunc:
   vmfunc
   ret
 
-struc VMExitContext
-.ax     resb 8
-.bx     resb 8
-.cx     resb 8
-.dx     resb 8
-.si     resb 8
-.di     resb 8
-.r8     resb 8
-.r9     resb 8
-.r10    resb 8
-.r11    resb 8
-.r12    resb 8
-.r13    resb 8
-.r14    resb 8
-.r15    resb 8
-.reason resb 8
-endstruc
-
 %define VMX_VMCS_GUEST_RIP                                      0x681e
-%define VMX_VMCS32_RO_EXIT_REASON                               0x4402
 %define VMX_VMCS32_RO_EXIT_INSTR_LENGTH                         0x440c
 
 __vmexit_handler:
   push rbp
   mov rbp, rsp
 
-  sub rsp, VMExitContext_size
+  sub rsp, VmxVMExitContext_size
 
-  mov [rsp + VMExitContext.ax], rax
-  mov [rsp + VMExitContext.bx], rbx
-  mov [rsp + VMExitContext.cx], rcx
-  mov [rsp + VMExitContext.dx], rdx
-  mov [rsp + VMExitContext.si], rsi
-  mov [rsp + VMExitContext.di], rdi
-  mov [rsp + VMExitContext.r8], r8
-  mov [rsp + VMExitContext.r9], r9
-  mov [rsp + VMExitContext.r10], r10
-  mov [rsp + VMExitContext.r11], r11
-  mov [rsp + VMExitContext.r12], r12
-  mov [rsp + VMExitContext.r13], r13
-  mov [rsp + VMExitContext.r14], r14
-  mov [rsp + VMExitContext.r15], r15
-
-  mov argv0, VMX_VMCS32_RO_EXIT_REASON
-  vmread rax, argv0
-  mov [rsp + VMExitContext.reason], rax
+  mov [rsp + VmxVMExitContext.ax], rax
+  mov [rsp + VmxVMExitContext.bx], rbx
+  mov [rsp + VmxVMExitContext.cx], rcx
+  mov [rsp + VmxVMExitContext.dx], rdx
+  mov [rsp + VmxVMExitContext.si], rsi
+  mov [rsp + VmxVMExitContext.di], rdi
+  mov [rsp + VmxVMExitContext.r8], r8
+  mov [rsp + VmxVMExitContext.r9], r9
+  mov [rsp + VmxVMExitContext.r10], r10
+  mov [rsp + VmxVMExitContext.r11], r11
+  mov [rsp + VmxVMExitContext.r12], r12
+  mov [rsp + VmxVMExitContext.r13], r13
+  mov [rsp + VmxVMExitContext.r14], r14
+  mov [rsp + VmxVMExitContext.r15], r15
 
   mov argv0, rsp  ; context
 
@@ -140,22 +117,22 @@ __vmexit_handler:
   mov argv0, VMX_VMCS_GUEST_RIP
   vmwrite argv0, rbx
 
-  mov rax, [rsp + VMExitContext.ax]
-  mov rbx, [rsp + VMExitContext.bx]
-  mov rcx, [rsp + VMExitContext.cx]
-  mov rdx, [rsp + VMExitContext.dx]
-  mov rsi, [rsp + VMExitContext.si]
-  mov rdi, [rsp + VMExitContext.di]
-  mov r8,  [rsp + VMExitContext.r8]
-  mov r9,  [rsp + VMExitContext.r9]
-  mov r10, [rsp + VMExitContext.r10]
-  mov r11, [rsp + VMExitContext.r11]
-  mov r12, [rsp + VMExitContext.r12]
-  mov r13, [rsp + VMExitContext.r13]
-  mov r14, [rsp + VMExitContext.r14]
-  mov r15, [rsp + VMExitContext.r15]
+  mov rax, [rsp + VmxVMExitContext.ax]
+  mov rbx, [rsp + VmxVMExitContext.bx]
+  mov rcx, [rsp + VmxVMExitContext.cx]
+  mov rdx, [rsp + VmxVMExitContext.dx]
+  mov rsi, [rsp + VmxVMExitContext.si]
+  mov rdi, [rsp + VmxVMExitContext.di]
+  mov r8,  [rsp + VmxVMExitContext.r8]
+  mov r9,  [rsp + VmxVMExitContext.r9]
+  mov r10, [rsp + VmxVMExitContext.r10]
+  mov r11, [rsp + VmxVMExitContext.r11]
+  mov r12, [rsp + VmxVMExitContext.r12]
+  mov r13, [rsp + VmxVMExitContext.r13]
+  mov r14, [rsp + VmxVMExitContext.r14]
+  mov r15, [rsp + VmxVMExitContext.r15]
 
-  add rsp, VMExitContext_size
+  add rsp, VmxVMExitContext_size
 
   pop rbp
 

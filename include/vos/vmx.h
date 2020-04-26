@@ -549,6 +549,24 @@ const char* VMX_INSTRUCTION_ERROR_STRING (int num);
 void*       make_guest_PML4E ();
 // clang-format on
 
+typedef struct
+{
+  uint64 rax;
+  uint64 rbx;
+  uint64 rcx;
+  uint64 rdx;
+  uint64 rsi;
+  uint64 rdi;
+  uint64 r8;
+  uint64 r9;
+  uint64 r10;
+  uint64 r11;
+  uint64 r12;
+  uint64 r13;
+  uint64 r14;
+  uint64 r15;
+} VmxVMExitContext_t;
+
 extern void   __vmptrld ();
 extern void   __vmptrst ();
 extern void   __vmclear (uint64 paddr);

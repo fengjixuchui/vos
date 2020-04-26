@@ -1,12 +1,14 @@
 %ifndef VOS_X86_64
 %define VOS_X86_64
 
-%include "defs.asm"
+%include "vos.asm"
 
 bits 64
 
 global __read_cr0
 global __write_cr0
+global __read_cr2
+global __write_cr2
 global __read_cr3
 global __write_cr3
 global __read_cr4
