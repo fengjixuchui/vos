@@ -89,10 +89,12 @@ static uint start_vm ()
   guest_vmcb->StateSaveArea.EsSelector = __read_es () & 0xfff8;
   guest_vmcb->StateSaveArea.SsSelector = __read_ss () & 0xfff8;
   print ("cs access rights : 0x%x\n", __read_access_rights (__read_cs ()));
-  guest_vmcb->StateSaveArea.CsAttrib = __read_access_rights (__read_cs ()) & 0xfff8; // 0b1010000010011101;
-  guest_vmcb->StateSaveArea.DsAttrib = __read_access_rights (__read_ds ()) & 0xfff8; // 0b1000000010010001;
-  guest_vmcb->StateSaveArea.EsAttrib = __read_access_rights (__read_es ()) & 0xfff8; // 0b1000000010010001;
-  guest_vmcb->StateSaveArea.SsAttrib = __read_access_rights (__read_ss ()) & 0xfff8; // 0b1000000010010011;
+
+  // See Intel: Table 24-2. Format of Access Rights
+  guest_vmcb->StateSaveArea.CsAttrib = __read_access_rights (__read_cs ()) & 0x1FFFF;
+  guest_vmcb->StateSaveArea.DsAttrib = __read_access_rights (__read_ds ()) & 0x1FFFF;
+  guest_vmcb->StateSaveArea.EsAttrib = __read_access_rights (__read_es ()) & 0x1FFFF;
+  guest_vmcb->StateSaveArea.SsAttrib = __read_access_rights (__read_ss ()) & 0x1FFFF;
 
   guest_vmcb->StateSaveArea.Efer   = __read_msr (IA32_MSR_EFER);
   guest_vmcb->StateSaveArea.Cr0    = __read_cr0 ();
@@ -159,12 +161,12 @@ static uint check_npt ()
 
 uint svm_vmexit_handler (SvmVMExitContext_t* context)
 {
-  VMCB* guest_vmcb                   = (VMCB*)context->vmcbptr;
+  VMCB* guest_vmcb = (VMCB*)context->vmcbptr;
   // 不知道为啥我这里非要重新加载 access rights, 不然恢复之后会进入到兼容模式.待查.
-  guest_vmcb->StateSaveArea.CsAttrib = __read_access_rights (__read_cs ()) & 0xfff8; // 0b1010000010011101;
-  guest_vmcb->StateSaveArea.DsAttrib = __read_access_rights (__read_ds ()) & 0xfff8; // 0b1000000010010001;
-  guest_vmcb->StateSaveArea.EsAttrib = __read_access_rights (__read_es ()) & 0xfff8; // 0b1000000010010001;
-  guest_vmcb->StateSaveArea.SsAttrib = __read_access_rights (__read_ss ()) & 0xfff8; // 0b1000000010010011;
+  guest_vmcb->StateSaveArea.CsAttrib = __read_access_rights (__read_cs ()) & 0x1FFFF;
+  guest_vmcb->StateSaveArea.DsAttrib = __read_access_rights (__read_ds ()) & 0x1FFFF;
+  guest_vmcb->StateSaveArea.EsAttrib = __read_access_rights (__read_es ()) & 0x1FFFF;
+  guest_vmcb->StateSaveArea.SsAttrib = __read_access_rights (__read_ss ()) & 0x1FFFF;
 
   switch (guest_vmcb->ControlArea.ExitCode)
   {
