@@ -21,4 +21,6 @@ void* malloc (uint64 size);
 void* calloc (uint64 size);
 void  free (void* mem);
 
+uint64 VirtualAddressToPhysicalAddress (uint64 va);
+
 #endif //VOS_MEMORY_H

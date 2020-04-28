@@ -567,15 +567,15 @@ typedef struct
   uint64 r15;
 } VmxVMExitContext_t;
 
-extern void   __vmptrld ();
+extern void   __vmptrld (uint64 vmcsPA);
 extern void   __vmptrst ();
-extern void   __vmclear (uint64 paddr);
+extern void   __vmclear (uint64 vmcsPA);
 extern uint64 __vmread (uint64 field);
 extern void   __vmwrite (uint64 field, uint64 value);
 extern void   __vmlaunch ();
 extern void   __vmresume ();
 extern void   __vmxoff ();
-extern void   __vmxon (uint64 paddr);
+extern void   __vmxon (uint64 hostPA);
 extern void   __invept ();
 extern void   __invvpid ();
 extern void   __vmcall (uint64 cmd, uint64 arg0, uint64 arg1);

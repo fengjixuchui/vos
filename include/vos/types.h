@@ -36,6 +36,15 @@ AssertCompileSize (uint64, 8);
 #else
   #error "wtf???"
 #endif
+
+#ifndef nullptr
+  #define nullptr 0
+#endif
+
+#ifndef NULL
+  #define NULL 0
+#endif
+
 // clang-format on
 
 AssertCompile ((sizeof (void*) == sizeof (intptr)));

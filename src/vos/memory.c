@@ -5,6 +5,7 @@
 
 #include "vos/memory.h"
 #include "vos/vos.h"
+#include "vos/x86_64.h"
 
 static uint  page_base;
 static uint* page_map;
@@ -120,4 +121,21 @@ void free (void* mem)
     page_map[idx + i] = 0;
   }
   // print("free : 0x%x, pageIdx : %d, pageNum : %d\n", mem, idx, n);
+}
+
+// 9-9-9-9-12
+uint64 VirtualAddressToPhysicalAddress (uint64 va)
+{
+  uint64 PML4    = __read_cr3 ();
+  uint64 offset  = (va >> 0) & (uint64)0b111111111111;
+  uint64 ptIdx   = (va >> 12) & (uint64)0b111111111;
+  uint64 pdIdx   = (va >> 21) & (uint64)0b111111111;
+  uint64 pdpIdx  = (va >> 30) & (uint64)0b111111111;
+  uint64 pml4Idx = (va >> 39) & (uint64)0b111111111;
+
+  uint64* p = ((uint64*)PML4)[pml4Idx] & (~(uint64)0b111111111111);
+  p         = (uint64) (p[pdpIdx] & (~(uint64)0b111111111111));
+  p         = (uint64) (p[pdIdx] & (~(uint64)0b111111111111));
+  p         = (uint64) (p[ptIdx] & (~(uint64)0b111111111111));
+  return ((uint64)p) + offset;
 }

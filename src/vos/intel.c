@@ -373,7 +373,8 @@ int vmx_start ()
   cr4 |= CR4_VMXE_MASK;
   __write_cr4 (cr4);
 
-  __vmxon ((uint64)&host);
+  uint64 hostPA = VirtualAddressToPhysicalAddress (host);
+  __vmxon ((uint64)&hostPA);
 
   uint64 rflags = __rflags ();
   if ((rflags & FLAGS_CF_MASK) != 0)
@@ -387,9 +388,10 @@ int vmx_start ()
   void* vmcs       = calloc (vmcs_size);
   *((uint64*)vmcs) = vmcs_revision_id;
 
-  __vmclear ((uint64)&vmcs);
+  uint64 vmcsPA = VirtualAddressToPhysicalAddress (vmcs);
+  __vmclear ((uint64)&vmcsPA);
 
-  __vmptrld (&vmcs);
+  __vmptrld ((uint64)&vmcsPA);
 
   gdtr_t gdtr;
   idtr_t idtr;
@@ -526,6 +528,12 @@ void intel_entry ()
     return;
   }
   puts ("EPT check successful.");
+
+  void* p = malloc (4096);
+
+  print ("VA : 0x%x, PA : 0x%x\n", p, VirtualAddressToPhysicalAddress (p));
+
+  free (p);
 
   vmx_start ();
   vmx_stop ();

@@ -62,7 +62,7 @@ add_library ( kernel
   src/vos/string.c
   src/vos/vmx.c
   src/vos/x86_64.c
-  )
+  include/vos/gui/gui.h src/vos/gui/gui.c )
 
 target_include_directories ( kernel
   PUBLIC

@@ -8,6 +8,7 @@
 #include "vos/x86_64.h"
 #include "vos/memory.h"
 #include "grub/multiboot2.h"
+#include "vos/gui/gui.h"
 
 extern void interrupt_0 ();
 extern void interrupt_1 ();
@@ -179,18 +180,19 @@ int x86_64_main (unsigned long magic, unsigned long addr)
           case MULTIBOOT_FRAMEBUFFER_TYPE_RGB:
             color = ((1 << tagfb->framebuffer_blue_mask_size) - 1)
                     << tagfb->framebuffer_blue_field_position;
-            for (int x = 0; x < tagfb->common.framebuffer_width; ++x)
-            {
-              for (int y = 0; y < tagfb->common.framebuffer_height; ++y)
-              {
-                uint8* pixel = fb + (y * tagfb->common.framebuffer_pitch) + (x * 4);
-                pixel[0]     = 0xF0; // B
-                pixel[1]     = 0xF0; // G
-                pixel[2]     = 0xF0; // R?
-                pixel[3]     = 255;
-              }
-            }
-
+            // for (int x = 0; x < tagfb->common.framebuffer_width; ++x)
+            // {
+            //   for (int y = 0; y < tagfb->common.framebuffer_height; ++y)
+            //   {
+            //     uint8* pixel = fb + (y * tagfb->common.framebuffer_pitch) + (x * 4);
+            //     pixel[0]     = 0xF0; // B
+            //     pixel[1]     = 0xF0; // G
+            //     pixel[2]     = 0xF0; // R?
+            //     pixel[3]     = 255;
+            //   }
+            // }
+            gui_init (fb, tagfb->common.framebuffer_pitch, tagfb->common.framebuffer_width, tagfb->common.framebuffer_height, 4);
+            window_new (100, 100, 320, 240);
             break;
 
           case MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT:
