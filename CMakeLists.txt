@@ -39,10 +39,12 @@ add_library ( kernel
   include/vos/amd.h
   include/vos/assert.h
   include/vos/debug.h
+  include/vos/ept.h
   include/vos/fs.h
   include/vos/fs/exfat.h
   include/vos/fs/fat.h
   include/vos/guest.h
+  include/vos/gui/gui.h
   include/vos/host.h
   include/vos/intel.h
   include/vos/memory.h
@@ -55,6 +57,7 @@ add_library ( kernel
   include/vos/x86.h
   include/vos/x86_64.h
   src/vos/amd.c
+  src/vos/gui/gui.c
   src/vos/intel.c
   src/vos/kernel.c
   src/vos/memory.c
@@ -62,7 +65,7 @@ add_library ( kernel
   src/vos/string.c
   src/vos/vmx.c
   src/vos/x86_64.c
-  include/vos/gui/gui.h src/vos/gui/gui.c )
+  )
 
 target_include_directories ( kernel
   PUBLIC
