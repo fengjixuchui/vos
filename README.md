@@ -29,15 +29,11 @@ make bochs
 make qemu
 ``` 
 
-### qemu(Debug)
+### debug
 
 ```shell
 make debug-qemu
 ``` 
-
-```shell
-make debug-qemu-amd
-```
 
 ```shell
 gdb --init-command=.gdbinit

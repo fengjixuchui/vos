@@ -3,6 +3,7 @@ BOOTIMG=vos.iso
 CC_ARGS=
 KERNEL_OBJS= \
             src/boot/multiboot2.s64 \
+            src/vos/gui/gui.c64 \
             src/vos/amd.c64 \
             src/vos/debug.s64 \
             src/vos/idt.s64 \
@@ -42,15 +43,11 @@ kernel: ${KERNEL_OBJS}
 
 .PHONY : qemu
 qemu: all
-	sudo qemu-system-x86_64 -cpu host       -cdrom ${BOOTIMG} --enable-kvm -no-reboot -no-shutdown
+	sudo qemu-system-x86_64 -cpu host -cdrom ${BOOTIMG} --enable-kvm
 
 .PHONY : debug-qemu
 debug-qemu: all
-	sudo qemu-system-x86_64 -cpu host       -cdrom ${BOOTIMG} --enable-kvm -no-reboot -no-shutdown -gdb tcp::1234
-
-.PHONY : debug-qemu-amd
-debug-qemu-amd: all
-	qemu-system-x86_64      -cpu Opteron_G5 -cdrom ${BOOTIMG}              -no-reboot -no-shutdown -gdb tcp::1234
+	sudo qemu-system-x86_64 -cpu host -cdrom ${BOOTIMG} --enable-kvm -no-reboot -no-shutdown -gdb tcp::1234
 
 .PHONY : bochs
 bochs: all
