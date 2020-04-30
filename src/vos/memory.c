@@ -62,22 +62,6 @@ static uint alloc_mem (uint size)
   return 0;
 }
 
-void memset (void* dest, uint8 c, uint n)
-{
-  for (int i = 0; i < n; ++i)
-  {
-    ((uint8*)dest)[i] = c;
-  }
-}
-
-void memset16 (void* dest, uint16 c, uint n)
-{
-  for (int i = 0; i < n; ++i)
-  {
-    ((uint16*)dest)[i] = c;
-  }
-}
-
 void memcpy (void* dest, const void* src, uint n)
 {
   for (int i = 0; i < n; ++i)
@@ -108,7 +92,7 @@ void* malloc (uint64 size)
 void* calloc (uint64 size)
 {
   void* mem = (void*)alloc_mem (size);
-  memset (mem, 0, size);
+  __memset8 (mem, 0, size);
   return mem;
 }
 

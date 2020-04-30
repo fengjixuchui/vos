@@ -5,6 +5,11 @@
 
 bits 64
 
+global __memset8
+global __memset16
+global __memset32
+global __memset64
+
 global __read_cr0
 global __write_cr0
 global __read_cr2
@@ -37,6 +42,38 @@ global __write_idtr
 
 global __clgi
 global __stgi
+
+; void (char* buffer, uint8 n, uint len)
+__memset8:
+  mov rdi, argv0
+  mov rax, argv1
+  mov rcx, argv2
+  rep stosb
+  ret
+
+; void (char* buffer, uint16 n, uint len)
+__memset16:
+  mov rdi, argv0
+  mov rax, argv1
+  mov rcx, argv2
+  rep stosw
+  ret
+
+; void (char* buffer, uint32 n, uint len)
+__memset32:
+  mov rdi, argv0
+  mov rax, argv1
+  mov rcx, argv2
+  rep stosd
+  ret
+
+; void (char* buffer, uint64 n, uint len)
+__memset64:
+  mov rdi, argv0
+  mov rax, argv1
+  mov rcx, argv2
+  rep stosq
+  ret
 
 __read_access_rights:
   lar rax, argv0

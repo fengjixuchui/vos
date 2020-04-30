@@ -513,6 +513,7 @@ int vmx_stop ()
 
 void intel_entry ()
 {
+  vos_guest_t guests[1];
 
   if (check_vmx () != 0)
   {

@@ -19,24 +19,29 @@ global __vmcall
 global __vmfunc
 global __vmexit_handler
 
+; Load Pointer to Virtual-Machine Control Structure
 __vmptrld:
   mov rax, argv0
   vmptrld [rax]
   ret
 
+; Store Pointer to Virtual-Machine Control Structure
 __vmptrst:
   vmptrst [argv0]
   ret
 
+; Clear Virtual-Machine Control Structure
 __vmclear:
   mov rax, argv0
   vmclear [rax]
   ret
 
+; Read Field from Virtual-Machine Control Structure
 __vmread:
   vmread rax, argv0
   ret
 
+; Write Field to Virtual-Machine Control Structure
 __vmwrite:
   vmwrite argv0, argv1
   ret
@@ -51,27 +56,33 @@ __vmresume:
   vmresume
   ret
 
+; Leave VMX Operation
 __vmxoff:
   vmxoff
   ret
 
+; Enter VMX Operation
 __vmxon:
   mov rax, argv0
   vmxon [rax]
   ret
 
+; Invalidate Translations Derived from EPT
 __invept:
   invept rax, [argv0]
   ret
 
+; Invalidate Translations Based on VPID
 __invvpid:
   invvpid rax, [argv0]
   ret
 
+; Call to VM Monitor
 __vmcall:
   vmcall
   ret
 
+; Invoke VM function
 __vmfunc:
   vmfunc
   ret

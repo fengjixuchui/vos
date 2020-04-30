@@ -7,11 +7,12 @@
 
 #include "vos/types.h"
 
+#define memset8 __memset8
+#define memset16 __memset16
+#define memset32 __memset32
+#define memset64 __memset64
+
 void init_memory (uint addr, uint len);
-
-void memset (void* dest, uint8 c, uint n);
-
-void memset16 (void* dest, uint16 c, uint n);
 
 void memcpy (void* dest, const void* src, uint n);
 

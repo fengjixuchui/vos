@@ -5,6 +5,8 @@
 #ifndef VOS_VOS_H
 #define VOS_VOS_H
 
+#include "vos/types.h"
+
 // clang-format off
 
 #define elf64_fastcall_argv0 rdi
@@ -31,6 +33,9 @@
   #error "目前只支持elf64格式的fastcall"
 #endif
 
+#define IN
+#define OUT
+
 #define VOS_PAGE_SIZE 4096
 
 
@@ -38,6 +43,24 @@
 #define CMD_HOOK_FUNC       ((uint32)0x14CD14DC)
 #define CMD_HIDE_PROCESS    ((uint32)0x14CD14DD)
 #define CMD_PROTECT_PROCESS ((uint32)0x14CD14DE)
+
+typedef struct vos_guest
+{
+  struct vos_guest* next;
+  IN uint           mem_page_count;
+  IN uint           enable_shadow_hook;
+  OUT uint          PML4E;
+  union
+  {
+    void* vmcs;
+    void* vmcb;
+  };
+} vos_guest_t;
+
+typedef struct
+{
+
+} vos_host_t;
 
 // clang-format on
 

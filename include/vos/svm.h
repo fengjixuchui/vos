@@ -301,7 +301,7 @@ AssertCompileSize (VMCB_STATE_SAVE_AREA, 0x298);
 //
 // An entire VMCB (Virtual machine control block) layout.
 //
-typedef struct _VMCB
+typedef struct
 {
   VMCB_CONTROL_AREA    ControlArea;
   VMCB_STATE_SAVE_AREA StateSaveArea;
