@@ -31,10 +31,10 @@ all: kernel
 	nasm -Iinclude/ -f elf64 $< -o $@ -g
 
 %.c32: %.c
-	cc $< -o $@ -c -Iinclude -m32 -Wall -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -fno-pic -O0 -g
+	cc $< -o $@ -c -Iinclude -m32 -Wall -Wint-conversion -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -fno-pic -O0 -g
 
 %.c64: %.c
-	cc $< -o $@ -c -Iinclude -m64 -Wall -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -fno-pic -O0 -g
+	cc $< -o $@ -c -Iinclude -m64 -Wall -Wint-conversion -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -fno-pic -O0 -g
 
 kernel: ${KERNEL_OBJS}
 	#ld --oformat binary -m elf_x86_64 -s -n -o $@ -T kernel.ld $^  # 链接成纯二进制代码
@@ -43,7 +43,7 @@ kernel: ${KERNEL_OBJS}
 
 .PHONY : qemu
 qemu: all
-	sudo qemu-system-x86_64 -cpu host -cdrom ${BOOTIMG} --enable-kvm
+	sudo qemu-system-x86_64 -cpu host -cdrom ${BOOTIMG} --enable-kvm -no-reboot -no-shutdown
 
 .PHONY : debug-qemu
 debug-qemu: all
