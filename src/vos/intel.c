@@ -462,15 +462,8 @@ int vmx_start (vos_guest_t* guest)
 
   // Guest, See: 24.4 GUEST-STATE AREA
   {
-
-    uint a;
-    __invept (2, &a);
-
-    ;
-
     __vmwrite (VMX_VMCS_GUEST_RFLAGS, __rflags ());
     __vmwrite (VMX_VMCS_GUEST_CR0, __read_cr0 ());
-    bochs_break ();
     __vmwrite (VMX_VMCS_GUEST_CR3, (uint64)make_vmx_PML4E (guest, guest->mem_page_count));
     print ("VMX_VMCS_GUEST_CR3 : 0x%x\n", __vmread (VMX_VMCS_GUEST_CR3));
     __vmwrite (VMX_VMCS_GUEST_CR4, __read_cr4 ());
