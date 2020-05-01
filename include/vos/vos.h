@@ -52,9 +52,16 @@ typedef struct vos_guest
   OUT uint          PML4E;
   union
   {
-    void* vmcs;
-    void* vmcb;
+    void* host_vmcs;
+    void* host_vmcb;
   };
+  union
+  {
+    void* guest_vmcs;
+    void* guest_vmcb;
+  };
+  uint memmap_ptr;
+  uint code_address;
 } vos_guest_t;
 
 typedef struct

@@ -2,6 +2,7 @@
 // Created by x7cc on 2020/4/14.
 //
 
+#include <vos/ept.h>
 #include "vos/intel.h"
 #include "vos/debug.h"
 #include "vos/x86_64.h"
@@ -77,6 +78,9 @@ static void GuestEntry ()
 {
   char vendor[13] = {0};
   puts ("GuestEntry begin");
+
+  bochs_break ();
+  *((uint*)0) = 0x123456789abcdef0;
 
   cpuid_t cpuid;
   __cpuid (&cpuid, 0);
@@ -345,10 +349,18 @@ uint VmmVmExitHandler (VmxVMExitContext_t* context)
   return 0;
 }
 
+static uint AdjustMSR (uint msr, uint bits)
+{
+  uint64 v = __read_msr (msr); // Adjust ???
+  v |= bits;                   // IA32e guest
+  v &= (v >> 32);
+  return v;
+}
+
 #define CPUID_0x80000008_EAX_PA_BITS(EAX) (EAX & 0xff)        // 物理地址位宽.
 #define CPUID_0x80000008_EAX_LA_BITS(EAX) ((EAX >> 8) & 0xff) // 线性地址位宽.
 
-int vmx_start ()
+int vmx_start (vos_guest_t* guest)
 {
   cpuid_t cpuid;
 
@@ -361,9 +373,11 @@ int vmx_start ()
   uint64 vmcs_size        = IA32_VMX_BASIC_VMCS_SIZE (msr);
   uint64 vmcs_revision_id = (msr & IA32_VMX_BASIC_VMCS_REVISION_IDENTIFIER_MASK);
 
-  void* host = (void*)calloc (4096);
+  guest->host_vmcs = (void*)calloc (4096);
 
-  *((uint64*)host) = vmcs_revision_id;
+  *((uint64*)guest->host_vmcs) = vmcs_revision_id;
+
+  print ("VMCS revision id : 0x%x\n", vmcs_revision_id);
 
   uint64 cr0 = __read_cr0 ();
   cr0 |= CR0_NE_MASK;
@@ -373,7 +387,7 @@ int vmx_start ()
   cr4 |= CR4_VMXE_MASK;
   __write_cr4 (cr4);
 
-  uint64 hostPA = VirtualAddressToPhysicalAddress (host);
+  uint64 hostPA = VirtualAddressToPhysicalAddress ((uint64)guest->host_vmcs);
   __vmxon ((uint64)&hostPA);
 
   uint64 rflags = __rflags ();
@@ -385,10 +399,10 @@ int vmx_start ()
 
   puts ("vmxon successful.");
 
-  void* vmcs       = calloc (vmcs_size);
-  *((uint64*)vmcs) = vmcs_revision_id;
+  guest->guest_vmcs             = calloc (vmcs_size);
+  *((uint64*)guest->guest_vmcs) = vmcs_revision_id;
 
-  uint64 vmcsPA = VirtualAddressToPhysicalAddress (vmcs);
+  uint64 vmcsPA = VirtualAddressToPhysicalAddress ((uint64)guest->guest_vmcs);
   __vmclear ((uint64)&vmcsPA);
 
   __vmptrld ((uint64)&vmcsPA);
@@ -398,10 +412,27 @@ int vmx_start ()
   __read_gdtr (&gdtr);
   __read_idtr (&idtr);
 
+  ept_PML4E_t* ept_PA  = (ept_PML4E_t*)make_ept (guest->mem_page_count);
+  guest->memmap_ptr    = ept_PA;
+  EptPointer ptr       = {0};
+  ptr.page_walk_length = 4 - 1; // 4级页表
+  ptr.pml4_address     = (guest->memmap_ptr >> 12);
+
+  // See: Definitions of Pin-Based VM-Execution Controls
   __vmwrite (VMX_VMCS32_CTRL_PIN_EXEC, __read_msr (MSR_IA32_VMX_PINBASED_CTLS) & 0xffffffff);
-  __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC, __read_msr (MSR_IA32_VMX_PROCBASED_CTLS) & 0xffffffff);
+
+  // See: Definitions of Primary Processor-Based VM-Execution Controls
+  __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC, AdjustMSR (MSR_IA32_VMX_PROCBASED_CTLS, 1 << 31));
+
+  // See: Definitions of Secondary Processor-Based VM-Execution Controls
+  __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC2, AdjustMSR (MSR_IA32_VMX_PROCBASED_CTLS2, 0b10)); // EPT
   __vmwrite (VMX_VMCS32_CTRL_EXIT, (__read_msr (MSR_IA32_VMX_EXIT_CTLS) | VMX_EXIT_CTLS_HOST_ADDR_SPACE_SIZE) & 0xffffffff);
   __vmwrite (VMX_VMCS32_CTRL_ENTRY, __read_msr (MSR_IA32_VMX_ENTRY_CTLS) & 0xffffffff);
+  __vmwrite (VMX_VMCS64_CTRL_EPTP_FULL, ptr.bits);
+  __vmwrite (VMX_VMCS64_GUEST_PDPTE0_FULL, ept_PA[0].pdpt_page_PA << 12);
+  __vmwrite (VMX_VMCS64_GUEST_PDPTE1_FULL, ept_PA[1].pdpt_page_PA << 12);
+  __vmwrite (VMX_VMCS64_GUEST_PDPTE2_FULL, ept_PA[2].pdpt_page_PA << 12);
+  __vmwrite (VMX_VMCS64_GUEST_PDPTE3_FULL, ept_PA[3].pdpt_page_PA << 12);
 
   // Host
   {
@@ -431,23 +462,29 @@ int vmx_start ()
 
   // Guest, See: 24.4 GUEST-STATE AREA
   {
+
+    uint a;
+    __invept (2, &a);
+
     ;
-    __vmwrite (VMX_VMCS_GUEST_RSP, 4096 + (uint64)calloc (4096)); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
-    __vmwrite (VMX_VMCS_GUEST_RIP, (uint64)&GuestEntry);
 
     __vmwrite (VMX_VMCS_GUEST_RFLAGS, __rflags ());
     __vmwrite (VMX_VMCS_GUEST_CR0, __read_cr0 ());
-    __vmwrite (VMX_VMCS_GUEST_CR3, (uint64)make_guest_PML4E ());
+    bochs_break ();
+    __vmwrite (VMX_VMCS_GUEST_CR3, (uint64)make_vmx_PML4E (guest, guest->mem_page_count));
+    print ("VMX_VMCS_GUEST_CR3 : 0x%x\n", __vmread (VMX_VMCS_GUEST_CR3));
     __vmwrite (VMX_VMCS_GUEST_CR4, __read_cr4 ());
     __vmwrite (VMX_VMCS_GUEST_DR7, 0x400);
+
+    //__vmwrite (VMX_VMCS_GUEST_RSP, 4096 + (uint64)calloc (4096)); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
+    //__vmwrite (VMX_VMCS_GUEST_RIP, (uint64)&GuestEntry);
+    __vmwrite (VMX_VMCS_GUEST_RSP, VOS_PAGE_SIZE * guest->mem_page_count); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
+    __vmwrite (VMX_VMCS_GUEST_RIP, guest->code_address);
 
     __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_FULL, 0xffffffff);
     __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_HIGH, 0xffffffff);
 
-    uint64 msr = __read_msr (IA32_VMX_ENTRYCTLS); // Adjust ???
-    msr |= 0b00000000000000000000001000000000;    // IA32e guest
-    msr &= (msr >> 32);
-    __vmwrite (VMX_VMCS32_CTRL_ENTRY, msr);
+    __vmwrite (VMX_VMCS32_CTRL_ENTRY, AdjustMSR (IA32_VMX_ENTRYCTLS, 0b1000000000)); // IA32e guest
     //    __vmwrite(VMX_VMCS32_CTRL_ENTRY, 0b00000000000000000000001000000000);
     //    __vmwrite(VMX_VMCS32_CTRL_ENTRY_MSR_LOAD_COUNT, 0b1000001000000000);
 
@@ -492,6 +529,8 @@ int vmx_start ()
     __vmwrite (VMX_VMCS32_GUEST_TR_ACCESS_RIGHTS, 0b1000000010001011);
   }
 
+  bochs_break ();
+
   __vmlaunch ();
 
   uint64 error_code = __vmread (VMX_VMCS32_RO_VM_INSTR_ERROR);
@@ -513,7 +552,11 @@ int vmx_stop ()
 
 void intel_entry ()
 {
-  vos_guest_t guests[1];
+  vos_guest_t guest;
+  memset8 (&guest, 0, sizeof (guest));
+  guest.enable_shadow_hook = 1;
+  //guest.mem_page_count     = 0x100000ull >> 12; // 1 MiB
+  guest.mem_page_count = 0x10000ull >> 12; // 1 MiB
 
   if (check_vmx () != 0)
   {
@@ -523,19 +566,13 @@ void intel_entry ()
 
   puts ("VMX check successful.");
 
-  if (check_ept () != 0)
+  if (guest.enable_shadow_hook && check_ept () != 0)
   {
     puts ("EPT check failed");
     return;
   }
   puts ("EPT check successful.");
 
-  void* p = malloc (4096);
-
-  print ("VA : 0x%x, PA : 0x%x\n", p, VirtualAddressToPhysicalAddress (p));
-
-  free (p);
-
-  vmx_start ();
+  vmx_start (&guest);
   vmx_stop ();
 }

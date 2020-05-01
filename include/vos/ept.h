@@ -32,7 +32,7 @@ typedef union
      * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
      * allowed from supervisor-mode linear addresses in the 512-GByte region controlled by this entry
      */
-    uint64 _ : 1;
+    uint64 execute_access : 1;
 
     /**
      * 7:3
@@ -59,7 +59,7 @@ typedef union
      * 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 512-GByte region
      * controlled by this entry. If that control is 0, this bit is ignored.
      */
-    uint64 exec_access : 1;
+    uint64 execute_access_for_user_mode_linear_address : 1;
 
     /**
      * 11
@@ -85,10 +85,10 @@ typedef union
      */
     uint64 ignored4 : 12;
   };
-  uint64 value;
-} ept_PML4E;
+  uint64 bits;
+} ept_PML4E_t;
 
-AssertCompileSize (ept_PML4E, 8);
+AssertCompileSize (ept_PML4E_t, 8);
 
 typedef union
 {
@@ -114,7 +114,7 @@ typedef union
      * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
      * allowed from supervisor-mode linear addresses in the 1-GByte region controlled by this entry
      */
-    uint64 _ : 1;
+    uint64 execute_access : 1;
 
     /**
      * 7:3
@@ -141,7 +141,7 @@ typedef union
      * 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 1-GByte region
      * controlled by this entry. If that control is 0, this bit is ignored.
      */
-    uint64 exec_access : 1;
+    uint64 execute_access_for_user_mode_linear_address : 1;
 
     /**
      * 11
@@ -167,10 +167,10 @@ typedef union
      */
     uint64 ignored4 : 12;
   };
-  uint64 value;
-} ept_PDPTE;
+  uint64 bits;
+} ept_PDPTE_t;
 
-AssertCompileSize (ept_PDPTE, 8);
+AssertCompileSize (ept_PDPTE_t, 8);
 
 typedef union
 {
@@ -196,7 +196,7 @@ typedef union
      * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
      * allowed from supervisor-mode linear addresses in the 2-MByte region controlled by this entry
      */
-    uint64 _ : 1;
+    uint64 execute_access : 1;
 
     /**
      * 6:3
@@ -229,7 +229,7 @@ typedef union
      * 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 2-MByte region
      * controlled by this entry. If that control is 0, this bit is ignored.
      */
-    uint64 exec_access : 1;
+    uint64 execute_access_for_user_mode_linear_address : 1;
 
     /**
      * 11
@@ -255,10 +255,10 @@ typedef union
      */
     uint64 ignored4 : 12;
   };
-  uint64 value;
-} ept_PDE;
+  uint64 bits;
+} ept_PDE_t;
 
-AssertCompileSize (ept_PDE, 8);
+AssertCompileSize (ept_PDE_t, 8);
 
 typedef union
 {
@@ -284,7 +284,7 @@ typedef union
      * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
      * allowed from supervisor-mode linear addresses in the 4-KByte page controlled by this entry
      */
-    uint64 _ : 1;
+    uint64 execute_access : 1;
 
     /**
      * 5:3
@@ -324,7 +324,7 @@ typedef union
      * 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 4-KByte page controlled
      * by this entry. If that control is 0, this bit is ignored.
      */
-    uint64 exec_access : 1;
+    uint64 execute_access_for_user_mode_linear_address : 1;
 
     /**
      * 11
@@ -358,9 +358,28 @@ typedef union
      */
     uint64 suppress : 1;
   };
-  uint64 value;
-} ept_PTE;
+  uint64 bits;
+} ept_PTE_t;
 
-AssertCompileSize (ept_PTE, 8);
+AssertCompileSize (ept_PTE_t, 8);
+
+/// See: Extended-Page-Table Pointer (EPTP)
+typedef union
+{
+  struct
+  {
+    uint64 memory_type : 3;                     //!< [0:2]
+    uint64 page_walk_length : 3;                //!< [3:5]
+    uint64 enable_accessed_and_dirty_flags : 1; //!< [6]
+    uint64 reserved1 : 5;                       //!< [7:11]
+    uint64 pml4_address : 36;                   //!< [12:48-1]
+    uint64 reserved2 : 16;                      //!< [48:63]
+  };
+  uint64 bits;
+} EptPointer;
+AssertCompileSize (EptPointer, 8);
+
+uint setup_ept_pt (ept_PML4E_t* pml, uint host_PA, uint guest_PA);
+uint make_ept (uint page_count);
 
 #endif //VOS_EPT_H

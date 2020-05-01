@@ -576,10 +576,15 @@ extern void   __vmlaunch ();
 extern void   __vmresume ();
 extern void   __vmxoff ();
 extern void   __vmxon (uint64 hostPA);
-extern void   __invept ();
+extern void   __invept (uint64 type, const uint* desc);
 extern void   __invvpid ();
 extern void   __vmcall (uint64 cmd, uint64 arg0, uint64 arg1);
 extern void   __vmfunc ();
 extern void   __vmexit_handler ();
+
+typedef struct vos_guest vos_guest_t;
+
+void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA);
+uint make_vmx_PML4E (vos_guest_t* guest, uint64 page_count);
 
 #endif //VOS_VMX_H

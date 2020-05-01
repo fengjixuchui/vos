@@ -69,7 +69,7 @@ __vmxon:
 
 ; Invalidate Translations Derived from EPT
 __invept:
-  invept rax, [argv0]
+  invept argv0, [argv1]
   ret
 
 ; Invalidate Translations Based on VPID
