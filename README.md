@@ -6,7 +6,7 @@
 ### PREREQUISITES ON UBUNTU
 
 ```shell
-sudo apt install -y bochs bochs-x nasm
+sudo apt install -y nasm gcc make bochs bochs-x xorriso qemu qemu-kvm
 ```
 
 ### COMPILE
