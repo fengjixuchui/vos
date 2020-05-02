@@ -571,7 +571,7 @@ extern void   __vmptrld (uint64 vmcsPA);
 extern void   __vmptrst ();
 extern void   __vmclear (uint64 vmcsPA);
 extern uint64 __vmread (uint64 field);
-extern void   __vmwrite (uint64 field, uint64 value);
+extern uint64 __vmwrite (uint64 field, uint64 value);
 extern void   __vmlaunch ();
 extern void   __vmresume ();
 extern void   __vmxoff ();
@@ -584,7 +584,9 @@ extern void   __vmexit_handler ();
 
 typedef struct vos_guest vos_guest_t;
 
-void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA);
-uint make_vmx_PML4E (vos_guest_t* guest, uint64 page_count);
+uint64 GuestPA_To_HostPA (vos_guest_t* guest, uint64 guest_PA);
+void   setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA);
+uint   make_vmx_PML4E (vos_guest_t* guest, uint64 page_count);
+uint   make_vmx_gdt (vos_guest_t* guest);
 
 #endif //VOS_VMX_H

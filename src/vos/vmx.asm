@@ -44,6 +44,9 @@ __vmread:
 ; Write Field to Virtual-Machine Control Structure
 __vmwrite:
   vmwrite argv0, argv1
+  pushfq
+  pop rax
+  and rax, 0b1000001   ; zf and cf
   ret
 
 ; 若执行成功,代码执行流程将改变,不会返回.
