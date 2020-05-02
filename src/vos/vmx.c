@@ -8,6 +8,7 @@
 #include "vos/vos.h"
 #include "vos/memory.h"
 #include "vos/stdio.h"
+#include "vos/x86.h"
 #include "vos/x86_64.h"
 
 const char* VMX_INSTRUCTION_ERROR_STRING (int num)
@@ -138,7 +139,7 @@ uint make_vmx_PML4E (vos_guest_t* guest, uint64 page_count)
   return 0;
 }
 
-uint setup_ept_pt (ept_PML4E_t* pml, uint host_PA, uint guest_PA)
+uint setup_vmx_ept_pt (ept_PML4E_t* pml, uint host_PA, uint guest_PA)
 {
   uint offset  = (guest_PA >> 0) & (uint)0b111111111111;
   uint ptIdx   = (guest_PA >> 12) & (uint)0b111111111;
@@ -188,7 +189,7 @@ uint setup_ept_pt (ept_PML4E_t* pml, uint host_PA, uint guest_PA)
   return &pt_pa[ptIdx];
 }
 
-uint make_ept (uint page_count)
+uint make_vmx_ept (uint page_count)
 {
   ept_PML4E_t* pml4E = calloc (VOS_PAGE_SIZE);
 
@@ -198,9 +199,29 @@ uint make_ept (uint page_count)
   uint ept_PA   = VirtualAddressToPhysicalAddress (pml4E);
   for (int i = 0; i < page_count; ++i, guest_PA += 4096, host_PA += 4096)
   {
-    uint pte = setup_ept_pt (pml4E, host_PA, guest_PA);
+    uint pte = setup_vmx_ept_pt (pml4E, host_PA, guest_PA);
     print ("ept : pte(0x%x), guest_PA(0x%x) => host_PA(0x%x)\n", pte, guest_PA, host_PA);
   }
   print ("ept_PA : 0x%x\n", ept_PA);
   return ept_PA;
+}
+
+uint make_vmx_gdt (vos_guest_t* guest)
+{
+  gdtr_t gdtr = {
+    .base  = guest->code_address,
+    .limit = 0x27};
+  guest->code_address += 4096;
+
+  uint64* descriptor = GuestPA_To_HostPA (guest, gdtr.base);
+  descriptor[0]      = 0;
+  descriptor[1]      = 0x00AF93000000FFFF; // ring 0 data segment
+  descriptor[2]      = 0x00AF9B000000FFFF; // ring 0 code segment
+  descriptor[3]      = 0x00AFF2000000FFFF; // ring 3 data segment
+  descriptor[4]      = 0x00AFFA000000FFFF; // ring 3 code segment
+
+  __vmwrite (VMX_VMCS_GUEST_GDTR_BASE, gdtr.base);
+  __vmwrite (VMX_VMCS32_GUEST_GDTR_LIMIT, gdtr.limit);
+
+  return 0;
 }
