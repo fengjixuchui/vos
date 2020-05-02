@@ -43,11 +43,11 @@ kernel: ${KERNEL_OBJS}
 
 .PHONY : qemu
 qemu: all
-	sudo qemu-system-x86_64 -cpu host -cdrom ${BOOTIMG} --enable-kvm -no-reboot -no-shutdown
+	sudo qemu-system-x86_64 -m 256M -cpu host -cdrom ${BOOTIMG} --enable-kvm -no-reboot -no-shutdown
 
 .PHONY : debug-qemu
 debug-qemu: all
-	sudo qemu-system-x86_64 -cpu host -cdrom ${BOOTIMG} --enable-kvm -no-reboot -no-shutdown -gdb tcp::1234
+	sudo qemu-system-x86_64 -m 256M -cpu host -cdrom ${BOOTIMG} --enable-kvm -no-reboot -no-shutdown -gdb tcp::1234
 
 .PHONY : bochs
 bochs: all
