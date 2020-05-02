@@ -181,7 +181,7 @@ uint VmmVmExitHandler (VmxVMExitContext_t* context)
       break;
     case VMX_EXIT_VMCALL:
       gdb_break ();
-      // print("VMX_EXIT_VMCALL(%d)\n",                   VMX_EXIT_VMCALL);
+      print ("VMX_EXIT_VMCALL(%d)\n", VMX_EXIT_VMCALL);
       switch (context->argv0)
       {
         case CMD_CHECK:
@@ -248,7 +248,85 @@ uint VmmVmExitHandler (VmxVMExitContext_t* context)
       break;
     case VMX_EXIT_ERR_INVALID_GUEST_STATE:
       print ("VMX_EXIT_ERR_INVALID_GUEST_STATE(%d)\n", VMX_EXIT_ERR_INVALID_GUEST_STATE);
-      break;
+      print ("rax : 0x%x, rbx : 0x%x, rcx : 0x%x, rdx : 0x%x\n", context->rax, context->rbx, context->rcx, context->rdx);
+      print ("rsi : 0x%x, rdi : 0x%x, rsp : 0x%x, rip : 0x%x\n", context->rsi, context->rdi, __vmread (VMX_VMCS_GUEST_RSP), __vmread (VMX_VMCS_GUEST_RIP));
+      print ("r8  : 0x%x, r9  : 0x%x, r10 : 0x%x, r11 : 0x%x\n", context->r8, context->r9, context->r10, context->r11);
+      print ("r12 : 0x%x, r13 : 0x%x, r14 : 0x%x, r15 : 0x%x\n", context->r12, context->r13, context->r14, context->r15);
+      print ("VMX_VMCS32_CTRL_PIN_EXEC : 0x%x\n", __vmread (VMX_VMCS32_CTRL_PIN_EXEC));
+      print ("VMX_VMCS32_CTRL_PROC_EXEC : 0x%x\n", __vmread (VMX_VMCS32_CTRL_PROC_EXEC));
+      print ("VMX_VMCS32_CTRL_PROC_EXEC2 : 0x%x\n", __vmread (VMX_VMCS32_CTRL_PROC_EXEC2));
+      print ("VMX_VMCS32_CTRL_EXIT : 0x%x\n", __vmread (VMX_VMCS32_CTRL_EXIT));
+      print ("VMX_VMCS32_CTRL_ENTRY : 0x%x\n", __vmread (VMX_VMCS32_CTRL_ENTRY));
+      print ("VMX_VMCS64_CTRL_EPTP_FULL : 0x%x\n", __vmread (VMX_VMCS64_CTRL_EPTP_FULL));
+      print ("VMX_VMCS64_GUEST_PDPTE0_FULL : 0x%x\n", __vmread (VMX_VMCS64_GUEST_PDPTE0_FULL));
+      print ("VMX_VMCS64_GUEST_PDPTE1_FULL : 0x%x\n", __vmread (VMX_VMCS64_GUEST_PDPTE1_FULL));
+      print ("VMX_VMCS64_GUEST_PDPTE2_FULL : 0x%x\n", __vmread (VMX_VMCS64_GUEST_PDPTE2_FULL));
+      print ("VMX_VMCS64_GUEST_PDPTE3_FULL : 0x%x\n", __vmread (VMX_VMCS64_GUEST_PDPTE3_FULL));
+      print ("VMX_VMCS16_HOST_ES_SEL : 0x%x\n", __vmread (VMX_VMCS16_HOST_ES_SEL));
+      print ("VMX_VMCS16_HOST_CS_SEL : 0x%x\n", __vmread (VMX_VMCS16_HOST_CS_SEL));
+      print ("VMX_VMCS16_HOST_SS_SEL : 0x%x\n", __vmread (VMX_VMCS16_HOST_SS_SEL));
+      print ("VMX_VMCS16_HOST_DS_SEL : 0x%x\n", __vmread (VMX_VMCS16_HOST_DS_SEL));
+      print ("VMX_VMCS16_HOST_FS_SEL : 0x%x\n", __vmread (VMX_VMCS16_HOST_FS_SEL));
+      print ("VMX_VMCS16_HOST_GS_SEL : 0x%x\n", __vmread (VMX_VMCS16_HOST_GS_SEL));
+      print ("VMX_VMCS16_HOST_TR_SEL : 0x%x\n", __vmread (VMX_VMCS16_HOST_TR_SEL));
+      print ("VMX_VMCS_HOST_TR_BASE : 0x%x\n", __vmread (VMX_VMCS_HOST_TR_BASE));
+      print ("VMX_VMCS_HOST_GDTR_BASE : 0x%x\n", __vmread (VMX_VMCS_HOST_GDTR_BASE));
+      print ("VMX_VMCS_HOST_IDTR_BASE : 0x%x\n", __vmread (VMX_VMCS_HOST_IDTR_BASE));
+      //print("VMX_VMCS_HOST_IA32_SYSENTER_CS_MSR : 0x%x\n", __vmread(VMX_VMCS_HOST_IA32_SYSENTER_CS_MSR));
+      print ("VMX_VMCS_HOST_SYSENTER_ESP : 0x%x\n", __vmread (VMX_VMCS_HOST_SYSENTER_ESP));
+      print ("VMX_VMCS_HOST_SYSENTER_EIP : 0x%x\n", __vmread (VMX_VMCS_HOST_SYSENTER_EIP));
+      print ("VMX_VMCS_HOST_CR0 : 0x%x\n", __vmread (VMX_VMCS_HOST_CR0));
+      print ("VMX_VMCS_HOST_CR3 : 0x%x\n", __vmread (VMX_VMCS_HOST_CR3));
+      print ("VMX_VMCS_HOST_CR4 : 0x%x\n", __vmread (VMX_VMCS_HOST_CR4));
+      print ("VMX_VMCS_HOST_RSP : 0x%x\n", __vmread (VMX_VMCS_HOST_RSP));
+      print ("VMX_VMCS_HOST_RIP : 0x%x\n", __vmread (VMX_VMCS_HOST_RIP));
+      print ("VMX_VMCS_GUEST_RFLAGS : 0x%x\n", __vmread (VMX_VMCS_GUEST_RFLAGS));
+      print ("VMX_VMCS_GUEST_CR0 : 0x%x\n", __vmread (VMX_VMCS_GUEST_CR0));
+      print ("VMX_VMCS_GUEST_CR3 : 0x%x\n", __vmread (VMX_VMCS_GUEST_CR3));
+      print ("VMX_VMCS_GUEST_CR4 : 0x%x\n", __vmread (VMX_VMCS_GUEST_CR4));
+      print ("VMX_VMCS_GUEST_DR7 : 0x%x\n", __vmread (VMX_VMCS_GUEST_DR7));
+      print ("VMX_VMCS64_GUEST_VMCS_LINK_PTR_FULL : 0x%x\n", __vmread (VMX_VMCS64_GUEST_VMCS_LINK_PTR_FULL));
+      print ("VMX_VMCS64_GUEST_VMCS_LINK_PTR_HIGH : 0x%x\n", __vmread (VMX_VMCS64_GUEST_VMCS_LINK_PTR_HIGH));
+      print ("VMX_VMCS32_CTRL_ENTRY : 0x%x\n", __vmread (VMX_VMCS32_CTRL_ENTRY));
+      print ("VMX_VMCS32_CTRL_ENTRY_MSR_LOAD_COUNT : 0x%x\n", __vmread (VMX_VMCS32_CTRL_ENTRY_MSR_LOAD_COUNT));
+      print ("VMX_VMCS16_GUEST_ES_SEL : 0x%x\n", __vmread (VMX_VMCS16_GUEST_ES_SEL));
+      print ("VMX_VMCS16_GUEST_CS_SEL : 0x%x\n", __vmread (VMX_VMCS16_GUEST_CS_SEL));
+      print ("VMX_VMCS16_GUEST_SS_SEL : 0x%x\n", __vmread (VMX_VMCS16_GUEST_SS_SEL));
+      print ("VMX_VMCS16_GUEST_DS_SEL : 0x%x\n", __vmread (VMX_VMCS16_GUEST_DS_SEL));
+      print ("VMX_VMCS16_GUEST_FS_SEL : 0x%x\n", __vmread (VMX_VMCS16_GUEST_FS_SEL));
+      print ("VMX_VMCS16_GUEST_GS_SEL : 0x%x\n", __vmread (VMX_VMCS16_GUEST_GS_SEL));
+      print ("VMX_VMCS16_GUEST_TR_SEL : 0x%x\n", __vmread (VMX_VMCS16_GUEST_TR_SEL));
+      print ("VMX_VMCS_GUEST_ES_BASE : 0x%x\n", __vmread (VMX_VMCS_GUEST_ES_BASE));
+      print ("VMX_VMCS_GUEST_CS_BASE : 0x%x\n", __vmread (VMX_VMCS_GUEST_CS_BASE));
+      print ("VMX_VMCS_GUEST_SS_BASE : 0x%x\n", __vmread (VMX_VMCS_GUEST_SS_BASE));
+      print ("VMX_VMCS_GUEST_DS_BASE : 0x%x\n", __vmread (VMX_VMCS_GUEST_DS_BASE));
+      print ("VMX_VMCS_GUEST_FS_BASE : 0x%x\n", __vmread (VMX_VMCS_GUEST_FS_BASE));
+      print ("VMX_VMCS_GUEST_GS_BASE : 0x%x\n", __vmread (VMX_VMCS_GUEST_GS_BASE));
+      print ("VMX_VMCS_GUEST_TR_BASE : 0x%x\n", __vmread (VMX_VMCS_GUEST_TR_BASE));
+      print ("VMX_VMCS_GUEST_LDTR_BASE : 0x%x\n", __vmread (VMX_VMCS_GUEST_LDTR_BASE));
+      print ("VMX_VMCS_GUEST_GDTR_BASE : 0x%x\n", __vmread (VMX_VMCS_GUEST_GDTR_BASE));
+      print ("VMX_VMCS32_GUEST_GDTR_LIMIT : 0x%x\n", __vmread (VMX_VMCS32_GUEST_GDTR_LIMIT));
+      print ("VMX_VMCS_GUEST_IDTR_BASE : 0x%x\n", __vmread (VMX_VMCS_GUEST_IDTR_BASE));
+      print ("VMX_VMCS32_GUEST_IDTR_LIMIT : 0x%x\n", __vmread (VMX_VMCS32_GUEST_IDTR_LIMIT));
+      print ("VMX_VMCS32_GUEST_ES_LIMIT : 0x%x\n", __vmread (VMX_VMCS32_GUEST_ES_LIMIT));
+      print ("VMX_VMCS32_GUEST_CS_LIMIT : 0x%x\n", __vmread (VMX_VMCS32_GUEST_CS_LIMIT));
+      print ("VMX_VMCS32_GUEST_SS_LIMIT : 0x%x\n", __vmread (VMX_VMCS32_GUEST_SS_LIMIT));
+      print ("VMX_VMCS32_GUEST_DS_LIMIT : 0x%x\n", __vmread (VMX_VMCS32_GUEST_DS_LIMIT));
+      print ("VMX_VMCS32_GUEST_FS_LIMIT : 0x%x\n", __vmread (VMX_VMCS32_GUEST_FS_LIMIT));
+      print ("VMX_VMCS32_GUEST_GS_LIMIT : 0x%x\n", __vmread (VMX_VMCS32_GUEST_GS_LIMIT));
+      print ("VMX_VMCS32_GUEST_LDTR_LIMIT : 0x%x\n", __vmread (VMX_VMCS32_GUEST_LDTR_LIMIT));
+      print ("VMX_VMCS32_GUEST_TR_LIMIT : 0x%x\n", __vmread (VMX_VMCS32_GUEST_TR_LIMIT));
+      print ("VMX_VMCS32_GUEST_ES_ACCESS_RIGHTS : 0x%x\n", __vmread (VMX_VMCS32_GUEST_ES_ACCESS_RIGHTS));
+      print ("VMX_VMCS32_GUEST_CS_ACCESS_RIGHTS : 0x%x\n", __vmread (VMX_VMCS32_GUEST_CS_ACCESS_RIGHTS));
+      print ("VMX_VMCS32_GUEST_SS_ACCESS_RIGHTS : 0x%x\n", __vmread (VMX_VMCS32_GUEST_SS_ACCESS_RIGHTS));
+      print ("VMX_VMCS32_GUEST_DS_ACCESS_RIGHTS : 0x%x\n", __vmread (VMX_VMCS32_GUEST_DS_ACCESS_RIGHTS));
+      print ("VMX_VMCS32_GUEST_FS_ACCESS_RIGHTS : 0x%x\n", __vmread (VMX_VMCS32_GUEST_FS_ACCESS_RIGHTS));
+      print ("VMX_VMCS32_GUEST_GS_ACCESS_RIGHTS : 0x%x\n", __vmread (VMX_VMCS32_GUEST_GS_ACCESS_RIGHTS));
+      print ("VMX_VMCS32_GUEST_LDTR_ACCESS_RIGHTS : 0x%x\n", __vmread (VMX_VMCS32_GUEST_LDTR_ACCESS_RIGHTS));
+      print ("VMX_VMCS32_GUEST_TR_ACCESS_RIGHTS : 0x%x\n", __vmread (VMX_VMCS32_GUEST_TR_ACCESS_RIGHTS));
+      print ("VMX_VMCS_GUEST_RSP : 0x%x\n", __vmread (VMX_VMCS_GUEST_RSP));
+      print ("VMX_VMCS_GUEST_RIP : 0x%x\n", __vmread (VMX_VMCS_GUEST_RIP));
+      return -1;
     case VMX_EXIT_ERR_MSR_LOAD:
       print ("VMX_EXIT_ERR_MSR_LOAD(%d)\n", VMX_EXIT_ERR_MSR_LOAD);
       break;
@@ -351,10 +429,13 @@ uint VmmVmExitHandler (VmxVMExitContext_t* context)
 
 static uint AdjustMSR (uint msr, uint bits)
 {
-  uint64 v = __read_msr (msr); // Adjust ???
-  v |= bits;                   // IA32e guest
-  v &= (v >> 32);
-  return v;
+  uint64 v = __read_msr (msr);
+  // bit == 0 in high word ==> must be zero
+  bits &= (v >> 32);
+  // bit == 1 in low word  ==> must be one
+  bits |= (v & 0xffffffff);
+
+  return bits;
 }
 
 #define CPUID_0x80000008_EAX_PA_BITS(EAX) (EAX & 0xff)        // 物理地址位宽.
@@ -363,7 +444,6 @@ static uint AdjustMSR (uint msr, uint bits)
 int vmx_start (vos_guest_t* guest)
 {
   cpuid_t cpuid;
-
   __cpuid (&cpuid, 0x80000008);
   uint8 pa_width = CPUID_0x80000008_EAX_PA_BITS (cpuid.eax);
   uint8 la_width = CPUID_0x80000008_EAX_LA_BITS (cpuid.eax);
@@ -412,115 +492,133 @@ int vmx_start (vos_guest_t* guest)
   __read_gdtr (&gdtr);
   __read_idtr (&idtr);
 
-  ept_PML4E_t* ept_PA  = (ept_PML4E_t*)make_ept (guest->mem_page_count);
+  ept_PML4E_t* ept_PA  = (ept_PML4E_t*)make_vmx_ept (guest->mem_page_count);
   guest->memmap_ptr    = ept_PA;
   EptPointer ptr       = {0};
   ptr.page_walk_length = 4 - 1; // 4级页表
   ptr.pml4_address     = (guest->memmap_ptr >> 12);
 
+  uint vmret = 0;
   // See: Definitions of Pin-Based VM-Execution Controls
-  __vmwrite (VMX_VMCS32_CTRL_PIN_EXEC, __read_msr (MSR_IA32_VMX_PINBASED_CTLS) & 0xffffffff);
+  vmret |= __vmwrite (VMX_VMCS32_CTRL_PIN_EXEC, AdjustMSR (MSR_IA32_VMX_PINBASED_CTLS, 0));
 
   // See: Definitions of Primary Processor-Based VM-Execution Controls
-  __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC, AdjustMSR (MSR_IA32_VMX_PROCBASED_CTLS, 1 << 31));
+  vmret |= __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC, AdjustMSR (MSR_IA32_VMX_PROCBASED_CTLS, 1ull << 31));
 
   // See: Definitions of Secondary Processor-Based VM-Execution Controls
-  __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC2, AdjustMSR (MSR_IA32_VMX_PROCBASED_CTLS2, 0b10)); // EPT
-  __vmwrite (VMX_VMCS32_CTRL_EXIT, (__read_msr (MSR_IA32_VMX_EXIT_CTLS) | VMX_EXIT_CTLS_HOST_ADDR_SPACE_SIZE) & 0xffffffff);
-  __vmwrite (VMX_VMCS32_CTRL_ENTRY, __read_msr (MSR_IA32_VMX_ENTRY_CTLS) & 0xffffffff);
-  __vmwrite (VMX_VMCS64_CTRL_EPTP_FULL, ptr.bits);
-  __vmwrite (VMX_VMCS64_GUEST_PDPTE0_FULL, ept_PA[0].pdpt_page_PA << 12);
-  __vmwrite (VMX_VMCS64_GUEST_PDPTE1_FULL, ept_PA[1].pdpt_page_PA << 12);
-  __vmwrite (VMX_VMCS64_GUEST_PDPTE2_FULL, ept_PA[2].pdpt_page_PA << 12);
-  __vmwrite (VMX_VMCS64_GUEST_PDPTE3_FULL, ept_PA[3].pdpt_page_PA << 12);
+  vmret |= __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC2, AdjustMSR (MSR_IA32_VMX_PROCBASED_CTLS2, 0b100100000000000001010)); // EPT
+  vmret |= __vmwrite (VMX_VMCS32_CTRL_EXIT, AdjustMSR (MSR_IA32_VMX_EXIT_CTLS, VMX_EXIT_CTLS_HOST_ADDR_SPACE_SIZE));
+  vmret |= __vmwrite (VMX_VMCS32_CTRL_ENTRY, AdjustMSR (MSR_IA32_VMX_ENTRY_CTLS, 0));
+  vmret |= __vmwrite (VMX_VMCS64_CTRL_EPTP_FULL, ptr.bits);
+  vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE0_FULL, ept_PA[0].pdpt_page_PA << 12);
+  //vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE1_FULL, ept_PA[1].pdpt_page_PA << 12);
+  //vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE2_FULL, ept_PA[2].pdpt_page_PA << 12);
+  //vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE3_FULL, ept_PA[3].pdpt_page_PA << 12);
 
   // Host
   {
-    __vmwrite (VMX_VMCS16_HOST_ES_SEL, __read_es () & 0xfff8);
-    __vmwrite (VMX_VMCS16_HOST_CS_SEL, __read_cs () & 0xfff8);
-    __vmwrite (VMX_VMCS16_HOST_SS_SEL, __read_ss () & 0xfff8);
-    __vmwrite (VMX_VMCS16_HOST_DS_SEL, __read_ds () & 0xfff8);
-    __vmwrite (VMX_VMCS16_HOST_FS_SEL, __read_fs () & 0xfff8);
-    __vmwrite (VMX_VMCS16_HOST_GS_SEL, __read_gs () & 0xfff8);
-    __vmwrite (VMX_VMCS16_HOST_TR_SEL, 8 & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_HOST_ES_SEL, __read_es () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_HOST_CS_SEL, __read_cs () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_HOST_SS_SEL, __read_ss () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_HOST_DS_SEL, __read_ds () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_HOST_FS_SEL, __read_fs () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_HOST_GS_SEL, __read_gs () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_HOST_TR_SEL, 8 & 0xfff8);
 
-    __vmwrite (VMX_VMCS_HOST_TR_BASE, 8);
-    __vmwrite (VMX_VMCS_HOST_GDTR_BASE, gdtr.base); // 居然没有设置limit的接口...
-    __vmwrite (VMX_VMCS_HOST_IDTR_BASE, idtr.base); // 居然没有设置limit的接口...
+    vmret |= __vmwrite (VMX_VMCS_HOST_TR_BASE, 8);
+    vmret |= __vmwrite (VMX_VMCS_HOST_GDTR_BASE, gdtr.base); // 居然没有设置limit的接口...
+    vmret |= __vmwrite (VMX_VMCS_HOST_IDTR_BASE, idtr.base); // 居然没有设置limit的接口...
 
-    //  __vmwrite (VMX_VMCS_HOST_IA32_SYSENTER_CS_MSR, __read_msr(MSR_IA32_SYSENTER_CS));
-    __vmwrite (VMX_VMCS_HOST_SYSENTER_ESP, __read_msr (MSR_IA32_SYSENTER_ESP));
-    __vmwrite (VMX_VMCS_HOST_SYSENTER_EIP, __read_msr (MSR_IA32_SYSENTER_EIP));
+    //  vmret |= __vmwrite (VMX_VMCS_HOST_IA32_SYSENTER_CS_MSR, __read_msr(MSR_IA32_SYSENTER_CS));
+    vmret |= __vmwrite (VMX_VMCS_HOST_SYSENTER_ESP, __read_msr (MSR_IA32_SYSENTER_ESP));
+    vmret |= __vmwrite (VMX_VMCS_HOST_SYSENTER_EIP, __read_msr (MSR_IA32_SYSENTER_EIP));
 
-    __vmwrite (VMX_VMCS_HOST_CR0, __read_cr0 ());
-    __vmwrite (VMX_VMCS_HOST_CR3, __read_cr3 ());
-    __vmwrite (VMX_VMCS_HOST_CR4, __read_cr4 ());
+    vmret |= __vmwrite (VMX_VMCS_HOST_CR0, __read_cr0 ());
+    vmret |= __vmwrite (VMX_VMCS_HOST_CR3, __read_cr3 ());
+    vmret |= __vmwrite (VMX_VMCS_HOST_CR4, __read_cr4 ());
 
-    __vmwrite (VMX_VMCS_HOST_RSP, 4096 + (uint64)calloc (4096)); // 返回Host时的栈底指针.栈是向下增长,所以把指针指向内存末尾.
-    __vmwrite (VMX_VMCS_HOST_RIP, (uint64)&__vmexit_handler);
+    vmret |= __vmwrite (VMX_VMCS_HOST_RSP, 4096 + (uint64)calloc (4096)); // 返回Host时的栈底指针.栈是向下增长,所以把指针指向内存末尾.
+    vmret |= __vmwrite (VMX_VMCS_HOST_RIP, (uint64)&__vmexit_handler);
   }
 
   // Guest, See: 24.4 GUEST-STATE AREA
   {
-    __vmwrite (VMX_VMCS_GUEST_RFLAGS, __rflags ());
-    __vmwrite (VMX_VMCS_GUEST_CR0, __read_cr0 ());
-    __vmwrite (VMX_VMCS_GUEST_CR3, (uint64)make_vmx_PML4E (guest, guest->mem_page_count));
-    print ("VMX_VMCS_GUEST_CR3 : 0x%x\n", __vmread (VMX_VMCS_GUEST_CR3));
-    __vmwrite (VMX_VMCS_GUEST_CR4, __read_cr4 ());
-    __vmwrite (VMX_VMCS_GUEST_DR7, 0x400);
+    bochs_break ();
+    vmret |= __vmwrite (VMX_VMCS_GUEST_RFLAGS, __rflags ());
+    vmret |= __vmwrite (VMX_VMCS_GUEST_CR0, __read_cr0 ());
+    print ("VMX_VMCS_GUEST_CR0 : 0x%x\n", __vmread (VMX_VMCS_GUEST_CR0));
 
-    //__vmwrite (VMX_VMCS_GUEST_RSP, 4096 + (uint64)calloc (4096)); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
-    //__vmwrite (VMX_VMCS_GUEST_RIP, (uint64)&GuestEntry);
-    __vmwrite (VMX_VMCS_GUEST_RSP, VOS_PAGE_SIZE * guest->mem_page_count); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
-    __vmwrite (VMX_VMCS_GUEST_RIP, guest->code_address);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_CR3, (uint64)make_vmx_PML4E (guest, guest->mem_page_count));
+    vmret |= __vmwrite (VMX_VMCS_GUEST_CR4, __read_cr4 ());
+    vmret |= __vmwrite (VMX_VMCS_GUEST_DR7, 0x400);
 
-    __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_FULL, 0xffffffff);
-    __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_HIGH, 0xffffffff);
+    vmret |= __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_FULL, 0xffffffff);
+    vmret |= __vmwrite (VMX_VMCS64_GUEST_VMCS_LINK_PTR_HIGH, 0xffffffff);
 
-    __vmwrite (VMX_VMCS32_CTRL_ENTRY, AdjustMSR (IA32_VMX_ENTRYCTLS, 0b1000000000)); // IA32e guest
-    //    __vmwrite(VMX_VMCS32_CTRL_ENTRY, 0b00000000000000000000001000000000);
-    //    __vmwrite(VMX_VMCS32_CTRL_ENTRY_MSR_LOAD_COUNT, 0b1000001000000000);
+    vmret |= __vmwrite (VMX_VMCS32_CTRL_ENTRY, AdjustMSR (IA32_VMX_ENTRYCTLS, 0b1000000000)); // IA32e guest
+    //    vmret |= __vmwrite(VMX_VMCS32_CTRL_ENTRY, 0b00000000000000000000001000000000);
+    //    vmret |= __vmwrite(VMX_VMCS32_CTRL_ENTRY_MSR_LOAD_COUNT, 0b1000001000000000);
 
-    __vmwrite (VMX_VMCS16_GUEST_ES_SEL, __read_es () & 0xfff8);
-    __vmwrite (VMX_VMCS16_GUEST_CS_SEL, __read_cs () & 0xfff8);
-    __vmwrite (VMX_VMCS16_GUEST_SS_SEL, __read_ss () & 0xfff8);
-    __vmwrite (VMX_VMCS16_GUEST_DS_SEL, __read_ds () & 0xfff8);
-    __vmwrite (VMX_VMCS16_GUEST_FS_SEL, __read_fs () & 0xfff8);
-    __vmwrite (VMX_VMCS16_GUEST_GS_SEL, __read_gs () & 0xfff8);
-    __vmwrite (VMX_VMCS16_GUEST_TR_SEL, 8 & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_GUEST_ES_SEL, __read_es () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_GUEST_CS_SEL, __read_cs () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_GUEST_SS_SEL, __read_ss () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_GUEST_DS_SEL, __read_ds () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_GUEST_FS_SEL, __read_fs () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_GUEST_GS_SEL, __read_gs () & 0xfff8);
+    vmret |= __vmwrite (VMX_VMCS16_GUEST_TR_SEL, 8 & 0xfff8);
 
-    __vmwrite (VMX_VMCS_GUEST_ES_BASE, 0);
-    __vmwrite (VMX_VMCS_GUEST_CS_BASE, 0);
-    __vmwrite (VMX_VMCS_GUEST_SS_BASE, 0);
-    __vmwrite (VMX_VMCS_GUEST_DS_BASE, 0);
-    __vmwrite (VMX_VMCS_GUEST_FS_BASE, 0);
-    __vmwrite (VMX_VMCS_GUEST_GS_BASE, 0);
-    __vmwrite (VMX_VMCS_GUEST_TR_BASE, 0);
-    __vmwrite (VMX_VMCS_GUEST_LDTR_BASE, 0);
-    __vmwrite (VMX_VMCS_GUEST_GDTR_BASE, gdtr.base);
-    __vmwrite (VMX_VMCS_GUEST_IDTR_BASE, idtr.base);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_ES_BASE, 0);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_CS_BASE, 0);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_SS_BASE, 0);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_DS_BASE, 0);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_FS_BASE, 0);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_GS_BASE, 0);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_TR_BASE, 0);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_LDTR_BASE, 0);
+    // vmret |= __vmwrite (VMX_VMCS_GUEST_GDTR_BASE, gdtr.base);
+    // vmret |= __vmwrite (VMX_VMCS32_GUEST_GDTR_LIMIT, gdtr.limit);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_IDTR_BASE, idtr.base);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_IDTR_LIMIT, idtr.limit);
+    make_vmx_gdt (guest);
 
-    __vmwrite (VMX_VMCS32_GUEST_ES_LIMIT, 0xffffffff);
-    __vmwrite (VMX_VMCS32_GUEST_CS_LIMIT, 0xffffffff);
-    __vmwrite (VMX_VMCS32_GUEST_SS_LIMIT, 0xffffffff);
-    __vmwrite (VMX_VMCS32_GUEST_DS_LIMIT, 0xffffffff);
-    __vmwrite (VMX_VMCS32_GUEST_FS_LIMIT, 0xffffffff);
-    __vmwrite (VMX_VMCS32_GUEST_GS_LIMIT, 0xffffffff);
-    __vmwrite (VMX_VMCS32_GUEST_LDTR_LIMIT, 0xffffffff);
-    __vmwrite (VMX_VMCS32_GUEST_TR_LIMIT, 0xffffffff);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_ES_LIMIT, 0xffffffff);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_CS_LIMIT, 0xffffffff);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_SS_LIMIT, 0xffffffff);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_DS_LIMIT, 0xffffffff);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_FS_LIMIT, 0xffffffff);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_GS_LIMIT, 0xffffffff);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_LDTR_LIMIT, 0xffffffff);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_TR_LIMIT, 0xffffffff);
 
-    __vmwrite (VMX_VMCS32_GUEST_GDTR_LIMIT, gdtr.limit);
-    __vmwrite (VMX_VMCS32_GUEST_IDTR_LIMIT, idtr.limit);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_ES_ACCESS_RIGHTS, 0b1000000010010001);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_CS_ACCESS_RIGHTS, 0b1010000010011101);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_SS_ACCESS_RIGHTS, 0b1000000010010011);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_DS_ACCESS_RIGHTS, 0b1000000010010001);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_FS_ACCESS_RIGHTS, 0b1000000010010001);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_GS_ACCESS_RIGHTS, 0b1000000010010001);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_LDTR_ACCESS_RIGHTS, 0b1000000010000010);
+    vmret |= __vmwrite (VMX_VMCS32_GUEST_TR_ACCESS_RIGHTS, 0b1000000010001011);
 
-    __vmwrite (VMX_VMCS32_GUEST_ES_ACCESS_RIGHTS, 0b1000000010010001);
-    __vmwrite (VMX_VMCS32_GUEST_CS_ACCESS_RIGHTS, 0b1010000010011101);
-    __vmwrite (VMX_VMCS32_GUEST_SS_ACCESS_RIGHTS, 0b1000000010010011);
-    __vmwrite (VMX_VMCS32_GUEST_DS_ACCESS_RIGHTS, 0b1000000010010001);
-    __vmwrite (VMX_VMCS32_GUEST_FS_ACCESS_RIGHTS, 0b1000000010010001);
-    __vmwrite (VMX_VMCS32_GUEST_GS_ACCESS_RIGHTS, 0b1000000010010001);
-    __vmwrite (VMX_VMCS32_GUEST_LDTR_ACCESS_RIGHTS, 0b1000000010000010);
-    __vmwrite (VMX_VMCS32_GUEST_TR_ACCESS_RIGHTS, 0b1000000010001011);
+    { // temp
+      uint8*        bin   = GuestPA_To_HostPA (guest, guest->code_address);
+      unsigned char a[]   = {0xbf, 0xdb, 0x14, 0xcd, 0x14, 0xbe, 0x00, 0x10, 0x00, 0x00, 0xba, 0x00, 0x20, 0x00, 0x00, 0x0f, 0x01, 0xc1, 0xeb, 0xfe};
+      unsigned int  a_len = 20;
+      memcpy (bin, a, a_len);
+      print ("VMX_VMCS_GUEST_CR3 : 0x%x\n", __vmread (VMX_VMCS_GUEST_CR3));
+    }
+
+    //vmret |= __vmwrite (VMX_VMCS_GUEST_RSP, 4096 + (uint64)calloc (4096)); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
+    //vmret |= __vmwrite (VMX_VMCS_GUEST_RIP, (uint64)&GuestEntry);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_RSP, VOS_PAGE_SIZE * guest->mem_page_count); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
+    vmret |= __vmwrite (VMX_VMCS_GUEST_RIP, guest->code_address);
   }
+
+  if (vmret != 0)
+  {
+    print ("vmwrite fail : 0x%x\n", vmret);
+    return -1;
+  }
+  print ("vmcs : 0x%x\n", guest->guest_vmcs);
 
   bochs_break ();
 

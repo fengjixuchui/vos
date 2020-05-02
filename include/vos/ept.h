@@ -379,7 +379,7 @@ typedef union
 } EptPointer;
 AssertCompileSize (EptPointer, 8);
 
-uint setup_ept_pt (ept_PML4E_t* pml, uint host_PA, uint guest_PA);
-uint make_ept (uint page_count);
+uint setup_vmx_ept_pt (ept_PML4E_t* pml, uint host_PA, uint guest_PA);
+uint make_vmx_ept (uint page_count);
 
 #endif //VOS_EPT_H
