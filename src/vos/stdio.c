@@ -74,7 +74,7 @@ void cls ()
   }
 }
 
-void itoa (char* buf, int base, int d)
+void itoa (char* buf, int base, uint d)
 {
   char*         p = buf;
   char *        p1, *p2;
@@ -96,7 +96,7 @@ void itoa (char* buf, int base, int d)
   {
     int remainder = ud % divisor;
 
-    *p++ = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
+    *p++ = (remainder < 10) ? remainder + '0' : remainder + 'A' - 10;
   } while (ud /= divisor);
 
   /*  Terminate BUF. */
