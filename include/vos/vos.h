@@ -46,27 +46,6 @@
 
 // clang-format on
 
-typedef struct vos_guest
-{
-  struct vos_guest* next;
-  IN uint mem_page_count;
-  IN uint enable_debug;
-  IN uint enable_physical_address_translation;
-  OUT uint physical_address_translation_pointer;
-  OUT uint pml4_HPA;
-  union
-  {
-    void* host_vmcs;
-    void* host_vmcb;
-  };
-  union
-  {
-    void* guest_vmcs;
-    void* guest_vmcb;
-  };
-  uint code_address;
-} vos_guest_t;
-
 typedef struct
 {
 

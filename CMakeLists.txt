@@ -57,6 +57,7 @@ add_library ( kernel
   include/vos/x86.h
   include/vos/x86_64.h
   src/vos/amd.c
+  src/vos/guest.c
   src/vos/gui/gui.c
   src/vos/intel.c
   src/vos/kernel.c

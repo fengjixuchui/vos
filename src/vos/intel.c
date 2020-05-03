@@ -2,15 +2,16 @@
 // Created by x7cc on 2020/4/14.
 //
 
-#include <vos/ept.h>
-#include "vos/intel.h"
 #include "vos/debug.h"
-#include "vos/x86_64.h"
+#include "vos/ept.h"
+#include "vos/guest.h"
+#include "vos/intel.h"
 #include "vos/memory.h"
 #include "vos/stdio.h"
+#include "vos/vmx.h"
 #include "vos/vos.h"
 #include "vos/x86.h"
-#include "vos/vmx.h"
+#include "vos/x86_64.h"
 
 int check_vmx ()
 {
@@ -525,9 +526,7 @@ int vmx_start (vos_guest_t* guest)
   VmxPrimaryProcessorBasedControls   primary   = {.bits = 0};
   VmxSecondaryProcessorBasedControls secondary = {.bits = 0};
 
-  if (guest->enable_debug)
-    primary.monitor_trap_flag = 1;
-
+  primary.monitor_trap_flag          = guest->enable_debug;
   primary.activate_secondary_control = 1;
 
   secondary.enable_ept              = 1;
@@ -631,8 +630,10 @@ int vmx_start (vos_guest_t* guest)
     vmret |= __vmwrite (VMX_VMCS32_GUEST_LDTR_ACCESS_RIGHTS, 0b1000000010000010);
     vmret |= __vmwrite (VMX_VMCS32_GUEST_TR_ACCESS_RIGHTS, 0b1000000010001011);
 
+    uint code_base = guest_malloc (guest, VOS_PAGE_SIZE);
+
     { // temp
-      uint8*        bin   = GuestPA_To_HostPA (guest, guest->code_address);
+      uint8*        bin   = GuestPA_To_HostPA (guest, code_base);
       unsigned char a[]   = {0xbf, 0xdb, 0x14, 0xcd, 0x14, 0xbe, 0x00, 0x10, 0x00, 0x00, 0xba, 0x00, 0x20, 0x00, 0x00, 0x0f, 0x01, 0xc1, 0xeb, 0xfe};
       unsigned int  a_len = 20;
       memcpy (bin, a, a_len);
@@ -641,7 +642,7 @@ int vmx_start (vos_guest_t* guest)
     //vmret |= __vmwrite (VMX_VMCS_GUEST_RSP, 4096 + (uint64)calloc (4096)); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
     //vmret |= __vmwrite (VMX_VMCS_GUEST_RIP, (uint64)&GuestEntry);
     vmret |= __vmwrite (VMX_VMCS_GUEST_RSP, VOS_PAGE_SIZE * guest->mem_page_count); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
-    vmret |= __vmwrite (VMX_VMCS_GUEST_RIP, guest->code_address);
+    vmret |= __vmwrite (VMX_VMCS_GUEST_RIP, code_base);
   }
 
   if (vmret != 0)

@@ -5,16 +5,31 @@
 #ifndef VOS_GUEST_H
 #define VOS_GUEST_H
 
+#include "vos/vos.h"
 #include "vos/types.h"
+#include "vmx.h"
 
-typedef struct guest_config
+typedef struct vos_guest
 {
-  uint64 physical_address;
-  uint64 mem_size;
-  uint64 page_size;
-  uint8  vendor[12];
-  uint8  core_num;
-  uint8  thread_num;
-} guest_config_t;
+  struct vos_guest* next;
+  IN uint mem_page_count;
+  IN uint enable_debug;
+  IN uint enable_physical_address_translation;
+  OUT uint physical_address_translation_pointer;
+  OUT uint pml4_HPA;
+  OUT uint memory_base;
+  union
+  {
+    IN void* host_vmcs;
+    IN void* host_vmcb;
+  };
+  union
+  {
+    IN void* guest_vmcs;
+    IN void* guest_vmcb;
+  };
+} vos_guest_t;
+
+uint guest_malloc (vos_guest_t* guest, uint size);
 
 #endif //VOS_GUEST_H

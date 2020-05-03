@@ -2,12 +2,13 @@
 // Created by x7cc on 2020/4/15.
 //
 
-#include "vos/vmx.h"
 #include "vos/ept.h"
-#include "vos/types.h"
-#include "vos/vos.h"
+#include "vos/guest.h"
 #include "vos/memory.h"
 #include "vos/stdio.h"
+#include "vos/types.h"
+#include "vos/vmx.h"
+#include "vos/vos.h"
 #include "vos/x86.h"
 #include "vos/x86_64.h"
 
@@ -62,10 +63,9 @@ void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA)
   uint64* pdpt_hpa;
   if (pdpt_gpa == nullptr)
   {
-    pdpt_gpa = guest->code_address;
+    pdpt_gpa = guest_malloc (guest, VOS_PAGE_SIZE);
     pdpt_hpa = (uint64*)GuestPA_To_HostPA (guest, (uint64)pdpt_gpa);
     __memset64 (pdpt_hpa, 0, 512);
-    guest->code_address += VOS_PAGE_SIZE;
     pml[pml4Idx] = (uint64)pdpt_gpa | 7;
   }
   else
@@ -83,10 +83,9 @@ void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA)
   uint64* pd_hpa;
   if (pd_gpa == nullptr)
   {
-    pd_gpa = guest->code_address;
+    pd_gpa = guest_malloc (guest, VOS_PAGE_SIZE);
     pd_hpa = (uint64*)GuestPA_To_HostPA (guest, (uint64)pd_gpa);
     __memset64 (pd_hpa, 0, 512);
-    guest->code_address += VOS_PAGE_SIZE;
     pdpt_hpa[pdpIdx] = (uint64)pd_gpa | 7;
   }
   else
@@ -104,10 +103,9 @@ void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA)
   uint64* pt_hpa;
   if (pt_gpa == nullptr)
   {
-    pt_gpa = guest->code_address;
+    pt_gpa = guest_malloc (guest, VOS_PAGE_SIZE);
     pt_hpa = (uint64*)GuestPA_To_HostPA (guest, (uint64)pt_gpa);
     __memset64 (pt_hpa, 0, 512);
-    guest->code_address += VOS_PAGE_SIZE;
     pd_hpa[pdIdx] = (uint64)pt_gpa | 7;
   }
   else
@@ -128,8 +126,7 @@ uint make_vmx_PML4E (vos_guest_t* guest, uint64 page_count)
 {
   uint64 page_begin = 0;
 
-  guest->pml4_HPA = GuestPA_To_HostPA (guest, 0);
-  guest->code_address += VOS_PAGE_SIZE;
+  guest->pml4_HPA = GuestPA_To_HostPA (guest, guest_malloc (guest, VOS_PAGE_SIZE));
   __memset64 (guest->pml4_HPA, 0, 512);
   for (int i = 0; i < page_count; ++i, page_begin += VOS_PAGE_SIZE)
   {
@@ -209,9 +206,9 @@ uint make_vmx_ept (uint page_count)
 uint make_vmx_gdt (vos_guest_t* guest)
 {
   gdtr_t gdtr = {
-    .base  = guest->code_address,
-    .limit = 0x27};
-  guest->code_address += 4096;
+    .base  = guest_malloc (guest, VOS_PAGE_SIZE),
+    .limit = 0x27,
+  };
 
   uint64* descriptor = GuestPA_To_HostPA (guest, gdtr.base);
   descriptor[0]      = 0;

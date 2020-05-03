@@ -3,9 +3,10 @@ BOOTIMG=vos.iso
 CC_ARGS=
 KERNEL_OBJS= \
             src/boot/multiboot2.s64 \
-            src/vos/gui/gui.c64 \
             src/vos/amd.c64 \
             src/vos/debug.s64 \
+            src/vos/guest.c64 \
+            src/vos/gui/gui.c64 \
             src/vos/idt.s64 \
             src/vos/intel.c64 \
             src/vos/kernel.c64 \
