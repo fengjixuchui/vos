@@ -32,7 +32,7 @@ uint64 GuestPA_To_HostPA (vos_guest_t* guest, uint64 guest_PA)
   uint         pdIdx   = (guest_PA >> 21) & (uint)0b111111111;
   uint         pdpIdx  = (guest_PA >> 30) & (uint)0b111111111;
   uint         pml4Idx = (guest_PA >> 39) & (uint)0b111111111;
-  ept_PML4E_t* pml4    = (uint64*)(guest->memmap_ptr);
+  ept_PML4E_t* pml4    = (uint64*)(guest->physical_address_translation_pointer);
   ept_PDPTE_t* pdpt    = pml4[pml4Idx].pdpt_page_PA << 12;
   if (pdpt == nullptr)
     return -1;
@@ -56,7 +56,7 @@ void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA)
   uint    pdIdx   = (guest_PA >> 21) & (uint)0b111111111;
   uint    pdpIdx  = (guest_PA >> 30) & (uint)0b111111111;
   uint    pml4Idx = (guest_PA >> 39) & (uint)0b111111111;
-  uint64* pml     = (uint64*)(guest->PML4E);
+  uint64* pml     = (uint64*)(guest->pml4_HPA);
 
   uint64* pdpt_gpa = (uint64*)(pml[pml4Idx] & 0xfffffffff000);
   uint64* pdpt_hpa;
@@ -128,9 +128,9 @@ uint make_vmx_PML4E (vos_guest_t* guest, uint64 page_count)
 {
   uint64 page_begin = 0;
 
-  guest->PML4E = GuestPA_To_HostPA (guest, 0);
+  guest->pml4_HPA = GuestPA_To_HostPA (guest, 0);
   guest->code_address += VOS_PAGE_SIZE;
-  __memset64 (guest->PML4E, 0, 512);
+  __memset64 (guest->pml4_HPA, 0, 512);
   for (int i = 0; i < page_count; ++i, page_begin += VOS_PAGE_SIZE)
   {
     setup_vmx_PML4E (guest, page_begin, page_begin);

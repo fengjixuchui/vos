@@ -44,12 +44,16 @@
 #define CMD_HIDE_PROCESS    ((uint32)0x14CD14DD)
 #define CMD_PROTECT_PROCESS ((uint32)0x14CD14DE)
 
+// clang-format on
+
 typedef struct vos_guest
 {
   struct vos_guest* next;
-  IN uint           mem_page_count;
-  IN uint           enable_shadow_hook;
-  OUT uint          PML4E;
+  IN uint mem_page_count;
+  IN uint enable_debug;
+  IN uint enable_physical_address_translation;
+  OUT uint physical_address_translation_pointer;
+  OUT uint pml4_HPA;
   union
   {
     void* host_vmcs;
@@ -60,7 +64,6 @@ typedef struct vos_guest
     void* guest_vmcs;
     void* guest_vmcb;
   };
-  uint memmap_ptr;
   uint code_address;
 } vos_guest_t;
 
@@ -68,7 +71,5 @@ typedef struct
 {
 
 } vos_host_t;
-
-// clang-format on
 
 #endif //VOS_VOS_H

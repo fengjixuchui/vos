@@ -547,7 +547,80 @@
 
 const char* VMX_INSTRUCTION_ERROR_STRING (int num);
 void*       make_guest_PML4E ();
+
 // clang-format on
+
+/// See: Definitions of Primary Processor-Based VM-Execution Controls
+typedef union
+{
+  struct
+  {
+    uint8 reserved1 : 2;                  //!< [0:1]
+    uint8 interrupt_window_exiting : 1;   //!< [2]
+    uint8 use_tsc_offseting : 1;          //!< [3]
+    uint8 reserved2 : 3;                  //!< [4:6]
+    uint8 hlt_exiting : 1;                //!< [7]
+    uint8 reserved3 : 1;                  //!< [8]
+    uint8 invlpg_exiting : 1;             //!< [9]
+    uint8 mwait_exiting : 1;              //!< [10]
+    uint8 rdpmc_exiting : 1;              //!< [11]
+    uint8 rdtsc_exiting : 1;              //!< [12]
+    uint8 reserved4 : 2;                  //!< [13:14]
+    uint8 cr3_load_exiting : 1;           //!< [15]
+    uint8 cr3_store_exiting : 1;          //!< [16]
+    uint8 reserved5 : 2;                  //!< [17:18]
+    uint8 cr8_load_exiting : 1;           //!< [19]
+    uint8 cr8_store_exiting : 1;          //!< [20]
+    uint8 use_tpr_shadow : 1;             //!< [21]
+    uint8 nmi_window_exiting : 1;         //!< [22]
+    uint8 mov_dr_exiting : 1;             //!< [23]
+    uint8 unconditional_io_exiting : 1;   //!< [24]
+    uint8 use_io_bitmaps : 1;             //!< [25]
+    uint8 reserved6 : 1;                  //!< [26]
+    uint8 monitor_trap_flag : 1;          //!< [27]
+    uint8 use_msr_bitmaps : 1;            //!< [28]
+    uint8 monitor_exiting : 1;            //!< [29]
+    uint8 pause_exiting : 1;              //!< [30]
+    uint8 activate_secondary_control : 1; //!< [31]
+  };
+  uint32 bits;
+} VmxPrimaryProcessorBasedControls;
+AssertCompileSize (VmxPrimaryProcessorBasedControls, 4);
+
+/// See: Definitions of Secondary Processor-Based VM-Execution Controls
+typedef union
+{
+  struct
+  {
+    uint8 virtualize_apic_accesses : 1;           //!< [0]
+    uint8 enable_ept : 1;                         //!< [1]
+    uint8 descriptor_table_exiting : 1;           //!< [2]
+    uint8 enable_rdtscp : 1;                      //!< [3]
+    uint8 virtualize_x2apic_mode : 1;             //!< [4]
+    uint8 enable_vpid : 1;                        //!< [5]
+    uint8 wbinvd_exiting : 1;                     //!< [6]
+    uint8 unrestricted_guest : 1;                 //!< [7]
+    uint8 apic_register_virtualization : 1;       //!< [8]
+    uint8 virtual_interrupt_delivery : 1;         //!< [9]
+    uint8 pause_loop_exiting : 1;                 //!< [10]
+    uint8 rdrand_exiting : 1;                     //!< [11]
+    uint8 enable_invpcid : 1;                     //!< [12]
+    uint8 enable_vm_functions : 1;                //!< [13]
+    uint8 vmcs_shadowing : 1;                     //!< [14]
+    uint8 reserved1 : 1;                          //!< [15]
+    uint8 rdseed_exiting : 1;                     //!< [16]
+    uint8 reserved2 : 1;                          //!< [17]
+    uint8 enable_ept_violation_ve : 1;            //!< [18]
+    uint8 reserved3 : 1;                          //!< [19]
+    uint8 enable_xsaves_xstors : 1;               //!< [20]
+    uint8 reserved4 : 1;                          //!< [21]
+    uint8 mode_based_execute_control_for_ept : 1; //!< [22]
+    uint8 reserved5 : 2;                          //!< [23:24]
+    uint8 use_tsc_scaling : 1;                    //!< [25]
+  };
+  uint32 bits;
+} VmxSecondaryProcessorBasedControls;
+AssertCompileSize (VmxSecondaryProcessorBasedControls, 4);
 
 typedef struct
 {

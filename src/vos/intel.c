@@ -353,7 +353,7 @@ uint VmmVmExitHandler (VmxVMExitContext_t* context)
       print ("VMX_EXIT_MWAIT(%d)\n", VMX_EXIT_MWAIT);
       break;
     case VMX_EXIT_MTF:
-      print ("VMX_EXIT_MTF(%d)\n", VMX_EXIT_MTF);
+      print ("VMX_EXIT_MTF(%d), RIP : 0x%x\n", VMX_EXIT_MTF, __vmread (VMX_VMCS_GUEST_RIP));
       break;
     case VMX_EXIT_MONITOR:
       print ("VMX_EXIT_MONITOR(%d)\n", VMX_EXIT_MONITOR);
@@ -511,22 +511,36 @@ int vmx_start (vos_guest_t* guest)
   __read_gdtr (&gdtr);
   __read_idtr (&idtr);
 
-  ept_PML4E_t* ept_PA  = (ept_PML4E_t*)make_vmx_ept (guest->mem_page_count);
-  guest->memmap_ptr    = ept_PA;
-  EptPointer ptr       = {0};
-  ptr.memory_type      = 6;
-  ptr.page_walk_length = 4 - 1; // 4级页表
-  ptr.pml4_address     = (guest->memmap_ptr >> 12);
+  ept_PML4E_t* ept_PA                         = (ept_PML4E_t*)make_vmx_ept (guest->mem_page_count);
+  guest->physical_address_translation_pointer = ept_PA;
+  EptPointer ptr                              = {0};
+  ptr.memory_type                             = 6;
+  ptr.page_walk_length                        = 4 - 1; // 4级页表
+  ptr.pml4_address                            = (guest->physical_address_translation_pointer >> 12);
 
   uint vmret = 0;
   // See: Definitions of Pin-Based VM-Execution Controls
   vmret |= __vmwrite (VMX_VMCS32_CTRL_PIN_EXEC, AdjustMSR (MSR_IA32_VMX_PINBASED_CTLS, 0));
 
+  VmxPrimaryProcessorBasedControls   primary   = {.bits = 0};
+  VmxSecondaryProcessorBasedControls secondary = {.bits = 0};
+
+  if (guest->enable_debug)
+    primary.monitor_trap_flag = 1;
+
+  primary.activate_secondary_control = 1;
+
+  secondary.enable_ept              = 1;
+  secondary.enable_rdtscp           = 1;
+  secondary.enable_invpcid          = 1;
+  secondary.enable_ept_violation_ve = 1;
+  secondary.enable_xsaves_xstors    = 1;
+
   // See: Definitions of Primary Processor-Based VM-Execution Controls
-  vmret |= __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC, AdjustMSR (MSR_IA32_VMX_PROCBASED_CTLS, 1ull << 31));
+  vmret |= __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC, AdjustMSR (MSR_IA32_VMX_PROCBASED_CTLS, primary.bits));
 
   // See: Definitions of Secondary Processor-Based VM-Execution Controls
-  vmret |= __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC2, AdjustMSR (MSR_IA32_VMX_PROCBASED_CTLS2, 0b100100000000000001010)); // EPT
+  vmret |= __vmwrite (VMX_VMCS32_CTRL_PROC_EXEC2, AdjustMSR (MSR_IA32_VMX_PROCBASED_CTLS2, secondary.bits));
   vmret |= __vmwrite (VMX_VMCS32_CTRL_EXIT, AdjustMSR (MSR_IA32_VMX_EXIT_CTLS, VMX_EXIT_CTLS_HOST_ADDR_SPACE_SIZE));
   vmret |= __vmwrite (VMX_VMCS32_CTRL_ENTRY, AdjustMSR (MSR_IA32_VMX_ENTRY_CTLS, 0));
   vmret |= __vmwrite (VMX_VMCS64_CTRL_EPTP_FULL, ptr.bits);
@@ -563,10 +577,8 @@ int vmx_start (vos_guest_t* guest)
 
   // Guest, See: 24.4 GUEST-STATE AREA
   {
-    bochs_break ();
     vmret |= __vmwrite (VMX_VMCS_GUEST_RFLAGS, __rflags ());
     vmret |= __vmwrite (VMX_VMCS_GUEST_CR0, __read_cr0 ());
-    print ("VMX_VMCS_GUEST_CR0 : 0x%x\n", __vmread (VMX_VMCS_GUEST_CR0));
 
     vmret |= __vmwrite (VMX_VMCS_GUEST_CR3, (uint64)make_vmx_PML4E (guest, guest->mem_page_count));
     vmret |= __vmwrite (VMX_VMCS_GUEST_CR4, __read_cr4 ());
@@ -624,7 +636,6 @@ int vmx_start (vos_guest_t* guest)
       unsigned char a[]   = {0xbf, 0xdb, 0x14, 0xcd, 0x14, 0xbe, 0x00, 0x10, 0x00, 0x00, 0xba, 0x00, 0x20, 0x00, 0x00, 0x0f, 0x01, 0xc1, 0xeb, 0xfe};
       unsigned int  a_len = 20;
       memcpy (bin, a, a_len);
-      print ("VMX_VMCS_GUEST_CR3 : 0x%x\n", __vmread (VMX_VMCS_GUEST_CR3));
     }
 
     //vmret |= __vmwrite (VMX_VMCS_GUEST_RSP, 4096 + (uint64)calloc (4096)); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
@@ -665,7 +676,7 @@ void intel_entry ()
 {
   vos_guest_t guest;
   memset8 (&guest, 0, sizeof (guest));
-  guest.enable_shadow_hook = 1;
+  guest.enable_physical_address_translation = 1;
   //guest.mem_page_count     = 0x100000ull >> 12; // 1 MiB
   guest.mem_page_count = 0x10000ull >> 12; // 1 MiB
 
@@ -677,7 +688,7 @@ void intel_entry ()
 
   puts ("VMX check successful.");
 
-  if (guest.enable_shadow_hook && check_ept () != 0)
+  if (guest.enable_physical_address_translation && check_ept () != 0)
   {
     puts ("EPT check failed");
     return;
