@@ -514,6 +514,7 @@ int vmx_start (vos_guest_t* guest)
   ept_PML4E_t* ept_PA  = (ept_PML4E_t*)make_vmx_ept (guest->mem_page_count);
   guest->memmap_ptr    = ept_PA;
   EptPointer ptr       = {0};
+  ptr.memory_type      = 6;
   ptr.page_walk_length = 4 - 1; // 4级页表
   ptr.pml4_address     = (guest->memmap_ptr >> 12);
 
