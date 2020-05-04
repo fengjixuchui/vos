@@ -52,18 +52,20 @@
 %define SEG_CODE_XRCA    (0x0F << 40) ; Execute/Read, conforming, accessed
 
 ; See : CONTROL REGISTERS
-%define CR0_PE (1 << 0)
-%define CR0_MP (1 << 1)
-%define CR0_EM (1 << 2)
-%define CR0_TS (1 << 3)
-%define CR0_ET (1 << 4)
-%define CR0_NE (1 << 5)
-%define CR0_WP (1 << 16)
-%define CR0_AM (1 << 18)
-%define CR0_NW (1 << 29)
-%define CR0_CD (1 << 30)
-%define CR0_PG (1 << 31)
+%define CR0_PE         (1 <<  0)   ; Protection Enable (bit 0 of CR0)
+%define CR0_MP         (1 <<  1)   ; Monitor Coprocessor (bit 1 of CR0)
+%define CR0_EM         (1 <<  2)   ; Emulation (bit 2 of CR0)
+%define CR0_TS         (1 <<  3)   ; Task Switched (bit 3 of CR0)
+%define CR0_ET         (1 <<  4)   ; Extension Type (bit 4 of CR0)
+%define CR0_NE         (1 <<  5)   ; Numeric Error (bit 5 of CR0)
+%define CR0_WP         (1 << 16)   ; Write Protect (bit 16 of CR0)
+%define CR0_AM         (1 << 18)   ; Alignment Mask (bit 18 of CR0)
+%define CR0_NW         (1 << 29)   ; Not Write-through (bit 29 of CR0)
+%define CR0_CD         (1 << 30)   ; Cache Disable (bit 30 of CR0)
+%define CR0_PG         (1 << 31)   ; Paging (bit 31 of CR0)
 
+%define CR3_PWT_MASK   (1 << 3)    ; Page-level Write-Through (bit 3 of CR3)
+%define CR3_PCD_MASK   (1 << 4)    ; Page-level Cache Disable (bit 4 of CR3)
 
 %define CR4_VME        (1 << 0)    ; Virtual-8086 Mode Extensions (bit 0 of CR4)
 %define CR4_PVI        (1 << 1)    ; Protected-Mode Virtual Interrupts (bit 1 of CR4)

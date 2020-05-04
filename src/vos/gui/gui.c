@@ -32,15 +32,12 @@ uint gui_init (uint64 framebuffer, uint64 pitch, uint width, uint height, uint d
   screen->width       = width;
   screen->height      = height;
 
-  for (int x = 0; x < screen->width; ++x)
+  uint row = screen->framebuffer;
+  for (int y = 0; y < screen->height; ++y, row += screen->pitch)
   {
-    for (int y = 0; y < screen->height; ++y)
+    for (int x = 0; x < screen->width; ++x)
     {
-      uint8* pixel = (screen->framebuffer + y * screen->pitch + x * screen->depth);
-      pixel[0]     = 0xA0; // B
-      pixel[1]     = 0xA0; // G
-      pixel[2]     = 0xA0; // R?
-      pixel[3]     = 0xFF;
+      ((uint32*)row)[x] = 0xFFA0A0A0; // ARGB;
     }
   }
 
