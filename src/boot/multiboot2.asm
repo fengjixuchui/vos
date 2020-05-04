@@ -253,9 +253,12 @@ loader_entry:
     wrmsr
 
     mov eax, cr0
-    or eax, CR0_PE
-    or eax, CR0_PG
+    or eax, CR0_PE | CR0_PG | CR0_NE
     mov cr0, eax
+
+    mov eax, cr4
+    or eax, CR4_OSFXSR
+    mov cr4, eax
 
     jmp dword (.code64_ring0 - .gdt64):x86_64_entry
 
