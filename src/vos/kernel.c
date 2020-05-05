@@ -146,9 +146,8 @@ int x86_64_main (unsigned long magic, unsigned long addr)
       {
         multiboot_uint32_t                color;
         unsigned                          i;
-        struct multiboot_tag_framebuffer* tagfb
-          = (struct multiboot_tag_framebuffer*)tag;
-        void* fb = (void*)(unsigned long)tagfb->common.framebuffer_addr;
+        struct multiboot_tag_framebuffer* tagfb = (struct multiboot_tag_framebuffer*)tag;
+        void*                             fb    = (void*)(unsigned long)tagfb->common.framebuffer_addr;
 
         switch (tagfb->common.framebuffer_type)
         {
@@ -196,7 +195,7 @@ int x86_64_main (unsigned long magic, unsigned long addr)
             break;
 
           case MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT:
-            color = '\\' | 0x0100;
+            color = 23 << 8;
             break;
 
           default:
@@ -210,40 +209,60 @@ int x86_64_main (unsigned long magic, unsigned long addr)
         print ("framebuffer_addr : %x, framebuffer_type : %d\n", tagfb->common.framebuffer_addr, tagfb->common.framebuffer_type);
         print ("framebuffer_width : %d, framebuffer_height : %d\n", tagfb->common.framebuffer_width, tagfb->common.framebuffer_height);
         print ("framebuffer_bpp : %d, framebuffer_pitch : %d\n", tagfb->common.framebuffer_bpp, tagfb->common.framebuffer_pitch);
-        // bochs_break ();
-        //        for (i = 0; i < tagfb->common.framebuffer_width && i < tagfb->common.framebuffer_height; i++)
-        //        {
-        //          switch (tagfb->common.framebuffer_bpp)
-        //          {
-        //            case 8:
-        //            {
-        //              multiboot_uint8_t* pixel = fb + tagfb->common.framebuffer_pitch * i + i;
-        //              //*pixel                   = color;
-        //            }
-        //            break;
-        //            case 15:
-        //            case 16:
-        //            {
-        //              multiboot_uint16_t* pixel = fb + tagfb->common.framebuffer_pitch * i + 2 * i;
-        //              //*pixel                    = color;
-        //            }
-        //            break;
-        //            case 24:
-        //            {
-        //              multiboot_uint32_t* pixel = fb + tagfb->common.framebuffer_pitch * i + 3 * i;
-        //              //*pixel                    = (color & 0xffffff) | (*pixel & 0xff000000);
-        //            }
-        //            break;
-        //
-        //            case 32:
-        //            {
-        //              bochs_break();
-        //              multiboot_uint32_t* pixel = fb + tagfb->common.framebuffer_pitch * i + 4 * i;
-        //              //*pixel                    = color;
-        //            }
-        //            break;
-        //          }
-        //        }
+
+        for (int y = 0; y < tagfb->common.framebuffer_height; ++y)
+        {
+          for (int x = 0; x < tagfb->common.framebuffer_width; ++x)
+          {
+            switch (tagfb->common.framebuffer_bpp)
+            {
+              case 8:
+              {
+                multiboot_uint8_t* pixel = fb + tagfb->common.framebuffer_pitch * y + x;
+                //*pixel                   = color;
+              }
+              break;
+              case 15:
+              case 16:
+              {
+                multiboot_uint16_t* pixel = fb + tagfb->common.framebuffer_pitch * y + 2 * x;
+                //*pixel                    = color;
+              }
+              break;
+              case 24:
+              {
+                multiboot_uint32_t* pixel = fb + tagfb->common.framebuffer_pitch * y + 3 * x;
+                //*pixel                    = (color & 0xffffff) | (*pixel & 0xff000000);
+              }
+              break;
+
+              case 32:
+              {
+                multiboot_uint32_t* pixel = fb + tagfb->common.framebuffer_pitch * y + 4 * x;
+                //*pixel                    = color;
+              }
+              break;
+            }
+          }
+        }
+
+        break;
+      }
+      case MULTIBOOT_TAG_TYPE_EFI32:
+      {
+        struct multiboot_tag_efi32* efi32 = (struct multiboot_tag_efi32*)tag;
+
+        break;
+      }
+      case MULTIBOOT_TAG_TYPE_EFI64:
+      {
+        struct multiboot_tag_efi64* efi64 = (struct multiboot_tag_efi64*)tag;
+
+        break;
+      }
+      case MULTIBOOT_TAG_TYPE_EFI_MMAP:
+      {
+        struct multiboot_tag_efi_mmap* mmap = (struct multiboot_tag_efi_mmap*)tag;
 
         break;
       }
