@@ -26,56 +26,32 @@ const char* VMX_INSTRUCTION_ERROR_STRING (int num)
   return "";
 }
 
-uint64 GuestPA_To_HostPA (vos_guest_t* guest, uint64 guest_PA)
+void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 GPA)
 {
-  uint         offset  = (guest_PA >> 0) & (uint)0b111111111111;
-  uint         ptIdx   = (guest_PA >> 12) & (uint)0b111111111;
-  uint         pdIdx   = (guest_PA >> 21) & (uint)0b111111111;
-  uint         pdpIdx  = (guest_PA >> 30) & (uint)0b111111111;
-  uint         pml4Idx = (guest_PA >> 39) & (uint)0b111111111;
-  ept_PML4E_t* pml4    = (uint64*)(guest->physical_address_translation_pointer);
-  ept_PDPTE_t* pdpt    = pml4[pml4Idx].pdpt_page_PA << 12;
-  if (pdpt == nullptr)
-    return -1;
+  // uint    offset  = (GPA >> 0) & (uint)0b111111111111;
+  uint    ptIdx   = (GPA >> 12) & (uint)0b111111111;
+  uint    pdIdx   = (GPA >> 21) & (uint)0b111111111;
+  uint    pdpIdx  = (GPA >> 30) & (uint)0b111111111;
+  uint    pml4Idx = (GPA >> 39) & (uint)0b111111111;
+  uint64* pml4    = (uint64*)(guest->pml4_HPA);
 
-  ept_PDE_t* pd = pdpt[pdpIdx].pd_page_PA << 12;
-  if (pd == nullptr)
-    return -1;
-
-  ept_PTE_t* pt = pd[pdIdx].pt_page_PA << 12;
-  if (pt == nullptr)
-    return -1;
-
-  uint64 page = pt[ptIdx].page_PA << 12;
-  return page + offset;
-}
-
-void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA)
-{
-  uint    offset  = (guest_PA >> 0) & (uint)0b111111111111;
-  uint    ptIdx   = (guest_PA >> 12) & (uint)0b111111111;
-  uint    pdIdx   = (guest_PA >> 21) & (uint)0b111111111;
-  uint    pdpIdx  = (guest_PA >> 30) & (uint)0b111111111;
-  uint    pml4Idx = (guest_PA >> 39) & (uint)0b111111111;
-  uint64* pml     = (uint64*)(guest->pml4_HPA);
-
-  uint64* pdpt_gpa = (uint64*)(pml[pml4Idx] & 0xfffffffff000);
+  uint64* pdpt_gpa = (uint64*)(pml4[pml4Idx] & 0xfffffffff000);
   uint64* pdpt_hpa;
   if (pdpt_gpa == nullptr)
   {
     pdpt_gpa = guest_malloc (guest, VOS_PAGE_SIZE);
-    pdpt_hpa = (uint64*)GuestPA_To_HostPA (guest, (uint64)pdpt_gpa);
+    pdpt_hpa = (uint64*)ept_translation ((ept_PML4E_t*)guest->physical_address_translation_pointer, (uint64)pdpt_gpa);
     __memset64 (pdpt_hpa, 0, 512);
-    pml[pml4Idx] = (uint64)pdpt_gpa | 7;
+    pml4[pml4Idx] = (uint64)pdpt_gpa | 7;
   }
   else
   {
-    pdpt_hpa = (uint64*)GuestPA_To_HostPA (guest, (uint64)pdpt_gpa);
+    pdpt_hpa = (uint64*)ept_translation ((ept_PML4E_t*)guest->physical_address_translation_pointer, (uint64)pdpt_gpa);
   }
 
   if (pdpt_hpa == -1)
   {
-    print ("GuestPA_To_HostPA(guest, 0x%x) failed\n", pdpt_gpa);
+    print ("ept_translation(guest, 0x%x) failed\n", pdpt_gpa);
     return;
   }
 
@@ -84,18 +60,18 @@ void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA)
   if (pd_gpa == nullptr)
   {
     pd_gpa = guest_malloc (guest, VOS_PAGE_SIZE);
-    pd_hpa = (uint64*)GuestPA_To_HostPA (guest, (uint64)pd_gpa);
+    pd_hpa = (uint64*)ept_translation (guest->physical_address_translation_pointer, (uint64)pd_gpa);
     __memset64 (pd_hpa, 0, 512);
     pdpt_hpa[pdpIdx] = (uint64)pd_gpa | 7;
   }
   else
   {
-    pd_hpa = (uint64*)GuestPA_To_HostPA (guest, (uint64)pd_gpa);
+    pd_hpa = (uint64*)ept_translation (guest->physical_address_translation_pointer, (uint64)pd_gpa);
   }
 
   if (pd_hpa == -1)
   {
-    print ("GuestPA_To_HostPA(guest, 0x%x) failed\n", pd_gpa);
+    print ("ept_translation(guest, 0x%x) failed\n", pd_gpa);
     return;
   }
 
@@ -104,18 +80,18 @@ void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA)
   if (pt_gpa == nullptr)
   {
     pt_gpa = guest_malloc (guest, VOS_PAGE_SIZE);
-    pt_hpa = (uint64*)GuestPA_To_HostPA (guest, (uint64)pt_gpa);
+    pt_hpa = (uint64*)ept_translation (guest->physical_address_translation_pointer, (uint64)pt_gpa);
     __memset64 (pt_hpa, 0, 512);
     pd_hpa[pdIdx] = (uint64)pt_gpa | 7;
   }
   else
   {
-    pt_hpa = (uint64*)GuestPA_To_HostPA (guest, (uint64)pt_gpa);
+    pt_hpa = (uint64*)ept_translation (guest->physical_address_translation_pointer, (uint64)pt_gpa);
   }
 
   if (pt_hpa == -1)
   {
-    print ("GuestPA_To_HostPA(guest, 0x%x) failed\n", pt_gpa);
+    print ("ept_translation(guest, 0x%x) failed\n", pt_gpa);
     return;
   }
 
@@ -126,7 +102,7 @@ uint make_vmx_PML4E (vos_guest_t* guest, uint64 page_count)
 {
   uint64 page_begin = 0;
 
-  guest->pml4_HPA = GuestPA_To_HostPA (guest, guest_malloc (guest, VOS_PAGE_SIZE));
+  guest->pml4_HPA = ept_translation (guest->physical_address_translation_pointer, guest_malloc (guest, VOS_PAGE_SIZE));
   __memset64 (guest->pml4_HPA, 0, 512);
   for (int i = 0; i < page_count; ++i, page_begin += VOS_PAGE_SIZE)
   {
@@ -136,73 +112,6 @@ uint make_vmx_PML4E (vos_guest_t* guest, uint64 page_count)
   return 0;
 }
 
-uint setup_vmx_ept_pt (ept_PML4E_t* pml, uint host_PA, uint guest_PA)
-{
-  uint offset  = (guest_PA >> 0) & (uint)0b111111111111;
-  uint ptIdx   = (guest_PA >> 12) & (uint)0b111111111;
-  uint pdIdx   = (guest_PA >> 21) & (uint)0b111111111;
-  uint pdpIdx  = (guest_PA >> 30) & (uint)0b111111111;
-  uint pml4Idx = (guest_PA >> 39) & (uint)0b111111111;
-
-  ept_PDPTE_t* pdpt_pa = pml[pml4Idx].pdpt_page_PA << 12;
-  if (pdpt_pa == nullptr)
-  {
-    void* ptr                   = calloc (VOS_PAGE_SIZE);
-    pdpt_pa                     = VirtualAddressToPhysicalAddress (ptr);
-    pml[pml4Idx].pdpt_page_PA   = ((uint)pdpt_pa >> 12);
-    pml[pml4Idx].read_access    = 1;
-    pml[pml4Idx].write_access   = 1;
-    pml[pml4Idx].execute_access = 1;
-  }
-
-  ept_PDE_t* pd_pa = pdpt_pa[pdpIdx].pd_page_PA << 12;
-  if (pd_pa == nullptr)
-  {
-    void* ptr                      = calloc (VOS_PAGE_SIZE);
-    pd_pa                          = VirtualAddressToPhysicalAddress (ptr);
-    pdpt_pa[pdpIdx].pd_page_PA     = ((uint)pd_pa >> 12);
-    pdpt_pa[pdpIdx].read_access    = 1;
-    pdpt_pa[pdpIdx].write_access   = 1;
-    pdpt_pa[pdpIdx].execute_access = 1;
-  }
-
-  ept_PTE_t* pt_pa = pd_pa[pdIdx].pt_page_PA << 12;
-  if (pt_pa == nullptr)
-  {
-    void* ptr                   = calloc (VOS_PAGE_SIZE);
-    pt_pa                       = VirtualAddressToPhysicalAddress (ptr);
-    pd_pa[pdIdx].pt_page_PA     = ((uint)pt_pa >> 12);
-    pd_pa[pdIdx].read_access    = 1;
-    pd_pa[pdIdx].write_access   = 1;
-    pd_pa[pdIdx].execute_access = 1;
-  }
-
-  pt_pa[ptIdx].page_PA         = host_PA >> 12;
-  pt_pa[ptIdx].execute_access  = 1;
-  pt_pa[ptIdx].read_access     = 1;
-  pt_pa[ptIdx].write_access    = 1;
-  pt_pa[ptIdx].ept_memory_type = 1;
-
-  return &pt_pa[ptIdx];
-}
-
-uint make_vmx_ept (uint page_count)
-{
-  ept_PML4E_t* pml4E = calloc (VOS_PAGE_SIZE);
-
-  uint guest_PA = 0;
-  uint host_VA  = malloc (page_count * VOS_PAGE_SIZE);
-  uint host_PA  = VirtualAddressToPhysicalAddress (host_VA);
-  uint ept_PA   = VirtualAddressToPhysicalAddress (pml4E);
-  for (int i = 0; i < page_count; ++i, guest_PA += 4096, host_PA += 4096)
-  {
-    uint pte = setup_vmx_ept_pt (pml4E, host_PA, guest_PA);
-    print ("ept : pte(0x%x), guest_PA(0x%x) => host_PA(0x%x)\n", pte, guest_PA, host_PA);
-  }
-  print ("ept_PA : 0x%x\n", ept_PA);
-  return ept_PA;
-}
-
 uint make_vmx_gdt (vos_guest_t* guest)
 {
   gdtr_t gdtr = {
@@ -210,7 +119,7 @@ uint make_vmx_gdt (vos_guest_t* guest)
     .limit = 0x27,
   };
 
-  uint64* descriptor = GuestPA_To_HostPA (guest, gdtr.base);
+  uint64* descriptor = ept_translation (guest->physical_address_translation_pointer, gdtr.base);
   descriptor[0]      = 0;
   descriptor[1]      = 0x00AF93000000FFFF; // ring 0 data segment
   descriptor[2]      = 0x00AF9B000000FFFF; // ring 0 code segment

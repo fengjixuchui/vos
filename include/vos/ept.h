@@ -379,7 +379,28 @@ typedef union
 } EptPointer;
 AssertCompileSize (EptPointer, 8);
 
-uint setup_vmx_ept_pt (ept_PML4E_t* pml, uint host_PA, uint guest_PA);
-uint make_vmx_ept (uint page_count);
+/// Guest Physical Address To Host Physical Address
+/// \param pml4_HVA
+/// \param GPA        Guest Physical
+/// \return           Host Physical Address
+uint ept_translation (ept_PML4E_t* pml4_HVA, uint GPA);
+
+/// 设置一个页表的指针
+/// \param pml4_HVA
+/// \param HPA
+/// \param GPA
+/// \return
+uint ept_pt_set (ept_PML4E_t* pml4_HVA, uint HPA, uint GPA);
+
+/// 获取一个页表的指针
+/// \param pml4_HVA Host Virtual Address
+/// \param HPA  Host Physical Address
+/// \return Host Virtual Address
+ept_PTE_t* ept_pt_get (ept_PML4E_t* pml4_HVA, uint HPA);
+
+/// init
+/// \param page_count
+/// \return            Host Virtual Address
+ept_PML4E_t* ept_init (uint page_count);
 
 #endif //VOS_EPT_H

@@ -181,18 +181,47 @@ uint VmmVmExitHandler (VmxVMExitContext_t* context)
       print ("VMX_EXIT_RSM(%d)\n", VMX_EXIT_RSM);
       break;
     case VMX_EXIT_VMCALL:
-      gdb_break ();
-      print ("VMX_EXIT_VMCALL(%d)\n", VMX_EXIT_VMCALL);
+      //print ("VMX_EXIT_VMCALL(%d)\n", VMX_EXIT_VMCALL);
       switch (context->argv0)
       {
         case CMD_CHECK:
-          puts ("CMD_CHECK");
-          context->rax = context->argv0;
+          context->rax = 0;
           return 0;
+        case CMD_PUTS:
+        {
+          ept_PML4E_t* pml4 = __vmread (VMX_VMCS64_CTRL_EPTP_FULL) & ~0xfff;
+          const char*  str  = ept_translation (pml4, context->argv1);
+          puts (str);
+          return 0;
+        }
         case CMD_HOOK_FUNC:
+        {
+          ept_PML4E_t* pml4 = __vmread (VMX_VMCS64_CTRL_EPTP_FULL) & ~0xfff;
+
           print ("CMD_HOOK_FUNC from : 0x%x to 0x%x\n", context->argv1, context->argv2);
-          context->rax = context->argv0;
+
+          register uint from = context->argv1;
+          register uint to   = context->argv2;
+          if (pa_to_pfn (from) == pa_to_pfn (to))
+          {
+            context->rax = -1; // 同一个页.
+            return 0;
+          }
+
+          // hook page
+          {
+            ept_PTE_t* pt = ept_pt_get (pml4, from);
+            if (pt->bits == 0)
+            {
+              context->rax = -2; // 未被映射的页.
+              return 0;
+            }
+            pt->execute_access = 0;
+          }
+
+          context->rax = 0;
           return 0;
+        }
         case CMD_HIDE_PROCESS:
           puts ("CMD_HIDE_PROCESS");
           context->rax = context->argv0;
@@ -202,7 +231,8 @@ uint VmmVmExitHandler (VmxVMExitContext_t* context)
           context->rax = context->argv0;
           return 0;
         default:
-          return -1;
+          print ("VMX_EXIT_VMCALL(%d) not handle, argv0 : \n", VMX_EXIT_VMCALL, context->argv0);
+          return 0;
       }
       break;
     case VMX_EXIT_VMCLEAR:
@@ -479,15 +509,7 @@ int vmx_start (vos_guest_t* guest)
 
   print ("VMCS revision id : 0x%x\n", vmcs_revision_id);
 
-  uint64 cr0 = __read_cr0 ();
-  cr0 |= CR0_NE_MASK;
-  __write_cr0 (cr0);
-
-  uint64 cr4 = __read_cr4 ();
-  cr4 |= CR4_VMXE_MASK;
-  __write_cr4 (cr4);
-
-  uint64 hostPA = VirtualAddressToPhysicalAddress ((uint64)guest->host_vmcs);
+  uint64 hostPA = HVA_to_HPA ((uint64)guest->host_vmcs);
   __vmxon ((uint64)&hostPA);
 
   uint64 rflags = __rflags ();
@@ -502,7 +524,7 @@ int vmx_start (vos_guest_t* guest)
   guest->guest_vmcs             = calloc (vmcs_size);
   *((uint64*)guest->guest_vmcs) = vmcs_revision_id;
 
-  uint64 vmcsPA = VirtualAddressToPhysicalAddress ((uint64)guest->guest_vmcs);
+  uint64 vmcsPA = HVA_to_HPA ((uint64)guest->guest_vmcs);
   __vmclear ((uint64)&vmcsPA);
 
   __vmptrld ((uint64)&vmcsPA);
@@ -512,12 +534,12 @@ int vmx_start (vos_guest_t* guest)
   __read_gdtr (&gdtr);
   __read_idtr (&idtr);
 
-  ept_PML4E_t* ept_PA                         = (ept_PML4E_t*)make_vmx_ept (guest->mem_page_count);
+  ept_PML4E_t* ept_PA                         = (ept_PML4E_t*)ept_init (guest->mem_page_count);
   guest->physical_address_translation_pointer = ept_PA;
   EptPointer ptr                              = {0};
   ptr.memory_type                             = 6;
   ptr.page_walk_length                        = 4 - 1; // 4级页表
-  ptr.pml4_address                            = (guest->physical_address_translation_pointer >> 12);
+  ptr.pml4_address                            = pa_to_pfn (guest->physical_address_translation_pointer);
 
   uint vmret = 0;
   // See: Definitions of Pin-Based VM-Execution Controls
@@ -543,10 +565,10 @@ int vmx_start (vos_guest_t* guest)
   vmret |= __vmwrite (VMX_VMCS32_CTRL_EXIT, AdjustMSR (MSR_IA32_VMX_EXIT_CTLS, VMX_EXIT_CTLS_HOST_ADDR_SPACE_SIZE));
   vmret |= __vmwrite (VMX_VMCS32_CTRL_ENTRY, AdjustMSR (MSR_IA32_VMX_ENTRY_CTLS, 0));
   vmret |= __vmwrite (VMX_VMCS64_CTRL_EPTP_FULL, ptr.bits);
-  vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE0_FULL, ept_PA[0].pdpt_page_PA << 12);
-  //vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE1_FULL, ept_PA[1].pdpt_page_PA << 12);
-  //vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE2_FULL, ept_PA[2].pdpt_page_PA << 12);
-  //vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE3_FULL, ept_PA[3].pdpt_page_PA << 12);
+  vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE0_FULL, pa_to_pfn (ept_PA[0].pdpt_page_PA));
+  vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE1_FULL, pa_to_pfn (ept_PA[1].pdpt_page_PA));
+  vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE2_FULL, pa_to_pfn (ept_PA[2].pdpt_page_PA));
+  vmret |= __vmwrite (VMX_VMCS64_GUEST_PDPTE3_FULL, pa_to_pfn (ept_PA[3].pdpt_page_PA));
 
   // Host
   {
@@ -633,9 +655,10 @@ int vmx_start (vos_guest_t* guest)
     uint code_base = guest_malloc (guest, VOS_PAGE_SIZE);
 
     { // temp
-      uint8*        bin   = GuestPA_To_HostPA (guest, code_base);
-      unsigned char a[]   = {0xbf, 0xdb, 0x14, 0xcd, 0x14, 0xbe, 0x00, 0x10, 0x00, 0x00, 0xba, 0x00, 0x20, 0x00, 0x00, 0x0f, 0x01, 0xc1, 0xeb, 0xfe};
-      unsigned int  a_len = 20;
+      uint8*        bin = ept_translation (guest->physical_address_translation_pointer, code_base);
+      unsigned char a[] = {
+        0xe8, 0x48, 0x00, 0x00, 0x00, 0x50, 0xbf, 0xdb, 0x14, 0xcd, 0x14, 0xbe, 0x00, 0x10, 0x00, 0x00, 0xba, 0x00, 0x20, 0x00, 0x00, 0x0f, 0x01, 0xc1, 0xbf, 0xdc, 0x14, 0xcd, 0x14, 0x48, 0x8b, 0x04, 0x24, 0x48, 0x05, 0x56, 0x00, 0x00, 0x00, 0x48, 0x89, 0xc6, 0x0f, 0x01, 0xc1, 0xbf, 0xdd, 0x14, 0xcd, 0x14, 0x48, 0x8b, 0x04, 0x24, 0x48, 0x05, 0x56, 0x00, 0x00, 0x00, 0x48, 0x89, 0xc6, 0x48, 0x05, 0x00, 0x10, 0x00, 0x00, 0x48, 0x89, 0xc2, 0x0f, 0x01, 0xc1, 0xeb, 0xfe, 0x48, 0x8b, 0x04, 0x24, 0x48, 0x83, 0xe8, 0x05, 0xc3, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x21, 0x20, 0x68, 0x65, 0x72, 0x65, 0x20, 0x69, 0x73, 0x20, 0x69, 0x6e, 0x20, 0x67, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x00};
+      unsigned int a_len = 111;
       memcpy (bin, a, a_len);
     }
 
@@ -678,8 +701,8 @@ void intel_entry ()
   vos_guest_t guest;
   memset8 (&guest, 0, sizeof (guest));
   guest.enable_physical_address_translation = 1;
-  //guest.mem_page_count     = 0x100000ull >> 12; // 1 MiB
-  guest.mem_page_count = 0x10000ull >> 12; // 1 MiB
+  //guest.mem_page_count     = 0x100000ull >> VOS_PAGE_SHIFT; // 1 MiB
+  guest.mem_page_count = pa_to_pfn (0x10000ull); // 1 MiB
 
   if (check_vmx () != 0)
   {

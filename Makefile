@@ -5,6 +5,7 @@ KERNEL_OBJS= \
             src/boot/multiboot2.s64 \
             src/vos/amd.c64 \
             src/vos/debug.s64 \
+            src/vos/ept.c64 \
             src/vos/guest.c64 \
             src/vos/gui/gui.c64 \
             src/vos/idt.s64 \
@@ -32,10 +33,12 @@ all: kernel
 	nasm -Iinclude/ -f elf64 $< -o $@ -g
 
 %.c32: %.c
-	cc $< -o $@ -c -Iinclude -m32 -Wall -Wint-conversion -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -fno-pic -O0 -g
+	# 目前测试发现gcc -O3之后会出现sse指令,但是我的Ubuntu虚拟机中的qemu跑起来会直接崩溃,这里暂时禁止生成sse指令.
+	cc $< -o $@ -c -Iinclude -m32 -Wall -Wno-multichar -Wno-unused-variable -Wno-int-conversion -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -fno-pic -mno-sse -O0 -g
 
 %.c64: %.c
-	cc $< -o $@ -c -Iinclude -m64 -Wall -Wint-conversion -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -fno-pic -O0 -g
+	# 目前测试发现gcc -O3之后会出现sse指令,但是我的Ubuntu虚拟机中的qemu跑起来会直接崩溃,这里暂时禁止生成sse指令.
+	cc $< -o $@ -c -Iinclude -m64 -Wall -Wno-multichar -Wno-unused-variable -Wno-int-conversion -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -fno-pic -mno-sse -O0 -g
 
 kernel: ${KERNEL_OBJS}
 	#ld --oformat binary -m elf_x86_64 -s -n -o $@ -T kernel.ld $^  # 链接成纯二进制代码

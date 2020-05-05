@@ -10,10 +10,10 @@
 typedef struct cpuid__ cpuid_t;
 typedef struct gdtr__  gdtr_t, ldtr_t, idtr_t;
 
-extern void __memset8 (uint8*, uint8, uint len);
-extern void __memset16 (uint8*, uint16, uint len);
-extern void __memset32 (uint8*, uint32, uint len);
-extern void __memset64 (uint8*, uint64, uint len);
+extern void __memset8 (void*, uint8, uint len);
+extern void __memset16 (void*, uint16, uint len);
+extern void __memset32 (void*, uint32, uint len);
+extern void __memset64 (void*, uint64, uint len);
 
 extern uint64 __read_access_rights (uint64 selector);
 extern uint64 __read_cr0 ();

@@ -657,9 +657,8 @@ extern void   __vmexit_handler ();
 
 typedef struct vos_guest vos_guest_t;
 
-uint64 GuestPA_To_HostPA (vos_guest_t* guest, uint64 guest_PA);
-void   setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 guest_PA);
-uint   make_vmx_PML4E (vos_guest_t* guest, uint64 page_count);
-uint   make_vmx_gdt (vos_guest_t* guest);
+void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 GPA);
+uint make_vmx_PML4E (vos_guest_t* guest, uint64 page_count);
+uint make_vmx_gdt (vos_guest_t* guest);
 
 #endif //VOS_VMX_H

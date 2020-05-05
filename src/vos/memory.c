@@ -13,12 +13,12 @@ static uint  page_count;
 
 static inline uint calc_page_num (uint size)
 {
-  return (size + VOS_PAGE_SIZE - 1) >> 12;
+  return pa_to_pfn (size + VOS_PAGE_SIZE - 1);
 }
 
 static inline uint calc_page_idx (uint addr)
 {
-  return (addr - page_base) >> 12;
+  return pa_to_pfn (addr - page_base);
 }
 
 void init_memory (uint addr, uint len)
@@ -108,7 +108,7 @@ void free (void* mem)
 }
 
 // 9-9-9-9-12
-uint64 VirtualAddressToPhysicalAddress (uint64 va)
+uint64 HVA_to_HPA (uint64 va)
 {
   // uint64 PML4    = __read_cr3 ();
   // uint64 offset  = (va >> 0) & (uint64)0b111111111111;

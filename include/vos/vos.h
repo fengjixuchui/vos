@@ -36,10 +36,12 @@
 #define IN
 #define OUT
 
-#define VOS_PAGE_SIZE 4096
+#define VOS_PAGE_SHIFT 12
+#define VOS_PAGE_SIZE  4096
 
 enum {
   CMD_CHECK           = ((uint)0x14CD14DB),
+  CMD_PUTS           ,
   CMD_HOOK_FUNC       ,
   CMD_UNHOOK_FUNC     ,
   CMD_HIDE_PROCESS    ,
