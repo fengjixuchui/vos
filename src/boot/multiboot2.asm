@@ -252,12 +252,14 @@ loader_entry:
     or eax, IA32_EFER_LME
     wrmsr
 
-    mov eax, cr0
-    or eax, CR0_PE | CR0_PG | CR0_NE
+    ;mov eax, cr0
+    ;or eax, CR0_PE | CR0_PG | CR0_NE
+    mov eax, CR0_PE | CR0_MP | CR0_ET | CR0_NE | CR0_WP | CR0_AM | CR0_PG
     mov cr0, eax
 
-    mov eax, cr4
-    or eax, CR4_OSFXSR
+    ;mov eax, cr4
+    ;or eax, CR4_OSFXSR
+    mov eax, CR4_PAE | CR4_OSFXSR | CR4_OSXMMEXCPT | CR4_VMXE | CR4_OSXSAVE
     mov cr4, eax
 
     jmp dword (.code64_ring0 - .gdt64):x86_64_entry
