@@ -5,6 +5,7 @@
 #include "vos/gui/gui.h"
 #include "vos/memory.h"
 #include "vos/types.h"
+#include "vos/x86_64.h"
 
 typedef struct
 {
@@ -32,13 +33,10 @@ uint gui_init (uint64 framebuffer, uint64 pitch, uint width, uint height, uint d
   screen->width       = width;
   screen->height      = height;
 
-  uint row = screen->framebuffer;
-  for (int y = 0; y < screen->height; ++y, row += screen->pitch)
+  register uint row = screen->framebuffer;
+  for (register int y = 0; y < screen->height; ++y, row += screen->pitch)
   {
-    for (int x = 0; x < screen->width; ++x)
-    {
-      ((uint32*)row)[x] = 0xFFA0A0A0; // ARGB;
-    }
+    __memset32 (row, 0xFFA0A0A0 /* ARGB */, screen->width);
   }
 
   return 0;
