@@ -51,6 +51,7 @@ __vmwrite:
 
 ; 若执行成功,代码执行流程将改变,不会返回.
 __vmlaunch:
+  BOCHS_MAGIC_BREAK
   vmlaunch
   ret
 
@@ -92,6 +93,7 @@ __vmfunc:
 
 %define VMX_VMCS_GUEST_RIP                                      0x681e
 %define VMX_VMCS32_RO_EXIT_INSTR_LENGTH                         0x440c
+%define VMX_VMCS_GUEST_RFLAGS                                   0x6820
 
 __vmexit_handler:
   push rbp
@@ -105,6 +107,8 @@ __vmexit_handler:
   mov [rsp + VmxVMExitContext.dx], rdx
   mov [rsp + VmxVMExitContext.si], rsi
   mov [rsp + VmxVMExitContext.di], rdi
+  mov argv0, VMX_VMCS_GUEST_RIP
+  vmread [rsp + VmxVMExitContext.ip], argv0
   mov [rsp + VmxVMExitContext.r8], r8
   mov [rsp + VmxVMExitContext.r9], r9
   mov [rsp + VmxVMExitContext.r10], r10
@@ -114,6 +118,11 @@ __vmexit_handler:
   mov [rsp + VmxVMExitContext.r14], r14
   mov [rsp + VmxVMExitContext.r15], r15
 
+
+  pushfq
+  pop rax
+  mov [rsp + VmxVMExitContext.flags], rax
+
   mov argv0, rsp  ; context
 
   call VmmVmExitHandler
@@ -122,14 +131,10 @@ __vmexit_handler:
   jne .fail      ; 判断是否执行失败.
 
   mov argv0, VMX_VMCS_GUEST_RIP
-  vmread rax, argv0
+  vmwrite argv0, [rsp + VmxVMExitContext.ip]
 
-  mov argv0, VMX_VMCS32_RO_EXIT_INSTR_LENGTH
-  vmread rbx, argv0
-  add rbx, rax
-
-  mov argv0, VMX_VMCS_GUEST_RIP
-  vmwrite argv0, rbx
+  mov argv0, VMX_VMCS_GUEST_RFLAGS
+  vmwrite argv0, [rsp + VmxVMExitContext.flags]
 
   mov rax, [rsp + VmxVMExitContext.ax]
   mov rbx, [rsp + VmxVMExitContext.bx]

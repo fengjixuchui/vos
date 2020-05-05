@@ -12,6 +12,8 @@
 #include "vos/x86.h"
 #include "vos/x86_64.h"
 
+vos_guest_t* guests[8];
+
 const char* VMX_INSTRUCTION_ERROR_STRING (int num)
 {
 #define XX(N, S) \

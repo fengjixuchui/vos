@@ -30,6 +30,10 @@ typedef struct vos_guest
   };
 } vos_guest_t;
 
+/// 在vmm中给guest申请一块内存.
+/// \param guest
+/// \param size
+/// \return         Guest Physical Address
 uint guest_malloc (vos_guest_t* guest, uint size);
 
 #endif //VOS_GUEST_H

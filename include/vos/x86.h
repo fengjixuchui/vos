@@ -25,6 +25,37 @@ typedef struct gdtr__
 #pragma pack()
 AssertCompileSize (struct gdtr__, 10);
 
+typedef union
+{
+  uint64 bits;
+  struct
+  {
+    uint64 cf : 1;         //!< [0] Carry flag
+    uint64 reserved1 : 1;  //!< [1] Always 1
+    uint64 pf : 1;         //!< [2] Parity flag
+    uint64 reserved2 : 1;  //!< [3] Always 0
+    uint64 af : 1;         //!< [4] Borrow flag
+    uint64 reserved3 : 1;  //!< [5] Always 0
+    uint64 zf : 1;         //!< [6] Zero flag
+    uint64 sf : 1;         //!< [7] Sign flag
+    uint64 tf : 1;         //!< [8] Trap flag
+    uint64 intf : 1;       //!< [9] Interrupt flag
+    uint64 df : 1;         //!< [10] Direction flag
+    uint64 of : 1;         //!< [11] Overflow flag
+    uint64 iopl : 2;       //!< [12:13] I/O privilege level
+    uint64 nt : 1;         //!< [14] Nested task flag
+    uint64 reserved4 : 1;  //!< [15] Always 0
+    uint64 rf : 1;         //!< [16] Resume flag
+    uint64 vm : 1;         //!< [17] Virtual 8086 mode
+    uint64 ac : 1;         //!< [18] Alignment check
+    uint64 vif : 1;        //!< [19] Virtual interrupt flag
+    uint64 vip : 1;        //!< [20] Virtual interrupt pending
+    uint64 id : 1;         //!< [21] Identification flag
+    uint64 reserved5 : 10; //!< [22:31] Always 0
+  };
+} FlagRegister;
+AssertCompileSize (FlagRegister, 8);
+
 // clang-format off
 
 /** @name Machine Specific Registers
