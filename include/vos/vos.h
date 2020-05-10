@@ -40,7 +40,7 @@
 #define VOS_PAGE_SIZE  4096
 
 enum {
-  CMD_CHECK           = ((uint)0x14CD14DB),
+  CMD_CHECK           = ((vos_uint)0x14CD14DB),
   CMD_PUTS           ,
   CMD_HOOK_FUNC       ,
   CMD_UNHOOK_FUNC     ,
@@ -49,10 +49,5 @@ enum {
 };
 
 // clang-format on
-
-typedef struct
-{
-
-} vos_host_t;
 
 #endif //VOS_VOS_H

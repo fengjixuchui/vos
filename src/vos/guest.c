@@ -4,9 +4,9 @@
 
 #include "vos/guest.h"
 
-uint guest_malloc (vos_guest_t* guest, uint size)
+vos_uint guest_malloc (vos_guest_t* guest, vos_uint size)
 {
-  uint ret = guest->memory_base;
-  guest->memory_base += (size + VOS_PAGE_SIZE - 1) & ~(VOS_PAGE_SIZE - 1);
+  vos_uint ret = guest->memory_base_tmep;
+  guest->memory_base_tmep += (size + VOS_PAGE_SIZE - 1) & ~(VOS_PAGE_SIZE - 1);
   return ret;
 }

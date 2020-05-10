@@ -7,32 +7,30 @@
 
 #include "vos/assert.h"
 
-typedef signed char        int8;
-typedef short              int16;
-typedef int                int32;
-typedef long long          int64;
-typedef unsigned char      uint8;
-typedef unsigned short     uint16;
-typedef unsigned int       uint32;
-typedef unsigned long long uint64;
-AssertCompileSize (int8, 1);
-AssertCompileSize (int16, 2);
-AssertCompileSize (int32, 4);
-AssertCompileSize (int64, 8);
-AssertCompileSize (uint8, 1);
-AssertCompileSize (uint16, 2);
-AssertCompileSize (uint32, 4);
-AssertCompileSize (uint64, 8);
+typedef signed char        vos_int8;
+typedef short              vos_int16;
+typedef int                vos_int32;
+typedef long long          vos_int64;
+typedef unsigned char      vos_uint8;
+typedef unsigned short     vos_uint16;
+typedef unsigned int       vos_uint32;
+typedef unsigned long long vos_uint64;
+AssertCompileSize (vos_int8, 1);
+AssertCompileSize (vos_int16, 2);
+AssertCompileSize (vos_int32, 4);
+AssertCompileSize (vos_int64, 8);
+AssertCompileSize (vos_uint8, 1);
+AssertCompileSize (vos_uint16, 2);
+AssertCompileSize (vos_uint32, 4);
+AssertCompileSize (vos_uint64, 8);
 
 // clang-format off
 #if __x86_64__ || _WIN64
-  #define intptr    int64
-  #define uintptr   uint64
-  #define uint      uint64
+  typedef vos_uint64 vos_uint;
+  typedef vos_uint64 vos_uintptr;
 #elif __i386__ || _WIN32
-  #define intptr    int32
-  #define uintptr   uint32
-  #define uint      uint32
+  typedef vos_uint16 vos_uint;
+  typedef vos_uint16 vos_uintptr;
 #else
   #error "wtf???"
 #endif
@@ -47,8 +45,7 @@ AssertCompileSize (uint64, 8);
 
 // clang-format on
 
-AssertCompile ((sizeof (void*) == sizeof (intptr)));
-AssertCompile ((sizeof (void*) == sizeof (uintptr)));
-AssertCompile ((sizeof (void*) == sizeof (uint)));
+AssertCompile ((sizeof (void*) == sizeof (vos_uintptr)));
+AssertCompile ((sizeof (void*) == sizeof (vos_uint)));
 
 #endif //VOS_TYPES_H

@@ -7,21 +7,21 @@
 #include "vos/vos.h"
 #include "vos/x86_64.h"
 
-static uint  page_base;
-static uint* page_map;
-static uint  page_count;
+static vos_uint  page_base;
+static vos_uint* page_map;
+static vos_uint  page_count;
 
-static inline uint calc_page_num (uint size)
+static inline vos_uint calc_page_num (vos_uint size)
 {
   return pa_to_pfn (size + VOS_PAGE_SIZE - 1);
 }
 
-static inline uint calc_page_idx (uint addr)
+static inline vos_uint calc_page_idx (vos_uint addr)
 {
   return pa_to_pfn (addr - page_base);
 }
 
-void init_memory (uint addr, uint len)
+void init_memory (vos_uint addr, vos_uint len)
 {
   page_count = calc_page_num (len);
   page_map   = addr;
@@ -29,13 +29,13 @@ void init_memory (uint addr, uint len)
   {
     page_map[i] = 0;
   }
-  page_base = addr + (((sizeof (*page_map) * page_count) + VOS_PAGE_SIZE - 1) & ~(uint)0xfff);
+  page_base = addr + (((sizeof (*page_map) * page_count) + VOS_PAGE_SIZE - 1) & ~(vos_uint)0xfff);
 }
 
-static uint alloc_mem (uint size)
+static vos_uint alloc_mem (vos_uint size)
 {
-  uint n   = calc_page_num (size);
-  uint end = page_count - n + 1;
+  vos_uint n   = calc_page_num (size);
+  vos_uint end = page_count - n + 1;
   for (int i = 0; i < end; ++i)
   {
     for (int j = 0; j < n; ++j)
@@ -62,34 +62,34 @@ static uint alloc_mem (uint size)
   return 0;
 }
 
-void memcpy (void* dest, const void* src, uint n)
+void memcpy (void* dest, const void* src, vos_uint n)
 {
   for (int i = 0; i < n; ++i)
   {
-    ((uint8*)dest)[i] = ((uint8*)src)[i];
+    ((vos_uint8*)dest)[i] = ((vos_uint8*)src)[i];
   }
 }
 
-int memcmp (const void* a, const void* b, uint n)
+int memcmp (const void* a, const void* b, vos_uint n)
 {
   for (int i = 0; i < n; ++i)
   {
-    if (((uint8*)a)[i] < ((uint8*)b)[i])
+    if (((vos_uint8*)a)[i] < ((vos_uint8*)b)[i])
       return -1;
 
-    if (((uint8*)a)[i] > ((uint8*)b)[i])
+    if (((vos_uint8*)a)[i] > ((vos_uint8*)b)[i])
       return 1;
   }
 
   return 0;
 }
 
-void* malloc (uint64 size)
+void* malloc (vos_uint64 size)
 {
   return (void*)alloc_mem (size);
 }
 
-void* calloc (uint64 size)
+void* calloc (vos_uint64 size)
 {
   void* mem = (void*)alloc_mem (size);
   __memset8 (mem, 0, size);
@@ -98,8 +98,8 @@ void* calloc (uint64 size)
 
 void free (void* mem)
 {
-  uint idx = calc_page_idx (mem);
-  uint n   = page_map[idx] >> 1; // 标识这块内存有多少个页.
+  vos_uint idx = calc_page_idx (mem);
+  vos_uint n   = page_map[idx] >> 1; // 标识这块内存有多少个页.
   for (int i = 0; i < n; ++i)
   {
     page_map[idx + i] = 0;
@@ -108,7 +108,7 @@ void free (void* mem)
 }
 
 // 9-9-9-9-12
-uint64 HVA_to_HPA (uint64 va)
+vos_uint64 HVA_to_HPA (vos_uint64 va)
 {
   // uint64 PML4    = __read_cr3 ();
   // uint64 offset  = (va >> 0) & (uint64)0b111111111111;

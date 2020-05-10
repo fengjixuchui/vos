@@ -4,45 +4,45 @@ bits 64
 
 extern VmmVmExitHandler
 
-global __vmptrld
-global __vmptrst
-global __vmclear
-global __vmread
-global __vmwrite
-global __vmlaunch
-global __vmresume
-global __vmxoff
-global __vmxon
-global __invept
-global __invvpid
-global __vmcall
-global __vmfunc
-global __vmexit_handler
+global __vos_vmx_vmptrld
+global __vos_vmx_vmptrst
+global __vos_vmx_vmclear
+global __vos_vmx_vmread
+global __vos_vmx_vmwrite
+global __vos_vmx_vmlaunch
+global __vos_vmx_vmresume
+global __vos_vmx_vmoff
+global __vos_vmx_vmon
+global __vos_vmx_invept
+global __vos_vmx_invvpid
+global __vos_vmx_vmcall
+global __vos_vmx_vmfunc
+global __vos_vmx_vmexit_handler
 
 ; Load Pointer to Virtual-Machine Control Structure
-__vmptrld:
+__vos_vmx_vmptrld:
   mov rax, argv0
   vmptrld [rax]
   ret
 
 ; Store Pointer to Virtual-Machine Control Structure
-__vmptrst:
+__vos_vmx_vmptrst:
   vmptrst [argv0]
   ret
 
 ; Clear Virtual-Machine Control Structure
-__vmclear:
+__vos_vmx_vmclear:
   mov rax, argv0
   vmclear [rax]
   ret
 
 ; Read Field from Virtual-Machine Control Structure
-__vmread:
+__vos_vmx_vmread:
   vmread rax, argv0
   ret
 
 ; Write Field to Virtual-Machine Control Structure
-__vmwrite:
+__vos_vmx_vmwrite:
   vmwrite argv0, argv1
   pushfq
   pop rax
@@ -50,44 +50,44 @@ __vmwrite:
   ret
 
 ; 若执行成功,代码执行流程将改变,不会返回.
-__vmlaunch:
+__vos_vmx_vmlaunch:
   BOCHS_MAGIC_BREAK
   vmlaunch
   ret
 
 ; 若执行成功,代码执行流程将改变,不会返回.
-__vmresume:
+__vos_vmx_vmresume:
   vmresume
   ret
 
 ; Leave VMX Operation
-__vmxoff:
+__vos_vmx_vmoff:
   vmxoff
   ret
 
 ; Enter VMX Operation
-__vmxon:
+__vos_vmx_vmon:
   mov rax, argv0
   vmxon [rax]
   ret
 
 ; Invalidate Translations Derived from EPT
-__invept:
+__vos_vmx_invept:
   invept argv0, [argv1]
   ret
 
 ; Invalidate Translations Based on VPID
-__invvpid:
+__vos_vmx_invvpid:
   invvpid rax, [argv0]
   ret
 
 ; Call to VM Monitor
-__vmcall:
+__vos_vmx_vmcall:
   vmcall
   ret
 
 ; Invoke VM function
-__vmfunc:
+__vos_vmx_vmfunc:
   vmfunc
   ret
 
@@ -95,7 +95,7 @@ __vmfunc:
 %define VMX_VMCS32_RO_EXIT_INSTR_LENGTH                         0x440c
 %define VMX_VMCS_GUEST_RFLAGS                                   0x6820
 
-__vmexit_handler:
+__vos_vmx_vmexit_handler:
   push rbp
   mov rbp, rsp
 
@@ -155,7 +155,7 @@ __vmexit_handler:
 
   pop rbp
 
-  call __vmresume        ; 这条命令执行成功将改变执行流程,不会返回.
+  call __vos_vmx_vmresume        ; 这条命令执行成功将改变执行流程,不会返回.
 
   .fail:
   int 3

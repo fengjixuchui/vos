@@ -7,6 +7,7 @@
 
 #include "vos/types.h"
 #include "vos/x86.h"
+#include "vos/guest.h"
 
 // clang-format off
 
@@ -489,7 +490,7 @@
  *  'first' VT-x capable CPUs; this actually includes the newest Nehalem CPUs) */
 #define VMX_EXIT_CTLS_SAVE_DEBUG                                (uint32)(1 << 2)
 /** Return to long mode after a VM-exit. */
-#define VMX_EXIT_CTLS_HOST_ADDR_SPACE_SIZE                      (uint32)(1 << 9)
+#define VMX_EXIT_CTLS_HOST_ADDR_SPACE_SIZE                      (vos_uint32)(1 << 9)
 /** Whether the host IA32_PERF_GLOBAL_CTRL MSR is loaded on VM-exit. */
 #define VMX_EXIT_CTLS_LOAD_PERF_MSR                             (uint32)(1 << 12)
 /** Acknowledge external interrupts with the irq controller if one caused a VM-exit. */
@@ -547,7 +548,7 @@
   XX (28, "Invalid operand to INVEPT/INVVPID.")
 
 const char* VMX_INSTRUCTION_ERROR_STRING (int num);
-void*       make_guest_PML4E ();
+void*       make_guest_PML4 ();
 
 // clang-format on
 
@@ -556,35 +557,35 @@ typedef union
 {
   struct
   {
-    uint8 reserved1 : 2;                  //!< [0:1]
-    uint8 interrupt_window_exiting : 1;   //!< [2]
-    uint8 use_tsc_offseting : 1;          //!< [3]
-    uint8 reserved2 : 3;                  //!< [4:6]
-    uint8 hlt_exiting : 1;                //!< [7]
-    uint8 reserved3 : 1;                  //!< [8]
-    uint8 invlpg_exiting : 1;             //!< [9]
-    uint8 mwait_exiting : 1;              //!< [10]
-    uint8 rdpmc_exiting : 1;              //!< [11]
-    uint8 rdtsc_exiting : 1;              //!< [12]
-    uint8 reserved4 : 2;                  //!< [13:14]
-    uint8 cr3_load_exiting : 1;           //!< [15]
-    uint8 cr3_store_exiting : 1;          //!< [16]
-    uint8 reserved5 : 2;                  //!< [17:18]
-    uint8 cr8_load_exiting : 1;           //!< [19]
-    uint8 cr8_store_exiting : 1;          //!< [20]
-    uint8 use_tpr_shadow : 1;             //!< [21]
-    uint8 nmi_window_exiting : 1;         //!< [22]
-    uint8 mov_dr_exiting : 1;             //!< [23]
-    uint8 unconditional_io_exiting : 1;   //!< [24]
-    uint8 use_io_bitmaps : 1;             //!< [25]
-    uint8 reserved6 : 1;                  //!< [26]
-    uint8 monitor_trap_flag : 1;          //!< [27]
-    uint8 use_msr_bitmaps : 1;            //!< [28]
-    uint8 monitor_exiting : 1;            //!< [29]
-    uint8 pause_exiting : 1;              //!< [30]
-    uint8 activate_secondary_control : 1; //!< [31]
+    vos_uint8 reserved1 : 2;                  //!< [0:1]
+    vos_uint8 interrupt_window_exiting : 1;   //!< [2]
+    vos_uint8 use_tsc_offseting : 1;          //!< [3]
+    vos_uint8 reserved2 : 3;                  //!< [4:6]
+    vos_uint8 hlt_exiting : 1;                //!< [7]
+    vos_uint8 reserved3 : 1;                  //!< [8]
+    vos_uint8 invlpg_exiting : 1;             //!< [9]
+    vos_uint8 mwait_exiting : 1;              //!< [10]
+    vos_uint8 rdpmc_exiting : 1;              //!< [11]
+    vos_uint8 rdtsc_exiting : 1;              //!< [12]
+    vos_uint8 reserved4 : 2;                  //!< [13:14]
+    vos_uint8 cr3_load_exiting : 1;           //!< [15]
+    vos_uint8 cr3_store_exiting : 1;          //!< [16]
+    vos_uint8 reserved5 : 2;                  //!< [17:18]
+    vos_uint8 cr8_load_exiting : 1;           //!< [19]
+    vos_uint8 cr8_store_exiting : 1;          //!< [20]
+    vos_uint8 use_tpr_shadow : 1;             //!< [21]
+    vos_uint8 nmi_window_exiting : 1;         //!< [22]
+    vos_uint8 mov_dr_exiting : 1;             //!< [23]
+    vos_uint8 unconditional_io_exiting : 1;   //!< [24]
+    vos_uint8 use_io_bitmaps : 1;             //!< [25]
+    vos_uint8 reserved6 : 1;                  //!< [26]
+    vos_uint8 monitor_trap_flag : 1;          //!< [27]
+    vos_uint8 use_msr_bitmaps : 1;            //!< [28]
+    vos_uint8 monitor_exiting : 1;            //!< [29]
+    vos_uint8 pause_exiting : 1;              //!< [30]
+    vos_uint8 activate_secondary_control : 1; //!< [31]
   };
-  uint32 bits;
+  vos_uint32 bits;
 } VmxPrimaryProcessorBasedControls;
 AssertCompileSize (VmxPrimaryProcessorBasedControls, 4);
 
@@ -593,76 +594,80 @@ typedef union
 {
   struct
   {
-    uint8 virtualize_apic_accesses : 1;           //!< [0]
-    uint8 enable_ept : 1;                         //!< [1]
-    uint8 descriptor_table_exiting : 1;           //!< [2]
-    uint8 enable_rdtscp : 1;                      //!< [3]
-    uint8 virtualize_x2apic_mode : 1;             //!< [4]
-    uint8 enable_vpid : 1;                        //!< [5]
-    uint8 wbinvd_exiting : 1;                     //!< [6]
-    uint8 unrestricted_guest : 1;                 //!< [7]
-    uint8 apic_register_virtualization : 1;       //!< [8]
-    uint8 virtual_interrupt_delivery : 1;         //!< [9]
-    uint8 pause_loop_exiting : 1;                 //!< [10]
-    uint8 rdrand_exiting : 1;                     //!< [11]
-    uint8 enable_invpcid : 1;                     //!< [12]
-    uint8 enable_vm_functions : 1;                //!< [13]
-    uint8 vmcs_shadowing : 1;                     //!< [14]
-    uint8 reserved1 : 1;                          //!< [15]
-    uint8 rdseed_exiting : 1;                     //!< [16]
-    uint8 reserved2 : 1;                          //!< [17]
-    uint8 enable_ept_violation_ve : 1;            //!< [18]
-    uint8 reserved3 : 1;                          //!< [19]
-    uint8 enable_xsaves_xstors : 1;               //!< [20]
-    uint8 reserved4 : 1;                          //!< [21]
-    uint8 mode_based_execute_control_for_ept : 1; //!< [22]
-    uint8 reserved5 : 2;                          //!< [23:24]
-    uint8 use_tsc_scaling : 1;                    //!< [25]
+    vos_uint8 virtualize_apic_accesses : 1;           //!< [0]
+    vos_uint8 enable_ept : 1;                         //!< [1]
+    vos_uint8 descriptor_table_exiting : 1;           //!< [2]
+    vos_uint8 enable_rdtscp : 1;                      //!< [3]
+    vos_uint8 virtualize_x2apic_mode : 1;             //!< [4]
+    vos_uint8 enable_vpid : 1;                        //!< [5]
+    vos_uint8 wbinvd_exiting : 1;                     //!< [6]
+    vos_uint8 unrestricted_guest : 1;                 //!< [7]
+    vos_uint8 apic_register_virtualization : 1;       //!< [8]
+    vos_uint8 virtual_interrupt_delivery : 1;         //!< [9]
+    vos_uint8 pause_loop_exiting : 1;                 //!< [10]
+    vos_uint8 rdrand_exiting : 1;                     //!< [11]
+    vos_uint8 enable_invpcid : 1;                     //!< [12]
+    vos_uint8 enable_vm_functions : 1;                //!< [13]
+    vos_uint8 vmcs_shadowing : 1;                     //!< [14]
+    vos_uint8 reserved1 : 1;                          //!< [15]
+    vos_uint8 rdseed_exiting : 1;                     //!< [16]
+    vos_uint8 reserved2 : 1;                          //!< [17]
+    vos_uint8 enable_ept_violation_ve : 1;            //!< [18]
+    vos_uint8 reserved3 : 1;                          //!< [19]
+    vos_uint8 enable_xsaves_xstors : 1;               //!< [20]
+    vos_uint8 reserved4 : 1;                          //!< [21]
+    vos_uint8 mode_based_execute_control_for_ept : 1; //!< [22]
+    vos_uint8 reserved5 : 2;                          //!< [23:24]
+    vos_uint8 use_tsc_scaling : 1;                    //!< [25]
   };
-  uint32 bits;
+  vos_uint32 bits;
 } VmxSecondaryProcessorBasedControls;
 AssertCompileSize (VmxSecondaryProcessorBasedControls, 4);
 
 typedef struct
 {
-  uint64       rax;
-  uint64       rbx;
-  uint64       rcx;
-  uint64       rdx;
-  uint64       rsi;
-  uint64       rdi;
-  uint64       rip;
-  uint64       r8;
-  uint64       r9;
-  uint64       r10;
-  uint64       r11;
-  uint64       r12;
-  uint64       r13;
-  uint64       r14;
-  uint64       r15;
+  vos_uint64   rax;
+  vos_uint64   rbx;
+  vos_uint64   rcx;
+  vos_uint64   rdx;
+  vos_uint64   rsi;
+  vos_uint64   rdi;
+  vos_uint64   rip;
+  vos_uint64   r8;
+  vos_uint64   r9;
+  vos_uint64   r10;
+  vos_uint64   r11;
+  vos_uint64   r12;
+  vos_uint64   r13;
+  vos_uint64   r14;
+  vos_uint64   r15;
   FlagRegister flags;
 } VmxVMExitContext_t;
 
-extern void   __vmptrld (uint64 vmcsPA);
-extern void   __vmptrst ();
-extern void   __vmclear (uint64 vmcsPA);
-extern uint64 __vmread (uint64 field);
-extern uint64 __vmwrite (uint64 field, uint64 value);
-extern void   __vmlaunch ();
-extern void   __vmresume ();
-extern void   __vmxoff ();
-extern void   __vmxon (uint64 hostPA);
-extern void   __invept (uint64 type, const uint* desc);
-extern void   __invvpid ();
-extern void   __vmcall (uint64 cmd, uint64 arg0, uint64 arg1);
-extern void   __vmfunc ();
-extern void   __vmexit_handler ();
+typedef struct vos_vmx_guest_s
+{
+  vos_guest_t _;
+  void*       vmcs;
+} vos_vmx_guest_t;
 
-typedef struct vos_guest vos_guest_t;
+extern void       __vos_vmx_vmptrld (vos_uint64 vmcsPA);
+extern void       __vos_vmx_vmptrst ();
+extern void       __vos_vmx_vmclear (vos_uint64 vmcsPA);
+extern vos_uint64 __vos_vmx_vmread (vos_uint64 field);
+extern vos_uint64 __vos_vmx_vmwrite (vos_uint64 field, vos_uint64 value);
+extern void       __vos_vmx_vmlaunch ();
+extern void       __vos_vmx_vmresume ();
+extern void       __vos_vmx_vmoff ();
+extern void       __vos_vmx_vmon (vos_uint64 hostPA);
+extern void       __vos_vmx_invept (vos_uint64 type, const vos_uint* desc);
+extern void       __vos_vmx_invvpid ();
+extern void       __vos_vmx_vmcall (vos_uint64 cmd, vos_uint64 arg0, vos_uint64 arg1);
+extern void       __vos_vmx_vmfunc ();
+extern void       __vos_vmx_vmexit_handler;
 
-void setup_vmx_PML4E (vos_guest_t* guest, uint64 guest_VA, uint64 GPA);
-uint make_vmx_PML4E (vos_guest_t* guest, uint64 page_count);
-uint make_vmx_gdt (vos_guest_t* guest);
+void     setup_vmx_PML4E (vos_guest_t* guest, vos_uint64 guest_VA, vos_uint64 GPA);
+vos_uint make_vmx_PML4E (vos_guest_t* guest, vos_uint64 page_count);
+vos_uint make_vmx_gdt (vos_guest_t* guest);
 
 extern vos_guest_t* guests[8];
 

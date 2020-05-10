@@ -7,10 +7,10 @@
 
 #include "vos/types.h"
 
-uint gui_init (uint64 framebuffer, uint64 pitch, uint width, uint height, uint depth);
-uint window_new (uint x, uint y, uint w, uint h);
-uint window_delete (uint window);
-void window_update (uint window);
-uint gui_set_caption (uint window, uint8* text, uint len);
+vos_uint gui_init (vos_uint64 framebuffer, vos_uint64 pitch, vos_uint width, vos_uint height, vos_uint depth);
+vos_uint window_new (vos_uint x, vos_uint y, vos_uint w, vos_uint h);
+vos_uint window_delete (vos_uint window);
+void     window_update (vos_uint window);
+vos_uint gui_set_caption (vos_uint window, vos_uint8* text, vos_uint len);
 
 #endif //VOS_GUI_H

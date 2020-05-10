@@ -2,33 +2,33 @@
 
 bits 64
 
-global __vmrun
-global __vmsave
-global __vmload
-global __vmmcall
-global __svm_run
+global __vos_svm_vmrun
+global __vos_svm_vmsave
+global __vos_svm_vmload
+global __vos_svm_vmmcall
+global __vos_svm_loop
 extern svm_vmexit_handler
 
-__vmrun:
+__vos_svm_vmrun:
   mov rax, argv0
   vmrun
   ret
 
-__vmsave:
+__vos_svm_vmsave:
   mov rax, argv0
   vmsave
   ret
 
-__vmload:
+__vos_svm_vmload:
   mov rax, argv0
   vmload
   ret
 
-__vmmcall:
+__vos_svm_vmmcall:
   vmmcall
   ret
 
-__svm_run:
+__vos_svm_loop:
   mov rsp, argv0
   .loop:
     mov rax, rsp

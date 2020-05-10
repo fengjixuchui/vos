@@ -43,7 +43,7 @@ global __write_idtr
 global __clgi
 global __stgi
 
-; void (char* buffer, uint8 n, uint len)
+; void (char* buffer, uint8 n, vos_uint len)
 __memset8:
   mov rdi, argv0
   mov rax, argv1
@@ -51,7 +51,7 @@ __memset8:
   rep stosb
   ret
 
-; void (char* buffer, uint16 n, uint len)
+; void (char* buffer, uint16 n, vos_uint len)
 __memset16:
   mov rdi, argv0
   mov rax, argv1
@@ -59,7 +59,7 @@ __memset16:
   rep stosw
   ret
 
-; void (char* buffer, uint32 n, uint len)
+; void (char* buffer, uint32 n, vos_uint len)
 __memset32:
   mov rdi, argv0
   mov rax, argv1
@@ -67,7 +67,7 @@ __memset32:
   rep stosd
   ret
 
-; void (char* buffer, uint64 n, uint len)
+; void (char* buffer, uint64 n, vos_uint len)
 __memset64:
   mov rdi, argv0
   mov rax, argv1

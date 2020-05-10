@@ -40,13 +40,13 @@ static void guest_entry ()
   cpuid_t cpuid;
   __cpuid (&cpuid, 0);
 
-  ((uint32*)vendor)[0] = cpuid.ebx;
-  ((uint32*)vendor)[1] = cpuid.edx;
-  ((uint32*)vendor)[2] = cpuid.ecx;
+  ((vos_uint32*)vendor)[0] = cpuid.ebx;
+  ((vos_uint32*)vendor)[1] = cpuid.edx;
+  ((vos_uint32*)vendor)[2] = cpuid.ecx;
   print ("CPU Vendor : %s\n", vendor);
 
-  // __vmmcall (CMD_CHECK, 0, 0);
-  // __vmmcall (CMD_HOOK_FUNC, 0x1000, 0x2000);
+  // __vos_svm_vmmcall (CMD_CHECK, 0, 0);
+  // __vos_svm_vmmcall (CMD_HOOK_FUNC, 0x1000, 0x2000);
 
   puts ("GuestEntry end");
 
@@ -54,7 +54,7 @@ static void guest_entry ()
     ;
 }
 
-static uint start_vm ()
+static vos_uint start_vm ()
 {
 
   gdtr_t gdtr;
@@ -63,7 +63,7 @@ static uint start_vm ()
   __read_idtr (&idtr);
 
   __write_msr (0xc0000080, __read_msr (0xc0000080) | EFER_SVME);
-  uint64 MsrPermissionsMap = calloc (SVM_MSR_PERMISSIONS_MAP_SIZE);
+  vos_uint64 MsrPermissionsMap = calloc (SVM_MSR_PERMISSIONS_MAP_SIZE);
 
   VMCB* host_vmcb  = (VMCB*)calloc (sizeof (VMCB));
   VMCB* guest_vmcb = (VMCB*)calloc (sizeof (VMCB));
@@ -74,7 +74,7 @@ static uint start_vm ()
   guest_vmcb->ControlArea.MsrpmBasePa = MsrPermissionsMap;
   guest_vmcb->ControlArea.GuestAsid   = 1;
   // guest_vmcb->ControlArea.NpEnable |= SVM_NP_ENABLE_NP_ENABLE;
-  guest_vmcb->ControlArea.NCr3        = make_guest_PML4E ();
+  guest_vmcb->ControlArea.NCr3        = make_guest_PML4 ();
   guest_vmcb->StateSaveArea.GdtrBase  = gdtr.base;
   guest_vmcb->StateSaveArea.GdtrLimit = gdtr.limit;
   guest_vmcb->StateSaveArea.IdtrBase  = idtr.base;
@@ -106,19 +106,20 @@ static uint start_vm ()
   guest_vmcb->StateSaveArea.Rip    = &guest_entry;
   guest_vmcb->StateSaveArea.GPat   = __read_msr (IA32_MSR_PAT);
 
-  __vmsave (guest_vmcb);
+  __vos_svm_vmsave (guest_vmcb);
 
   // See: 15.30.4 VM_HSAVE_PA MSR (C001_0117h)
   __write_msr (SVM_MSR_VM_HSAVE_PA, calloc (4096));
 
-  __vmsave (host_vmcb);
+  __vos_svm_vmsave (host_vmcb);
 
-  __svm_run (guest_vmcb);
+  __vos_svm_loop (guest_vmcb);
+
   return 0;
 }
 
 // See: 15.4 Enabling SVM
-static uint check_svm ()
+static vos_uint check_svm ()
 {
   cpuid_t cpuid;
   __cpuid (&cpuid, 0x80000001);
@@ -130,7 +131,7 @@ static uint check_svm ()
   if ((cpuid.edx & CPUID_8000000A_EDX_NRIP) == 0)
     return -2;
 
-  uint64 vm_cr = __read_msr (MSR_VM_CR);
+  vos_uint64 vm_cr = __read_msr (MSR_VM_CR);
   if (vm_cr & MSR_VM_CR_SVMDIS)
   {
     if ((cpuid.edx & CPUID_8000000A_EDX_SVML) == 0)
@@ -148,7 +149,7 @@ static uint check_svm ()
 }
 
 // See: 15.25.3 Enabling Nested Paging
-static uint check_npt ()
+static vos_uint check_npt ()
 {
   cpuid_t cpuid;
 
@@ -159,7 +160,7 @@ static uint check_npt ()
   return 0;
 }
 
-uint svm_vmexit_handler (SvmVMExitContext_t* context)
+vos_uint svm_vmexit_handler (SvmVMExitContext_t* context)
 {
   VMCB* guest_vmcb = (VMCB*)context->vmcbptr;
   // 不知道为啥我这里非要重新加载 access rights, 不然恢复之后会进入到兼容模式.待查.

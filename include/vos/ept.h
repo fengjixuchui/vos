@@ -17,13 +17,13 @@ typedef union
      * 0
      * Read access; indicates whether reads are allowed from the 512-GByte region controlled by this entry
      */
-    uint64 read_access : 1;
+    vos_uint64 read_access : 1;
 
     /**
      * 1
      * Write access; indicates whether writes are allowed from the 512-GByte region controlled by this entry
      */
-    uint64 write_access : 1;
+    vos_uint64 write_access : 1;
 
     /**
      * 2
@@ -32,26 +32,26 @@ typedef union
      * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
      * allowed from supervisor-mode linear addresses in the 512-GByte region controlled by this entry
      */
-    uint64 execute_access : 1;
+    vos_uint64 execute_access : 1;
 
     /**
      * 7:3
      * Reserved (must be 0)
      */
-    uint64 reversed : 5;
+    vos_uint64 reversed : 5;
 
     /**
      * 8
      * If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 512-GByte region
      * controlled by this entry (see Section 28.2.4). Ignored if bit 6 of EPTP is 0
      */
-    uint64 __ : 1;
+    vos_uint64 __ : 1;
 
     /**
      * 9
      * Ignored
      */
-    uint64 ignored1 : 1;
+    vos_uint64 ignored1 : 1;
 
     /**
      * 10
@@ -59,33 +59,33 @@ typedef union
      * 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 512-GByte region
      * controlled by this entry. If that control is 0, this bit is ignored.
      */
-    uint64 execute_access_for_user_mode_linear_address : 1;
+    vos_uint64 execute_access_for_user_mode_linear_address : 1;
 
     /**
      * 11
      * Ignored
      */
-    uint64 ignored2 : 1;
+    vos_uint64 ignored2 : 1;
 
     /**
      * (N–1):12
      * Physical address of 4-KByte aligned EPT page-directory-pointer table referenced by this entry
      */
-    uint64 pdpt_page_PA : 36;
+    vos_uint64 pdpt_page_PA : 36;
 
     /**
      * 51:N
      * Reserved (must be 0)
      */
-    uint64 reverse2 : 4;
+    vos_uint64 reverse2 : 4;
 
     /**
      * 63:52
      * Ignored
      */
-    uint64 ignored4 : 12;
+    vos_uint64 ignored4 : 12;
   };
-  uint64 bits;
+  vos_uint64 bits;
 } ept_PML4E_t;
 
 AssertCompileSize (ept_PML4E_t, 8);
@@ -99,13 +99,13 @@ typedef union
      * 0
      * Read access; indicates whether reads are allowed from the 1-GByte region controlled by this entry
      */
-    uint64 read_access : 1;
+    vos_uint64 read_access : 1;
 
     /**
      * 1
      * Write access; indicates whether writes are allowed from the 1-GByte region controlled by this entry
      */
-    uint64 write_access : 1;
+    vos_uint64 write_access : 1;
 
     /**
      * 2
@@ -114,26 +114,26 @@ typedef union
      * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
      * allowed from supervisor-mode linear addresses in the 1-GByte region controlled by this entry
      */
-    uint64 execute_access : 1;
+    vos_uint64 execute_access : 1;
 
     /**
      * 7:3
      * Reserved (must be 0)
      */
-    uint64 reversed : 5;
+    vos_uint64 reversed : 5;
 
     /**
      * 8
      * If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 1-GByte region controlled
      * by this entry (see Section 28.2.4). Ignored if bit 6 of EPTP is 0
      */
-    uint64 __ : 1;
+    vos_uint64 __ : 1;
 
     /**
      * 9
      * Ignored
      */
-    uint64 ignored1 : 1;
+    vos_uint64 ignored1 : 1;
 
     /**
      * 10
@@ -141,33 +141,33 @@ typedef union
      * 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 1-GByte region
      * controlled by this entry. If that control is 0, this bit is ignored.
      */
-    uint64 execute_access_for_user_mode_linear_address : 1;
+    vos_uint64 execute_access_for_user_mode_linear_address : 1;
 
     /**
      * 11
      * Ignored
      */
-    uint64 ignored2 : 1;
+    vos_uint64 ignored2 : 1;
 
     /**
      * (N–1):12
      * Physical address of 4-KByte aligned EPT page directory referenced by this entry
      */
-    uint64 pd_page_PA : 36;
+    vos_uint64 pd_page_PA : 36;
 
     /**
      * 51:N
      * Reserved (must be 0)
      */
-    uint64 reverse2 : 4;
+    vos_uint64 reverse2 : 4;
 
     /**
      * 63:52
      * Ignored
      */
-    uint64 ignored4 : 12;
+    vos_uint64 ignored4 : 12;
   };
-  uint64 bits;
+  vos_uint64 bits;
 } ept_PDPTE_t;
 
 AssertCompileSize (ept_PDPTE_t, 8);
@@ -181,13 +181,13 @@ typedef union
      * 0
      * Read access; indicates whether reads are allowed from the 2-MByte region controlled by this entry
      */
-    uint64 read_access : 1;
+    vos_uint64 read_access : 1;
 
     /**
      * 1
      * Write access; indicates whether writes are allowed from the 2-MByte region controlled by this entry
      */
-    uint64 write_access : 1;
+    vos_uint64 write_access : 1;
 
     /**
      * 2
@@ -196,32 +196,32 @@ typedef union
      * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
      * allowed from supervisor-mode linear addresses in the 2-MByte region controlled by this entry
      */
-    uint64 execute_access : 1;
+    vos_uint64 execute_access : 1;
 
     /**
      * 6:3
      * Reserved (must be 0)
      */
-    uint64 reversed : 4;
+    vos_uint64 reversed : 4;
 
     /**
      * 7
      * Must be 0 (otherwise, this entry maps a 2-MByte page)
      */
-    uint64 must_be_zero : 1;
+    vos_uint64 must_be_zero : 1;
 
     /**
      * 8
      * If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 2-MByte region controlled
      * by this entry (see Section 28.2.4). Ignored if bit 6 of EPTP is 0
      */
-    uint64 __ : 1;
+    vos_uint64 __ : 1;
 
     /**
      * 9
      * Ignored
      */
-    uint64 ignored1 : 1;
+    vos_uint64 ignored1 : 1;
 
     /**
      * 10
@@ -229,33 +229,33 @@ typedef union
      * 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 2-MByte region
      * controlled by this entry. If that control is 0, this bit is ignored.
      */
-    uint64 execute_access_for_user_mode_linear_address : 1;
+    vos_uint64 execute_access_for_user_mode_linear_address : 1;
 
     /**
      * 11
      * Ignored
      */
-    uint64 ignored2 : 1;
+    vos_uint64 ignored2 : 1;
 
     /**
      * (N–1):12
      * Physical address of 4-KByte aligned EPT page table referenced by this entry
      */
-    uint64 pt_page_PA : 36;
+    vos_uint64 pt_page_PA : 36;
 
     /**
      * 51:N
      * Reserved (must be 0)
      */
-    uint64 reverse2 : 4;
+    vos_uint64 reverse2 : 4;
 
     /**
      * 63:52
      * Ignored
      */
-    uint64 ignored4 : 12;
+    vos_uint64 ignored4 : 12;
   };
-  uint64 bits;
+  vos_uint64 bits;
 } ept_PDE_t;
 
 AssertCompileSize (ept_PDE_t, 8);
@@ -269,13 +269,13 @@ typedef union
      * 0
      * Read access; indicates whether reads are allowed from the 4-KByte page referenced by this entry
      */
-    uint64 read_access : 1;
+    vos_uint64 read_access : 1;
 
     /**
      * 1
      * Write access; indicates whether writes are allowed from the 4-KByte page referenced by this entry
      */
-    uint64 write_access : 1;
+    vos_uint64 write_access : 1;
 
     /**
      * 2
@@ -284,39 +284,39 @@ typedef union
      * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
      * allowed from supervisor-mode linear addresses in the 4-KByte page controlled by this entry
      */
-    uint64 execute_access : 1;
+    vos_uint64 execute_access : 1;
 
     /**
      * 5:3
      * EPT memory type for this 4-KByte page (see Section 28.2.6)
      */
-    uint64 ept_memory_type : 3;
+    vos_uint64 ept_memory_type : 3;
 
     /**
      * 6
      * Ignore PAT memory type for this 4-KByte page (see Section 28.2.6)
      */
-    uint64 __ : 1;
+    vos_uint64 __ : 1;
 
     /**
      * 7
      * Ignored
      */
-    uint64 ignored : 1;
+    vos_uint64 ignored : 1;
 
     /**
      * 8
      * If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 4-KByte page referenced
      * by this entry (see Section 28.2.4). Ignored if bit 6 of EPTP is 0
      */
-    uint64 ___ : 1;
+    vos_uint64 ___ : 1;
 
     /**
      * 9
      * If bit 6 of EPTP is 1, dirty flag for EPT; indicates whether software has written to the 4-KByte page referenced by
      * this entry (see Section 28.2.4). Ignored if bit 6 of EPTP is 0
      */
-    uint64 ignored1 : 1;
+    vos_uint64 ignored1 : 1;
 
     /**
      * 10
@@ -324,31 +324,31 @@ typedef union
      * 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 4-KByte page controlled
      * by this entry. If that control is 0, this bit is ignored.
      */
-    uint64 execute_access_for_user_mode_linear_address : 1;
+    vos_uint64 execute_access_for_user_mode_linear_address : 1;
 
     /**
      * 11
      * Ignored
      */
-    uint64 ignored2 : 1;
+    vos_uint64 ignored2 : 1;
 
     /**
      * (N–1):12
      * Physical address of the 4-KByte page referenced by this entry1
      */
-    uint64 page_PA : 36;
+    vos_uint64 page_PA : 36;
 
     /**
      * 51:N
      * Reserved (must be 0)
      */
-    uint64 reverse2 : 4;
+    vos_uint64 reverse2 : 4;
 
     /**
      * 62:52
      * Ignored
      */
-    uint64 ignored4 : 11;
+    vos_uint64 ignored4 : 11;
 
     /**
      * 63
@@ -356,9 +356,9 @@ typedef union
      * are convertible to virtualization exceptions only if this bit is 0 (see Section 25.5.6.1). If “EPT-violation #VE” VMexecution
      * control is 0, this bit is ignored.
      */
-    uint64 suppress : 1;
+    vos_uint64 suppress : 1;
   };
-  uint64 bits;
+  vos_uint64 bits;
 } ept_PTE_t;
 
 AssertCompileSize (ept_PTE_t, 8);
@@ -368,14 +368,14 @@ typedef union
 {
   struct
   {
-    uint64 memory_type : 3;                     //!< [0:2]
-    uint64 page_walk_length : 3;                //!< [3:5]
-    uint64 enable_accessed_and_dirty_flags : 1; //!< [6]
-    uint64 reserved1 : 5;                       //!< [7:11]
-    uint64 pml4_address : 36;                   //!< [12:48-1]
-    uint64 reserved2 : 16;                      //!< [48:63]
+    vos_uint64 memory_type : 3;                     //!< [0:2]
+    vos_uint64 page_walk_length : 3;                //!< [3:5]
+    vos_uint64 enable_accessed_and_dirty_flags : 1; //!< [6]
+    vos_uint64 reserved1 : 5;                       //!< [7:11]
+    vos_uint64 pml4_address : 36;                   //!< [12:48-1]
+    vos_uint64 reserved2 : 16;                      //!< [48:63]
   };
-  uint64 bits;
+  vos_uint64 bits;
 } EptPointer;
 AssertCompileSize (EptPointer, 8);
 
@@ -383,24 +383,24 @@ AssertCompileSize (EptPointer, 8);
 /// \param pml4_HVA
 /// \param GPA        Guest Physical
 /// \return           Host Physical Address
-uint ept_translation (ept_PML4E_t* pml4_HVA, uint GPA);
+vos_uint ept_translation (ept_PML4E_t* pml4_HVA, vos_uint GPA);
 
 /// 设置一个页表的指针
 /// \param pml4_HVA
 /// \param HPA
 /// \param GPA
 /// \return
-uint ept_pt_set (ept_PML4E_t* pml4_HVA, uint HPA, uint GPA);
+vos_uint ept_pt_set (ept_PML4E_t* pml4_HVA, vos_uint HPA, vos_uint GPA);
 
 /// 获取一个页表的指针
 /// \param pml4_HVA Host Virtual Address
 /// \param HPA  Host Physical Address
 /// \return Host Virtual Address
-ept_PTE_t* ept_pt_get (ept_PML4E_t* pml4_HVA, uint HPA);
+ept_PTE_t* ept_pt_get (ept_PML4E_t* pml4_HVA, vos_uint HPA);
 
 /// init
 /// \param page_count
 /// \return            Host Virtual Address
-ept_PML4E_t* ept_init (uint page_count);
+ept_PML4E_t* ept_init (vos_uint page_count);
 
 #endif //VOS_EPT_H

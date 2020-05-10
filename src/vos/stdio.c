@@ -38,7 +38,7 @@ void putc (char c)
 
       ypos = LINES - 1;
       memcpy (video, video + (2 * COLUMNS), FULLSIZE - 2 * COLUMNS);
-      memset16 (video + FULLSIZE - (2 * COLUMNS), ATTRIBUTE << 8, COLUMNS);
+      __memset16 (video + FULLSIZE - (2 * COLUMNS), ATTRIBUTE << 8, COLUMNS);
     }
     return;
   }
@@ -74,7 +74,7 @@ void cls ()
   }
 }
 
-void itoa (char* buf, int base, uint d)
+void itoa (char* buf, int base, vos_uint d)
 {
   char*         p = buf;
   char *        p1, *p2;
@@ -153,7 +153,7 @@ void print (const char* format, ...)
         case 'd':
         case 'u':
         case 'x':
-          itoa (buf, c, va_arg (p_args, uint64));
+          itoa (buf, c, va_arg (p_args, vos_uint64));
           p = buf;
           goto string;
           break;
@@ -173,7 +173,7 @@ void print (const char* format, ...)
           break;
 
         default:
-          putc (va_arg (p_args, uint8));
+          putc (va_arg (p_args, vos_uint8));
           break;
       }
     }

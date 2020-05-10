@@ -26,16 +26,16 @@ extern void interrupt_12 ();
 
 typedef struct
 {
-  uint16 offset_1;  // offset bits 0..15
-  uint16 selector;  // a code segment selector in GDT or LDT
-  uint8  ist;       // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
-  uint8  type_attr; // type and attributes
-  uint16 offset_2;  // offset bits 16..31
-  uint32 offset_3;  // offset bits 32..63
-  uint32 zero;      // reserved
+  vos_uint16 offset_1;  // offset bits 0..15
+  vos_uint16 selector;  // a code segment selector in GDT or LDT
+  vos_uint8  ist;       // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
+  vos_uint8  type_attr; // type and attributes
+  vos_uint16 offset_2;  // offset bits 16..31
+  vos_uint32 offset_3;  // offset bits 32..63
+  vos_uint32 zero;      // reserved
 } IDTDesc64;
 
-void make_interrupt (void* idt, uint idx, uint64 addr, uint dpl, uint cs, uint p)
+void make_interrupt (void* idt, vos_uint idx, vos_uint64 addr, vos_uint dpl, vos_uint cs, vos_uint p)
 {
   IDTDesc64* desc = (IDTDesc64*)idt + idx;
   desc->selector  = cs;
@@ -49,8 +49,8 @@ void make_interrupt (void* idt, uint idx, uint64 addr, uint dpl, uint cs, uint p
 
 void init_idt ()
 {
-  uint64* idt = (uint64*)calloc (4096);
-  make_interrupt ((void*)idt, 3, (uint64)&interrupt_3, 0, __read_cs (), 1);
+  vos_uint64* idt = (vos_uint64*)calloc (4096);
+  make_interrupt ((void*)idt, 3, (vos_uint64)&interrupt_3, 0, __read_cs (), 1);
   idtr_t idtr;
   idtr.base  = idt;
   idtr.limit = 4096;
@@ -119,7 +119,7 @@ int x86_64_main (unsigned long magic, unsigned long addr)
 
         print ("mmap\n");
 
-        uint64 addr, len = 0;
+        vos_uint64 addr, len = 0;
         for (mmap = ((struct multiboot_tag_mmap*)tag)->entries;
              (multiboot_uint8_t*)mmap < (multiboot_uint8_t*)tag + tag->size;
              mmap = (multiboot_memory_map_t*)((unsigned long)mmap + ((struct multiboot_tag_mmap*)tag)->entry_size))
@@ -277,9 +277,9 @@ int x86_64_main (unsigned long magic, unsigned long addr)
   cpuid_t cpuid;
   __cpuid (&cpuid, 0);
 
-  ((uint32*)vendor)[0] = cpuid.ebx;
-  ((uint32*)vendor)[1] = cpuid.edx;
-  ((uint32*)vendor)[2] = cpuid.ecx;
+  ((vos_uint32*)vendor)[0] = cpuid.ebx;
+  ((vos_uint32*)vendor)[1] = cpuid.edx;
+  ((vos_uint32*)vendor)[2] = cpuid.ecx;
   puts (vendor);
   if (memcmp (vendor, "GenuineIntel", 12) == 0)
     intel_entry ();

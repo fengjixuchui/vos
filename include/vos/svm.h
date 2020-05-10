@@ -6,6 +6,8 @@
 #define VOS_SVM_H
 
 #include "vos/types.h"
+#include "vos/vos.h"
+#include "vos/guest.h"
 
 //
 // See "SVM Intercept Codes"
@@ -177,44 +179,44 @@
 
 typedef struct _VMCB_CONTROL_AREA
 {
-  uint16 InterceptCrRead;            // +0x000
-  uint16 InterceptCrWrite;           // +0x002
-  uint16 InterceptDrRead;            // +0x004
-  uint16 InterceptDrWrite;           // +0x006
-  uint32 InterceptException;         // +0x008
-  uint32 InterceptMisc1;             // +0x00c
-  uint32 InterceptMisc2;             // +0x010
-  uint8  Reserved1[0x03c - 0x014];   // +0x014
-  uint16 PauseFilterThreshold;       // +0x03c
-  uint16 PauseFilterCount;           // +0x03e
-  uint64 IopmBasePa;                 // +0x040
-  uint64 MsrpmBasePa;                // +0x048
-  uint64 TscOffset;                  // +0x050
-  uint32 GuestAsid;                  // +0x058
-  uint32 TlbControl;                 // +0x05c
-  uint64 VIntr;                      // +0x060
-  uint64 InterruptShadow;            // +0x068
-  uint64 ExitCode;                   // +0x070
-  uint64 ExitInfo1;                  // +0x078
-  uint64 ExitInfo2;                  // +0x080
-  uint64 ExitIntInfo;                // +0x088
-  uint64 NpEnable;                   // +0x090
-  uint64 AvicApicBar;                // +0x098
-  uint64 GuestPaOfGhcb;              // +0x0a0
-  uint64 EventInj;                   // +0x0a8
-  uint64 NCr3;                       // +0x0b0
-  uint64 LbrVirtualizationEnable;    // +0x0b8
-  uint64 VmcbClean;                  // +0x0c0
-  uint64 NRip;                       // +0x0c8
-  uint8  NumOfBytesFetched;          // +0x0d0
-  uint8  GuestInstructionBytes[15];  // +0x0d1
-  uint64 AvicApicBackingPagePointer; // +0x0e0
-  uint64 Reserved2;                  // +0x0e8
-  uint64 AvicLogicalTablePointer;    // +0x0f0
-  uint64 AvicPhysicalTablePointer;   // +0x0f8
-  uint64 Reserved3;                  // +0x100
-  uint64 VmcbSaveStatePointer;       // +0x108
-  uint8  Reserved4[0x400 - 0x110];   // +0x110
+  vos_uint16 InterceptCrRead;            // +0x000
+  vos_uint16 InterceptCrWrite;           // +0x002
+  vos_uint16 InterceptDrRead;            // +0x004
+  vos_uint16 InterceptDrWrite;           // +0x006
+  vos_uint32 InterceptException;         // +0x008
+  vos_uint32 InterceptMisc1;             // +0x00c
+  vos_uint32 InterceptMisc2;             // +0x010
+  vos_uint8  Reserved1[0x03c - 0x014];   // +0x014
+  vos_uint16 PauseFilterThreshold;       // +0x03c
+  vos_uint16 PauseFilterCount;           // +0x03e
+  vos_uint64 IopmBasePa;                 // +0x040
+  vos_uint64 MsrpmBasePa;                // +0x048
+  vos_uint64 TscOffset;                  // +0x050
+  vos_uint32 GuestAsid;                  // +0x058
+  vos_uint32 TlbControl;                 // +0x05c
+  vos_uint64 VIntr;                      // +0x060
+  vos_uint64 InterruptShadow;            // +0x068
+  vos_uint64 ExitCode;                   // +0x070
+  vos_uint64 ExitInfo1;                  // +0x078
+  vos_uint64 ExitInfo2;                  // +0x080
+  vos_uint64 ExitIntInfo;                // +0x088
+  vos_uint64 NpEnable;                   // +0x090
+  vos_uint64 AvicApicBar;                // +0x098
+  vos_uint64 GuestPaOfGhcb;              // +0x0a0
+  vos_uint64 EventInj;                   // +0x0a8
+  vos_uint64 NCr3;                       // +0x0b0
+  vos_uint64 LbrVirtualizationEnable;    // +0x0b8
+  vos_uint64 VmcbClean;                  // +0x0c0
+  vos_uint64 NRip;                       // +0x0c8
+  vos_uint8  NumOfBytesFetched;          // +0x0d0
+  vos_uint8  GuestInstructionBytes[15];  // +0x0d1
+  vos_uint64 AvicApicBackingPagePointer; // +0x0e0
+  vos_uint64 Reserved2;                  // +0x0e8
+  vos_uint64 AvicLogicalTablePointer;    // +0x0f0
+  vos_uint64 AvicPhysicalTablePointer;   // +0x0f8
+  vos_uint64 Reserved3;                  // +0x100
+  vos_uint64 VmcbSaveStatePointer;       // +0x108
+  vos_uint8  Reserved4[0x400 - 0x110];   // +0x110
 } VMCB_CONTROL_AREA, *PVMCB_CONTROL_AREA;
 AssertCompileSize (VMCB_CONTROL_AREA, 0x400);
 
@@ -223,78 +225,78 @@ AssertCompileSize (VMCB_CONTROL_AREA, 0x400);
 //
 typedef struct _VMCB_STATE_SAVE_AREA
 {
-  uint16 EsSelector;               // +0x000
-  uint16 EsAttrib;                 // +0x002
-  uint32 EsLimit;                  // +0x004
-  uint64 EsBase;                   // +0x008
-  uint16 CsSelector;               // +0x010
-  uint16 CsAttrib;                 // +0x012
-  uint32 CsLimit;                  // +0x014
-  uint64 CsBase;                   // +0x018
-  uint16 SsSelector;               // +0x020
-  uint16 SsAttrib;                 // +0x022
-  uint32 SsLimit;                  // +0x024
-  uint64 SsBase;                   // +0x028
-  uint16 DsSelector;               // +0x030
-  uint16 DsAttrib;                 // +0x032
-  uint32 DsLimit;                  // +0x034
-  uint64 DsBase;                   // +0x038
-  uint16 FsSelector;               // +0x040
-  uint16 FsAttrib;                 // +0x042
-  uint32 FsLimit;                  // +0x044
-  uint64 FsBase;                   // +0x048
-  uint16 GsSelector;               // +0x050
-  uint16 GsAttrib;                 // +0x052
-  uint32 GsLimit;                  // +0x054
-  uint64 GsBase;                   // +0x058
-  uint16 GdtrSelector;             // +0x060
-  uint16 GdtrAttrib;               // +0x062
-  uint32 GdtrLimit;                // +0x064
-  uint64 GdtrBase;                 // +0x068
-  uint16 LdtrSelector;             // +0x070
-  uint16 LdtrAttrib;               // +0x072
-  uint32 LdtrLimit;                // +0x074
-  uint64 LdtrBase;                 // +0x078
-  uint16 IdtrSelector;             // +0x080
-  uint16 IdtrAttrib;               // +0x082
-  uint32 IdtrLimit;                // +0x084
-  uint64 IdtrBase;                 // +0x088
-  uint16 TrSelector;               // +0x090
-  uint16 TrAttrib;                 // +0x092
-  uint32 TrLimit;                  // +0x094
-  uint64 TrBase;                   // +0x098
-  uint8  Reserved1[0x0cb - 0x0a0]; // +0x0a0
-  uint8  Cpl;                      // +0x0cb
-  uint32 Reserved2;                // +0x0cc
-  uint64 Efer;                     // +0x0d0
-  uint8  Reserved3[0x148 - 0x0d8]; // +0x0d8
-  uint64 Cr4;                      // +0x148
-  uint64 Cr3;                      // +0x150
-  uint64 Cr0;                      // +0x158
-  uint64 Dr7;                      // +0x160
-  uint64 Dr6;                      // +0x168
-  uint64 Rflags;                   // +0x170
-  uint64 Rip;                      // +0x178
-  uint8  Reserved4[0x1d8 - 0x180]; // +0x180
-  uint64 Rsp;                      // +0x1d8
-  uint8  Reserved5[0x1f8 - 0x1e0]; // +0x1e0
-  uint64 Rax;                      // +0x1f8
-  uint64 Star;                     // +0x200
-  uint64 LStar;                    // +0x208
-  uint64 CStar;                    // +0x210
-  uint64 SfMask;                   // +0x218
-  uint64 KernelGsBase;             // +0x220
-  uint64 SysenterCs;               // +0x228
-  uint64 SysenterEsp;              // +0x230
-  uint64 SysenterEip;              // +0x238
-  uint64 Cr2;                      // +0x240
-  uint8  Reserved6[0x268 - 0x248]; // +0x248
-  uint64 GPat;                     // +0x268
-  uint64 DbgCtl;                   // +0x270
-  uint64 BrFrom;                   // +0x278
-  uint64 BrTo;                     // +0x280
-  uint64 LastExcepFrom;            // +0x288
-  uint64 LastExcepTo;              // +0x290
+  vos_uint16 EsSelector;               // +0x000
+  vos_uint16 EsAttrib;                 // +0x002
+  vos_uint32 EsLimit;                  // +0x004
+  vos_uint64 EsBase;                   // +0x008
+  vos_uint16 CsSelector;               // +0x010
+  vos_uint16 CsAttrib;                 // +0x012
+  vos_uint32 CsLimit;                  // +0x014
+  vos_uint64 CsBase;                   // +0x018
+  vos_uint16 SsSelector;               // +0x020
+  vos_uint16 SsAttrib;                 // +0x022
+  vos_uint32 SsLimit;                  // +0x024
+  vos_uint64 SsBase;                   // +0x028
+  vos_uint16 DsSelector;               // +0x030
+  vos_uint16 DsAttrib;                 // +0x032
+  vos_uint32 DsLimit;                  // +0x034
+  vos_uint64 DsBase;                   // +0x038
+  vos_uint16 FsSelector;               // +0x040
+  vos_uint16 FsAttrib;                 // +0x042
+  vos_uint32 FsLimit;                  // +0x044
+  vos_uint64 FsBase;                   // +0x048
+  vos_uint16 GsSelector;               // +0x050
+  vos_uint16 GsAttrib;                 // +0x052
+  vos_uint32 GsLimit;                  // +0x054
+  vos_uint64 GsBase;                   // +0x058
+  vos_uint16 GdtrSelector;             // +0x060
+  vos_uint16 GdtrAttrib;               // +0x062
+  vos_uint32 GdtrLimit;                // +0x064
+  vos_uint64 GdtrBase;                 // +0x068
+  vos_uint16 LdtrSelector;             // +0x070
+  vos_uint16 LdtrAttrib;               // +0x072
+  vos_uint32 LdtrLimit;                // +0x074
+  vos_uint64 LdtrBase;                 // +0x078
+  vos_uint16 IdtrSelector;             // +0x080
+  vos_uint16 IdtrAttrib;               // +0x082
+  vos_uint32 IdtrLimit;                // +0x084
+  vos_uint64 IdtrBase;                 // +0x088
+  vos_uint16 TrSelector;               // +0x090
+  vos_uint16 TrAttrib;                 // +0x092
+  vos_uint32 TrLimit;                  // +0x094
+  vos_uint64 TrBase;                   // +0x098
+  vos_uint8  Reserved1[0x0cb - 0x0a0]; // +0x0a0
+  vos_uint8  Cpl;                      // +0x0cb
+  vos_uint32 Reserved2;                // +0x0cc
+  vos_uint64 Efer;                     // +0x0d0
+  vos_uint8  Reserved3[0x148 - 0x0d8]; // +0x0d8
+  vos_uint64 Cr4;                      // +0x148
+  vos_uint64 Cr3;                      // +0x150
+  vos_uint64 Cr0;                      // +0x158
+  vos_uint64 Dr7;                      // +0x160
+  vos_uint64 Dr6;                      // +0x168
+  vos_uint64 Rflags;                   // +0x170
+  vos_uint64 Rip;                      // +0x178
+  vos_uint8  Reserved4[0x1d8 - 0x180]; // +0x180
+  vos_uint64 Rsp;                      // +0x1d8
+  vos_uint8  Reserved5[0x1f8 - 0x1e0]; // +0x1e0
+  vos_uint64 Rax;                      // +0x1f8
+  vos_uint64 Star;                     // +0x200
+  vos_uint64 LStar;                    // +0x208
+  vos_uint64 CStar;                    // +0x210
+  vos_uint64 SfMask;                   // +0x218
+  vos_uint64 KernelGsBase;             // +0x220
+  vos_uint64 SysenterCs;               // +0x228
+  vos_uint64 SysenterEsp;              // +0x230
+  vos_uint64 SysenterEip;              // +0x238
+  vos_uint64 Cr2;                      // +0x240
+  vos_uint8  Reserved6[0x268 - 0x248]; // +0x248
+  vos_uint64 GPat;                     // +0x268
+  vos_uint64 DbgCtl;                   // +0x270
+  vos_uint64 BrFrom;                   // +0x278
+  vos_uint64 BrTo;                     // +0x280
+  vos_uint64 LastExcepFrom;            // +0x288
+  vos_uint64 LastExcepTo;              // +0x290
 } VMCB_STATE_SAVE_AREA, *PVMCB_STATE_SAVE_AREA;
 AssertCompileSize (VMCB_STATE_SAVE_AREA, 0x298);
 
@@ -305,38 +307,44 @@ typedef struct
 {
   VMCB_CONTROL_AREA    ControlArea;
   VMCB_STATE_SAVE_AREA StateSaveArea;
-  uint8                Reserved1[0x1000 - sizeof (VMCB_CONTROL_AREA) - sizeof (VMCB_STATE_SAVE_AREA)];
+  vos_uint8            Reserved1[0x1000 - sizeof (VMCB_CONTROL_AREA) - sizeof (VMCB_STATE_SAVE_AREA)];
 } VMCB, *PVMCB;
 AssertCompileSize (VMCB, 0x1000);
 
+typedef struct vos_svm_guest_s
+{
+  vos_guest_t _;
+  VMCB*       vmcb;
+} vos_svm_guest_t;
+
 typedef struct
 {
-  uint64       rax;
-  uint64       rbx;
-  uint64       rcx;
-  uint64       rdx;
-  uint64       rsi;
-  uint64       rdi;
-  uint64       r8;
-  uint64       r9;
-  uint64       r10;
-  uint64       r11;
-  uint64       r12;
-  uint64       r13;
-  uint64       r14;
-  uint64       r15;
+  vos_uint64   rax;
+  vos_uint64   rbx;
+  vos_uint64   rcx;
+  vos_uint64   rdx;
+  vos_uint64   rsi;
+  vos_uint64   rdi;
+  vos_uint64   r8;
+  vos_uint64   r9;
+  vos_uint64   r10;
+  vos_uint64   r11;
+  vos_uint64   r12;
+  vos_uint64   r13;
+  vos_uint64   r14;
+  vos_uint64   r15;
   FlagRegister flags;
-  uint64       vmcbptr;
+  vos_uint64   vmcbptr;
 } SvmVMExitContext_t;
 
-extern void __vmrun (uint64 vmcb_pa);
+extern void __vos_svm_vmrun (vos_uint64 vmcb_pa);
 
-extern void __vmsave (uint64 vmcb_pa);
+extern void __vos_svm_vmsave (vos_uint64 vmcb_pa);
 
-extern void __vmload (uint64 vmcb_pa);
+extern void __vos_svm_vmload (vos_uint64 vmcb_pa);
 
-extern void __vmmcall (uint64 cmd, uint64 arg0, uint64 arg1);
+extern void __vos_svm_vmmcall (vos_uint64 cmd, vos_uint64 arg0, vos_uint64 arg1);
 
-extern void __svm_run (uint64 pa);
+extern void __vos_svm_loop (vos_uint64 pa);
 
 #endif //VOS_SVM_H

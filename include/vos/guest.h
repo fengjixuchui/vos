@@ -7,17 +7,17 @@
 
 #include "vos/vos.h"
 #include "vos/types.h"
-#include "vmx.h"
 
-typedef struct vos_guest
+typedef struct vos_guest_s
 {
-  struct vos_guest* next;
-  IN uint mem_page_count;
-  IN uint enable_debug;
-  IN uint enable_physical_address_translation;
-  OUT uint physical_address_translation_pointer;
-  OUT uint pml4_HPA;
-  OUT uint memory_base;
+  IN vos_uint num_threads;
+  IN vos_uint num_cpu_cores;
+  IN vos_uint num_mem_pages;
+  IN vos_uint enable_debug;
+  IN vos_uint enable_physical_address_translation;
+  OUT vos_uint physical_address_translation_pointer;
+  OUT vos_uint pml4_HPA;
+  OUT vos_uint memory_base_tmep;
   union
   {
     IN void* host_vmcs;
@@ -34,6 +34,6 @@ typedef struct vos_guest
 /// \param guest
 /// \param size
 /// \return         Guest Physical Address
-uint guest_malloc (vos_guest_t* guest, uint size);
+vos_uint guest_malloc (vos_guest_t* guest, vos_uint size);
 
 #endif //VOS_GUEST_H
