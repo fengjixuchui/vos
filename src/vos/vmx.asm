@@ -2,7 +2,7 @@
 
 bits 64
 
-extern VmmVmExitHandler
+extern vos_vmx_vmexit_handler
 
 global __vos_vmx_vmptrld
 global __vos_vmx_vmptrst
@@ -125,7 +125,7 @@ __vos_vmx_vmexit_handler:
 
   mov argv0, rsp  ; context
 
-  call VmmVmExitHandler
+  call vos_vmx_vmexit_handler
 
   cmp rax, 0
   jne .fail      ; 判断是否执行失败.
