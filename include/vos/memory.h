@@ -23,12 +23,12 @@ void* malloc (vos_uint64 size);
 void* calloc (vos_uint64 size);
 void  free (void* mem);
 
-vos_uint64 HVA_to_HPA (vos_uint64 va);
+vos_uint64 HVA_to_HPA (vos_uintptr va);
 
 /// Page Frame Number To Page Address
 /// \param pfn
 /// \return
-static inline vos_uint pfn_to_pa (vos_uint pfn)
+static inline vos_uintptr pfn_to_pa (vos_uint pfn)
 {
   return pfn << VOS_PAGE_SHIFT;
 }
@@ -36,7 +36,7 @@ static inline vos_uint pfn_to_pa (vos_uint pfn)
 /// Page Address To Page Frame Number To
 /// \param pfn
 /// \return
-static inline vos_uint pa_to_pfn (vos_uint pa)
+static inline vos_uint pa_to_pfn (vos_uintptr pa)
 {
   return pa >> VOS_PAGE_SHIFT;
 }

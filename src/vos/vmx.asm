@@ -17,7 +17,6 @@ global __vos_vmx_invept
 global __vos_vmx_invvpid
 global __vos_vmx_vmcall
 global __vos_vmx_vmfunc
-global __vos_vmx_vmexit_handler
 
 ; Load Pointer to Virtual-Machine Control Structure
 __vos_vmx_vmptrld:
@@ -49,8 +48,12 @@ __vos_vmx_vmwrite:
   and rax, 0b1000001   ; zf and cf
   ret
 
+%define VMX_VMCS_HOST_RIP                                       0x6c16
 ; 若执行成功,代码执行流程将改变,不会返回.
 __vos_vmx_vmlaunch:
+  mov argv0, VMX_VMCS_HOST_RIP
+  mov argv1, __vos_vmx_vmexit_handler
+  call __vos_vmx_vmwrite
   BOCHS_MAGIC_BREAK
   vmlaunch
   ret

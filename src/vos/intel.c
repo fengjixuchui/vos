@@ -189,49 +189,56 @@ vos_uint vos_vmx_vmexit_handler (VmxVMExitContext_t* context)
           goto succ;
         case CMD_PUTS:
         {
-          ept_PML4E_t* pml4 = __vos_vmx_vmread (VMX_VMCS64_CTRL_EPTP_FULL) & ~0xfff;
-          const char*  str  = ept_translation (pml4, context->argv1);
+          ept_PML4E_t* pml4 = (ept_PML4E_t*)(__vos_vmx_vmread (VMX_VMCS64_CTRL_EPTP_FULL) & ~0xfffull);
+          const char*  str  = (char*)ept_translation (pml4, context->argv1);
           puts (str);
           context->rax = 0;
           goto succ;
         }
+        // hook(void* gpa, void* hpa);
         case CMD_HOOK_FUNC:
         {
-          ept_PML4E_t* pml4 = __vos_vmx_vmread (VMX_VMCS64_CTRL_EPTP_FULL) & ~0xfff;
-          vos_uint     vpid = __vos_vmx_vmread (VMX_VMCS16_VPID);
+          ept_PML4E_t* pml4;
+          pml4          = (ept_PML4E_t*)(__vos_vmx_vmread (VMX_VMCS64_CTRL_EPTP_FULL) & ~0xfffull);
+          vos_uint vpid = __vos_vmx_vmread (VMX_VMCS16_VPID);
 
           print ("CMD_HOOK_FUNC from : 0x%x to 0x%x\n", context->argv1, context->argv2);
 
-          register vos_uint from = context->argv1;
-          register vos_uint to   = context->argv2;
-          if (pa_to_pfn (from) == pa_to_pfn (to))
+          register vos_uintptr src = context->argv1;
+          register vos_uintptr dst = context->argv2;
+          if (pa_to_pfn (src) == pa_to_pfn (dst))
             goto fail; // 同一个页.
 
           // hook page
           {
-            ept_PTE_t* pt = ept_pt_get (pml4, from);
+            ept_PTE_t* pt = ept_pt_get (pml4, src);
             if (pt->bits == 0)
               goto fail;
 
             pt->execute_access = 0;
 
-            vos_uint8* oldpageHPA = ept_translation (pml4, from & ~0xfff);
-            vos_uint8* newpage    = guest_malloc (guests[vpid], VOS_PAGE_SIZE);
-            vos_uint8* newpageHPA = ept_translation (pml4, newpage);
-            memcpy (newpageHPA, oldpageHPA, VOS_PAGE_SIZE);
-            register vos_uint offset              = from & 0xfff;
-            newpageHPA[offset + 0]                = 0x48;
-            newpageHPA[offset + 1]                = 0xb8;
-            *(vos_uint*)(&newpageHPA[offset + 2]) = to;
-            newpageHPA[offset + 10]               = 0xff;
-            newpageHPA[offset + 11]               = 0xe0;
+            vos_uint8 *srcpageHPA, *execpageGPA, *execpageHPA;
+            srcpageHPA  = (vos_uint8*)ept_translation (pml4, src & ~0xfffull);
+            execpageGPA = (vos_uint8*)guest_malloc ((vos_guest_t*)guests[vpid], VOS_PAGE_SIZE);
+            execpageHPA = (vos_uint8*)ept_translation (pml4, (vos_uint)execpageGPA);
+            // ept_PTE_t* execpagePT      = ept_pt_get (pml4, execpageGPA);
+            // execpagePT->execute_access = 1;
 
-            if (pa_to_pfn (context->rip) == pa_to_pfn (from))
+            memcpy (execpageHPA, srcpageHPA, VOS_PAGE_SIZE);
+            register vos_uint offset               = src & 0xfffull;
+            execpageHPA[offset + 0]                = 0x48;
+            execpageHPA[offset + 1]                = 0xb8;
+            *(vos_uint*)(&execpageHPA[offset + 2]) = dst;
+            execpageHPA[offset + 10]               = 0xff;
+            execpageHPA[offset + 11]               = 0xe0;
+
+            // 如果guest的下一条指令正好在被hook的页中,现在立刻就要跳到执行页中.
+            if (pa_to_pfn (context->rip) == pa_to_pfn (src))
             {
               bochs_break ();
-              register vos_uint offset = (context->rip + instruction_len) & 0xfff;
-              context->rip             = newpage + offset;
-              return 0;
+              register vos_uint offset_ = (context->rip + instruction_len) & 0xfffull;
+              context->rip              = (vos_uint64) (execpageGPA + offset_);
+              goto jump;
             }
           }
         }
@@ -511,7 +518,7 @@ static vos_uint AdjustMSR (vos_uint msr, vos_uint bits)
 #define CPUID_0x80000008_EAX_PA_BITS(EAX) (EAX & 0xff)        // 物理地址位宽.
 #define CPUID_0x80000008_EAX_LA_BITS(EAX) ((EAX >> 8) & 0xff) // 线性地址位宽.
 
-int vmx_start (vos_guest_t* guest)
+int vmx_start (vos_vmx_guest_t* guest)
 {
   cpuid_t cpuid;
   __cpuid (&cpuid, 0x80000008);
@@ -556,12 +563,14 @@ int vmx_start (vos_guest_t* guest)
   __read_gdtr (&gdtr);
   __read_idtr (&idtr);
 
-  ept_PML4E_t* ept_PA                         = (ept_PML4E_t*)ept_init (guest->num_mem_pages);
-  guest->physical_address_translation_pointer = ept_PA;
-  EptPointer ptr                              = {0};
-  ptr.memory_type                             = 6;
-  ptr.page_walk_length                        = 4 - 1; // 4级页表
-  ptr.pml4_address                            = pa_to_pfn (guest->physical_address_translation_pointer);
+  ept_PML4E_t *ept_PA, *ept_VA;
+  ept_VA               = (ept_PML4E_t*)ept_init (guest->_.num_mem_pages);
+  ept_PA               = (ept_PML4E_t*)HVA_to_HPA ((vos_uintptr)ept_VA);
+  guest->ept_base_HVA  = (vos_uintptr)ept_VA;
+  EptPointer ptr       = {0};
+  ptr.memory_type      = 6;
+  ptr.page_walk_length = 4 - 1; // 4级页表
+  ptr.pml4_address     = pa_to_pfn ((vos_uint)ept_PA);
 
   vos_uint vmret = 0;
   // See: Definitions of Pin-Based VM-Execution Controls
@@ -570,7 +579,7 @@ int vmx_start (vos_guest_t* guest)
   VmxPrimaryProcessorBasedControls   primary   = {.bits = 0};
   VmxSecondaryProcessorBasedControls secondary = {.bits = 0};
 
-  primary.monitor_trap_flag          = guest->enable_debug;
+  primary.monitor_trap_flag          = guest->_.enable_debug;
   primary.activate_secondary_control = 1;
 
   secondary.enable_ept              = 1;
@@ -618,7 +627,7 @@ int vmx_start (vos_guest_t* guest)
     vmret |= __vos_vmx_vmwrite (VMX_VMCS_HOST_CR4, __read_cr4 ());
 
     vmret |= __vos_vmx_vmwrite (VMX_VMCS_HOST_RSP, 4096 + (vos_uint64)calloc (4096)); // 返回Host时的栈底指针.栈是向下增长,所以把指针指向内存末尾.
-    vmret |= __vos_vmx_vmwrite (VMX_VMCS_HOST_RIP, (vos_uint64)&__vos_vmx_vmexit_handler);
+    // vmret |= __vos_vmx_vmwrite (VMX_VMCS_HOST_RIP, (vos_uint64)&__vos_vmx_vmexit_handler);
   }
 
   // Guest, See: 24.4 GUEST-STATE AREA
@@ -626,7 +635,7 @@ int vmx_start (vos_guest_t* guest)
     vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_RFLAGS, __rflags ());
     vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_CR0, __read_cr0 ());
 
-    vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_CR3, (vos_uint64)make_vmx_PML4E (guest, guest->num_mem_pages));
+    vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_CR3, (vos_uint64)make_vmx_PML4E (guest, guest->_.num_mem_pages));
     vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_CR4, __read_cr4 ());
     vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_DR7, 0x400);
 
@@ -677,10 +686,10 @@ int vmx_start (vos_guest_t* guest)
     vmret |= __vos_vmx_vmwrite (VMX_VMCS32_GUEST_LDTR_ACCESS_RIGHTS, 0b1000000010000010);
     vmret |= __vos_vmx_vmwrite (VMX_VMCS32_GUEST_TR_ACCESS_RIGHTS, 0b1000000010001011);
 
-    vos_uint code_base = guest_malloc (guest, VOS_PAGE_SIZE * 4);
+    vos_uint code_base = guest_malloc ((vos_guest_t*)guest, VOS_PAGE_SIZE * 4);
     // clang-format off
     {
-      vos_uint8*    bin = ept_translation (guest->physical_address_translation_pointer, code_base);
+      vos_uint8*    bin = (vos_uint8*)ept_translation ((ept_PML4E_t*)guest->ept_base_HVA, code_base);
       unsigned char test01[] = {
         0xe8, 0x44, 0x00, 0x00, 0x00, 0x48, 0x89, 0xc5, 0xbf, 0xdb, 0x14, 0xcd,
         0x14, 0xbe, 0x00, 0x10, 0x00, 0x00, 0xba, 0x00, 0x20, 0x00, 0x00, 0x0f,
@@ -1047,7 +1056,7 @@ int vmx_start (vos_guest_t* guest)
 
     //vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_RSP, 4096 + (uint64)calloc (4096)); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
     //vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_RIP, (uint64)&GuestEntry);
-    vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_RSP, VOS_PAGE_SIZE * guest->num_mem_pages); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
+    vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_RSP, VOS_PAGE_SIZE * guest->_.num_mem_pages); // Guest 中的栈底指针.栈是向下增长,所以把指针指向内存末尾.
     vmret |= __vos_vmx_vmwrite (VMX_VMCS_GUEST_RIP, code_base);
   }
 
@@ -1079,11 +1088,11 @@ int vmx_stop ()
 
 void intel_entry ()
 {
-  vos_guest_t guest;
+  vos_vmx_guest_t guest;
   __memset8 (&guest, 0, sizeof (guest));
-  guest.enable_physical_address_translation = 1;
+  guest._.enable_physical_address_translation = 1;
   //guest.mem_page_count     = 0x100000ull >> VOS_PAGE_SHIFT; // 1 MiB
-  guest.num_mem_pages = pa_to_pfn (0x10000ull); // 1 MiB
+  guest._.num_mem_pages = pa_to_pfn (0x10000ull); // 1 MiB
 
   if (check_vmx () != 0)
   {
@@ -1093,7 +1102,7 @@ void intel_entry ()
 
   puts ("VMX check successful.");
 
-  if (guest.enable_physical_address_translation && check_ept () != 0)
+  if (guest._.enable_physical_address_translation && check_ept () != 0)
   {
     puts ("EPT check failed");
     return;

@@ -26,11 +26,15 @@ AssertCompileSize (vos_uint64, 8);
 
 // clang-format off
 #if __x86_64__ || _WIN64
+  typedef vos_int64  vos_int;
   typedef vos_uint64 vos_uint;
+  typedef vos_int64  vos_intptr;
   typedef vos_uint64 vos_uintptr;
 #elif __i386__ || _WIN32
-  typedef vos_uint16 vos_uint;
-  typedef vos_uint16 vos_uintptr;
+  typedef vos_int32  vos_int;
+  typedef vos_uint32 vos_uint;
+  typedef vos_int32  vos_intptr;
+  typedef vos_uint32 vos_uintptr;
 #else
   #error "wtf???"
 #endif

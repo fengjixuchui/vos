@@ -108,7 +108,7 @@ void free (void* mem)
 }
 
 // 9-9-9-9-12
-vos_uint64 HVA_to_HPA (vos_uint64 va)
+vos_uint64 HVA_to_HPA (vos_uintptr va)
 {
   // uint64 PML4    = __read_cr3 ();
   // uint64 offset  = (va >> 0) & (uint64)0b111111111111;

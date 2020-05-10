@@ -647,7 +647,10 @@ typedef struct
 typedef struct vos_vmx_guest_s
 {
   vos_guest_t _;
-  void*       vmcs;
+  OUT vos_uintptr ept_base_HVA;
+  OUT vos_uintptr pml4_HPA;
+  void*           host_vmcs;
+  void*           guest_vmcs;
 } vos_vmx_guest_t;
 
 extern void       __vos_vmx_vmptrld (vos_uint64 vmcsPA);
@@ -663,12 +666,11 @@ extern void       __vos_vmx_invept (vos_uint64 type, const vos_uint* desc);
 extern void       __vos_vmx_invvpid ();
 extern void       __vos_vmx_vmcall (vos_uint64 cmd, vos_uint64 arg0, vos_uint64 arg1);
 extern void       __vos_vmx_vmfunc ();
-extern void       __vos_vmx_vmexit_handler;
 
-void     setup_vmx_PML4E (vos_guest_t* guest, vos_uint64 guest_VA, vos_uint64 GPA);
-vos_uint make_vmx_PML4E (vos_guest_t* guest, vos_uint64 page_count);
-vos_uint make_vmx_gdt (vos_guest_t* guest);
+void     setup_vmx_PML4E (vos_vmx_guest_t* guest, vos_uint64 guest_VA, vos_uint64 GPA);
+vos_uint make_vmx_PML4E (vos_vmx_guest_t* guest, vos_uint64 page_count);
+vos_uint make_vmx_gdt (vos_vmx_guest_t* guest);
 
-extern vos_guest_t* guests[8];
+extern vos_vmx_guest_t* guests[8];
 
 #endif //VOS_VMX_H

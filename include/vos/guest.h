@@ -15,19 +15,7 @@ typedef struct vos_guest_s
   IN vos_uint num_mem_pages;
   IN vos_uint enable_debug;
   IN vos_uint enable_physical_address_translation;
-  OUT vos_uint physical_address_translation_pointer;
-  OUT vos_uint pml4_HPA;
-  OUT vos_uint memory_base_tmep;
-  union
-  {
-    IN void* host_vmcs;
-    IN void* host_vmcb;
-  };
-  union
-  {
-    IN void* guest_vmcs;
-    IN void* guest_vmcb;
-  };
+  OUT vos_uintptr memory_base_tmep;
 } vos_guest_t;
 
 /// 在vmm中给guest申请一块内存.
