@@ -55,4 +55,4 @@ gdb --init-command=.gdbinit
 
 - [SimpleSvm](https://github.com/tandasat/SimpleSvm)
 
-- 《[一个64位操作系统的设计与实现](https://www.ituring.com.cn/book/2450)》
+- [《一个64位操作系统的设计与实现》](https://www.ituring.com.cn/book/2450)
