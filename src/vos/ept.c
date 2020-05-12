@@ -92,10 +92,10 @@ ept_PML4E_t* ept_init (vos_uint page_count)
 {
   register ept_PML4E_t* pml4E = calloc (VOS_PAGE_SIZE);
 
-  register vos_uint GPA    = 0;
-  register vos_uint HVA    = malloc (page_count * VOS_PAGE_SIZE);
-  register vos_uint HPA    = HVA_to_HPA (HVA);
-  register vos_uint ept_PA = HVA_to_HPA (pml4E);
+  register vos_uintptr GPA    = 0;
+  register vos_uintptr HVA    = (vos_uintptr)malloc (page_count * VOS_PAGE_SIZE);
+  register vos_uintptr HPA    = HVA_to_HPA (HVA);
+  register vos_uintptr ept_PA = HVA_to_HPA ((vos_uintptr)pml4E);
   for (register int i = 0; i < page_count; ++i, GPA += 4096, HPA += 4096)
   {
     vos_uint pte = ept_pt_set (pml4E, HPA, GPA);

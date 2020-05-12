@@ -646,11 +646,12 @@ typedef struct
 
 typedef struct vos_vmx_guest_s
 {
-  vos_guest_t _;
+  vos_guest_t     _;
   OUT vos_uintptr ept_base_HVA;
   OUT vos_uintptr pml4_HPA;
   void*           host_vmcs;
   void*           guest_vmcs;
+  vos_uintptr*    hook_table;
 } vos_vmx_guest_t;
 
 extern void       __vos_vmx_vmptrld (vos_uint64 vmcsPA);

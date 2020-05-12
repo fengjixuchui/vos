@@ -10,11 +10,11 @@
 
 typedef struct vos_guest_s
 {
-  IN vos_uint num_threads;
-  IN vos_uint num_cpu_cores;
-  IN vos_uint num_mem_pages;
-  IN vos_uint enable_debug;
-  IN vos_uint enable_physical_address_translation;
+  IN vos_uint     num_threads;
+  IN vos_uint     num_cpu_cores;
+  IN vos_uint     num_mem_pages;
+  IN vos_uint     enable_debug;
+  IN vos_uint     enable_physical_address_translation;
   OUT vos_uintptr memory_base_tmep;
 } vos_guest_t;
 

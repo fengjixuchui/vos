@@ -81,7 +81,7 @@ void setup_vmx_PML4E (vos_vmx_guest_t* guest, vos_uint64 guest_VA, vos_uint64 GP
   pt_gpa = (vos_uint64*)(pd_hpa[pdIdx] & 0xfffffffff000ull);
   if (pt_gpa == nullptr)
   {
-    pt_gpa = guest_malloc ((vos_guest_t*)guest, VOS_PAGE_SIZE);
+    pt_gpa = (vos_uint64*)guest_malloc ((vos_guest_t*)guest, VOS_PAGE_SIZE);
     pt_hpa = (vos_uint64*)ept_translation ((ept_PML4E_t*)guest->ept_base_HVA, (vos_uint64)pt_gpa);
     __memset64 (pt_hpa, 0, 512);
     pd_hpa[pdIdx] = (vos_uint64)pt_gpa | 7ull;

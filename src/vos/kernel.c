@@ -113,8 +113,7 @@ int x86_64_main (unsigned long magic, unsigned long addr)
                ((struct multiboot_tag_bootdev*)tag)->slice,
                ((struct multiboot_tag_bootdev*)tag)->part);
         break;
-      case MULTIBOOT_TAG_TYPE_MMAP:
-      {
+      case MULTIBOOT_TAG_TYPE_MMAP: {
         multiboot_memory_map_t* mmap;
 
         print ("mmap\n");
@@ -142,8 +141,7 @@ int x86_64_main (unsigned long magic, unsigned long addr)
         init_memory (0x2000000, len - (0x2000000 - addr));
       }
       break;
-      case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:
-      {
+      case MULTIBOOT_TAG_TYPE_FRAMEBUFFER: {
         multiboot_uint32_t                color;
         unsigned                          i;
         struct multiboot_tag_framebuffer* tagfb = (struct multiboot_tag_framebuffer*)tag;
@@ -151,8 +149,7 @@ int x86_64_main (unsigned long magic, unsigned long addr)
 
         switch (tagfb->common.framebuffer_type)
         {
-          case MULTIBOOT_FRAMEBUFFER_TYPE_INDEXED:
-          {
+          case MULTIBOOT_FRAMEBUFFER_TYPE_INDEXED: {
             unsigned                best_distance, distance;
             struct multiboot_color* palette;
 
@@ -216,28 +213,24 @@ int x86_64_main (unsigned long magic, unsigned long addr)
           {
             switch (tagfb->common.framebuffer_bpp)
             {
-              case 8:
-              {
+              case 8: {
                 multiboot_uint8_t* pixel = fb + tagfb->common.framebuffer_pitch * y + x;
                 //*pixel                   = color;
               }
               break;
               case 15:
-              case 16:
-              {
+              case 16: {
                 multiboot_uint16_t* pixel = fb + tagfb->common.framebuffer_pitch * y + 2 * x;
                 //*pixel                    = color;
               }
               break;
-              case 24:
-              {
+              case 24: {
                 multiboot_uint32_t* pixel = fb + tagfb->common.framebuffer_pitch * y + 3 * x;
                 //*pixel                    = (color & 0xffffff) | (*pixel & 0xff000000);
               }
               break;
 
-              case 32:
-              {
+              case 32: {
                 multiboot_uint32_t* pixel = fb + tagfb->common.framebuffer_pitch * y + 4 * x;
                 //*pixel                    = color;
               }
@@ -248,20 +241,17 @@ int x86_64_main (unsigned long magic, unsigned long addr)
 
         break;
       }
-      case MULTIBOOT_TAG_TYPE_EFI32:
-      {
+      case MULTIBOOT_TAG_TYPE_EFI32: {
         struct multiboot_tag_efi32* efi32 = (struct multiboot_tag_efi32*)tag;
 
         break;
       }
-      case MULTIBOOT_TAG_TYPE_EFI64:
-      {
+      case MULTIBOOT_TAG_TYPE_EFI64: {
         struct multiboot_tag_efi64* efi64 = (struct multiboot_tag_efi64*)tag;
 
         break;
       }
-      case MULTIBOOT_TAG_TYPE_EFI_MMAP:
-      {
+      case MULTIBOOT_TAG_TYPE_EFI_MMAP: {
         struct multiboot_tag_efi_mmap* mmap = (struct multiboot_tag_efi_mmap*)tag;
 
         break;

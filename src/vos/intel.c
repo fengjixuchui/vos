@@ -187,8 +187,7 @@ vos_uint vos_vmx_vmexit_handler (VmxVMExitContext_t* context)
       {
         case CMD_CHECK:
           goto succ;
-        case CMD_PUTS:
-        {
+        case CMD_PUTS: {
           ept_PML4E_t* pml4 = (ept_PML4E_t*)(__vos_vmx_vmread (VMX_VMCS64_CTRL_EPTP_FULL) & ~0xfffull);
           const char*  str  = (char*)ept_translation (pml4, context->argv1);
           puts (str);
@@ -196,8 +195,7 @@ vos_uint vos_vmx_vmexit_handler (VmxVMExitContext_t* context)
           goto succ;
         }
         // hook(void* gpa, void* hpa);
-        case CMD_HOOK_FUNC:
-        {
+        case CMD_HOOK_FUNC: {
           ept_PML4E_t* pml4;
           pml4          = (ept_PML4E_t*)(__vos_vmx_vmread (VMX_VMCS64_CTRL_EPTP_FULL) & ~0xfffull);
           vos_uint vpid = __vos_vmx_vmread (VMX_VMCS16_VPID);
@@ -232,14 +230,17 @@ vos_uint vos_vmx_vmexit_handler (VmxVMExitContext_t* context)
             execpageHPA[offset + 10]               = 0xff;
             execpageHPA[offset + 11]               = 0xe0;
 
+            int idx                       = pa_to_pfn (src);
+            guests[vpid]->hook_table[idx] = (vos_uintptr)execpageGPA & ~0xfffu;
+
             // 如果guest的下一条指令正好在被hook的页中,现在立刻就要跳到执行页中.
-            if (pa_to_pfn (context->rip) == pa_to_pfn (src))
-            {
-              bochs_break ();
-              register vos_uint offset_ = (context->rip + instruction_len) & 0xfffull;
-              context->rip              = (vos_uint64) (execpageGPA + offset_);
-              goto jump;
-            }
+            // if (pa_to_pfn (context->rip) == pa_to_pfn (src))
+            // {
+            //   bochs_break ();
+            //   register vos_uint offset_ = (context->rip + instruction_len) & 0xfffull;
+            //   context->rip              = (vos_uint64) (execpageGPA + offset_);
+            //   goto jump;
+            // }
           }
         }
         case CMD_HIDE_PROCESS:
@@ -430,8 +431,16 @@ vos_uint vos_vmx_vmexit_handler (VmxVMExitContext_t* context)
     case VMX_EXIT_LDTR_TR_ACCESS:
       print ("VMX_EXIT_LDTR_TR_ACCESS(%d)\n", VMX_EXIT_LDTR_TR_ACCESS);
       goto succ;
-    case VMX_EXIT_EPT_VIOLATION:
+    case VMX_EXIT_EPT_VIOLATION: {
       print ("VMX_EXIT_EPT_VIOLATION(%d)\n", VMX_EXIT_EPT_VIOLATION);
+      vos_uint    vpid     = __vos_vmx_vmread (VMX_VMCS16_VPID);
+      int         pfn      = pa_to_pfn (context->rip);
+      int         offset   = context->rip & 0xfff;
+      vos_uintptr hookpage = guests[vpid]->hook_table[pfn];
+      vos_uintptr rip      = hookpage + offset;
+      context->rip         = rip;
+      goto jump;
+    }
       goto succ;
     case VMX_EXIT_EPT_MISCONFIG:
       print ("VMX_EXIT_EPT_MISCONFIG(%d)\n", VMX_EXIT_EPT_MISCONFIG);
@@ -567,6 +576,7 @@ int vmx_start (vos_vmx_guest_t* guest)
   ept_VA               = (ept_PML4E_t*)ept_init (guest->_.num_mem_pages);
   ept_PA               = (ept_PML4E_t*)HVA_to_HPA ((vos_uintptr)ept_VA);
   guest->ept_base_HVA  = (vos_uintptr)ept_VA;
+  guest->hook_table    = calloc (guest->_.num_mem_pages * sizeof (vos_uintptr));
   EptPointer ptr       = {0};
   ptr.memory_type      = 6;
   ptr.page_walk_length = 4 - 1; // 4级页表
